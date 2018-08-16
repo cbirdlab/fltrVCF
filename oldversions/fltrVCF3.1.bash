@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION=3.2
+VERSION=3.1
 # Files needed:
 	# popmap.x.x.xxx, 
 	# reference.x.x.fasta
@@ -468,9 +468,6 @@ EOF
 			sed "${LineNum}s/.*/$(echo $NewLine | sed "s/ /\t/g")/" ${VCF_FILE%.*} > ${VCF_FILE%.*}.1.vcf
 
 			perl $RADHAP_SCRIPT -v ${VCF_FILE%.*}.1.vcf -x ${NumProc} -e -d ${THRESHOLDa} -mp ${THRESHOLDb} -u ${THRESHOLDc} -ml ${THRESHOLDd} -h ${THRESHOLDe} -z ${THRESHOLDf} -m ${THRESHOLDg} -r ${REF_FILE} -bp ${BAM_PATH} -p ${PopMap}.$CutoffCode -o $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf #-g $VCF_OUT.Fltr$FILTER_ID.${PopMap##*/}.haps.genepop -a $VCF_OUT.Fltr$FILTER_ID.${PopMap##*/}.haps.ima
-			
-			
-			
 			mawk '!/#/' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | wc -l
 			bgzip -@ $NumProc -c $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf > $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf.gz
 			tabix -p vcf $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf.gz
@@ -502,8 +499,8 @@ EOF
 		
 		#Why and how many loci were removed by rad_haplotyper
 		Explanations=("paralog" "Missing" "haplotypes" "Coverage" "SNPs" "Complex")
-		parallel --gnu --null "grep {} $VCF_OUT.Fltr$FILTER_ID.stats.out | cut -f1 > $VCF_OUT.Fltr$FILTER_ID.{}" ::: "${Explanations[@]}"
-		parallel --gnu --null "echo -n {}' removed, ' && wc -l $VCF_OUT.Fltr$FILTER_ID.{}" ::: "${Explanations[@]}"
+		parallel --gnu --null "grep {} $DataName.$CutoffCode.stats.out | cut -f1 > $DataName.$CutoffCode.{}" ::: "${Explanations[@]}"
+		parallel --gnu --null "echo -n {}' removed, ' && wc -l $DataName.$CutoffCode.{}" ::: "${Explanations[@]}"
 		echo file $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf has 
 		mawk '!/#/' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | wc -l
 		echo SNPs
@@ -649,8 +646,9 @@ fltrVCF is a tool to filter VCF files created by dDocentHPC. The filters can be 
 
         fltrVCF requires minor modification to work with dDocent output.  To do so, remove
         ".$CutoffCode" "$CutoffCode." and "$CutoffCode" in order from the script). Both
-        filter_hwe_by_pop_HPC.pl and rad_haplotyper.pl can be obtained from cbirdlab on github and 
-		are tested with fltrVCF and work. 
+        filter_hwe_by_pop_HPC.pl and rad_haplotyperHPC116.pl are tested with fltrVCF and work. Use of
+        other versions is possible, and will be neccessary if filtering data created by dDocent rather
+        than dDocentHPC, but is not supported.
 BLOCK
 
 read -d '' OPTIONS <<"BLOCK"
@@ -673,7 +671,7 @@ read -d '' OPTIONS <<"BLOCK"
                 -p <arg>        popmap file to use for defining population affiliation
                                  [${b}/popmap.${c}]
                 -w <arg>        filter_hwe perl script [filter_hwe_by_pop_HPC.pl]
-                -r <arg>        rad_haplotyper perl script [rad_haplotyper.pl v1.19]
+                -r <arg>        rad_haplotyper perl script [rad_haplotyperHPC116.pl]
 
         [output file prefix]
                 -o <arg>        optional, all output files will be prefixed with this argument []
@@ -918,6 +916,7 @@ if [ -z ${VCF_FILE+x} ]; then
 		echo "	ERROR:-<	$VCF_FILE does not exist"
 		exit
 	fi
+
 fi
 echo "	VCF_FILE is set to '${VCF_FILE}'"
 

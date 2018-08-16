@@ -649,8 +649,9 @@ fltrVCF is a tool to filter VCF files created by dDocentHPC. The filters can be 
 
         fltrVCF requires minor modification to work with dDocent output.  To do so, remove
         ".$CutoffCode" "$CutoffCode." and "$CutoffCode" in order from the script). Both
-        filter_hwe_by_pop_HPC.pl and rad_haplotyper.pl can be obtained from cbirdlab on github and 
-		are tested with fltrVCF and work. 
+        filter_hwe_by_pop_HPC.pl and rad_haplotyperHPC116.pl are tested with fltrVCF and work. Use of
+        other versions is possible, and will be neccessary if filtering data created by dDocent rather
+        than dDocentHPC, but is not supported.
 BLOCK
 
 read -d '' OPTIONS <<"BLOCK"
@@ -673,7 +674,7 @@ read -d '' OPTIONS <<"BLOCK"
                 -p <arg>        popmap file to use for defining population affiliation
                                  [${b}/popmap.${c}]
                 -w <arg>        filter_hwe perl script [filter_hwe_by_pop_HPC.pl]
-                -r <arg>        rad_haplotyper perl script [rad_haplotyper.pl v1.19]
+                -r <arg>        rad_haplotyper perl script [rad_haplotyperHPC116.pl]
 
         [output file prefix]
                 -o <arg>        optional, all output files will be prefixed with this argument []
