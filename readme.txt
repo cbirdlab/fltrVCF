@@ -7,7 +7,7 @@ Dependencies:
         perl
         mawk
         parallel
-        rad_haplotyper116HPC rad
+        rad_haplotyper.pl https://github.com/cbirdlab/rad_haplotyper.git 
         filter_hwe_by_pop_HPC
 
 Reading options from command line:

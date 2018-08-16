@@ -711,7 +711,7 @@ echo "	samtools"
 echo "	perl"
 echo "	mawk"
 echo "	parallel"
-echo "	rad_haplotyper116HPC" rad
+echo "	rad_haplotyper.pl https://github.com/cbirdlab/rad_haplotyper.git"
 echo "	filter_hwe_by_pop_HPC"
 echo ""
 
