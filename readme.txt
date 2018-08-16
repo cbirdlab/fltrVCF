@@ -46,9 +46,9 @@ OPTIONS
 
                 [input files]
                 -c <arg>        cutoff values used for reference genome [3.3]
-                -b <arg>        path to mapping directory with *.bam and *.bed files [../mapping]
-                                -d <arg>                bed file describing complete data set. Required only if -P is set.
-                                                                 [${b}/mapped.${c}.bed]
+                -b <arg>        path to mapping directory with *.bam and *.bed files [../mapping] -d <arg>
+		                bed file describing complete data set. Required only if -P is set.
+                                 [${b}/mapped.${c}.bed]
                 -v <arg>        vcf file to be filtered [${b}/TotalRawSNPs.${c}.vcf]
                 -g <arg>        reference genome fasta file [${b}/reference.${c}.fasta]
                 -p <arg>        popmap file to use for defining population affiliation
@@ -60,14 +60,14 @@ OPTIONS
                 -o <arg>        optional, all output files will be prefixed with this argument []
 
         [parallelization]
-                -P                              run every filter in parallel using GNU parallel. Requires *.bed files.
-                                                                 If not set, then only natively-parallel filters will use multiple
-                                                                 threads if -t > 1. Requires -d. [not set]
-                                -t <arg>        number of threads available for parallel processing [1]
+                -P              run every filter in parallel using GNU parallel. Requires *.bed files.
+                                If not set, then only natively-parallel filters will use multiple
+                                threads if -t > 1. Requires -d. [not set]
+                -t <arg>        number of threads available for parallel processing [1]
 
 EXAMPLES
-                The following command is recommended for most users
-                                fltrVCF.bash -P -s config.fltr.ind
+        The following command is recommended for most users
+                fltrVCF.bash -P -s config.fltr.ind
 
         The following two commands are the same, the first takes advantage of the defaults,
         the second does not.
