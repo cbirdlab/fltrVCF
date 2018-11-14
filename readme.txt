@@ -36,11 +36,17 @@ DESCRIPTION
 OPTIONS
         [filter settings]
                 -f <arg>        if set, controls filters to be run, in order. Argument should be 2
-                                 digit numbers separated by spaces. -f "01 04 02"  or  -f 01 04 02
+                                 digit numbers or the term rmContig separated by spaces. 
+								 -f "01 04 02 rmContig"  or  -f 01\ 04\ 02\ rmContig 
                                  will specify that filters 01, 04, and 02 will be run in succession.
-                                 Filters are described in the config files. If -f is not set, the
+								 Then, rmContig will remove the contigs that had SNPs filtered by 02.
+                                 rmContig should only be called after filters that remove SNPs. If 
+								 rmContig is the only filter called, it will compare the newest vcf to
+								 the penultimate vcf, and remove contigs based upon the differences.
+								 Filters are described in the config files. If -f is not set, the
                                  config file is used to determine the filters and order. If -f is
-                                 set, it will override the config file. []
+                                 set, it will override the config file. The results of each filter will
+								 be saved in a separate vcf file.[]
                 -s <arg>        file with filter settings [config.fltr.clean.ind]
 
                 [input files]

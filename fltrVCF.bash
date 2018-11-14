@@ -1,4 +1,11 @@
 #!/bin/bash
+
+#Improvements yet to be made
+#	Shuffle the bed file to improve performance
+#	Finish parallel option for rad_haplotyper
+#	Enable option to make haplotype files with radhaplotyper
+#	figure out how to combine haplotype files made by radhaplotyper in parallel mode
+
 VERSION=3.2
 # Files needed:
 	# popmap.x.x.xxx, 
@@ -45,13 +52,23 @@ function MAIN(){
 	# echo $NumProc
 	# echo $PARALLEL
 	
+	if [ $i == "rmContig" ]; then
+		if [ $PARALLEL == "FALSE" ]; then
+			VCF_FILE_2=$(ls -t ${DataName}*${i}*vcf | sed -n 2p)
+		else
+			VCF_FILE_2=$(ls -t ${DataName}*${i}*vcf.gz | sed -n 2p)
+		fi
+	fi
+	
 	for i in ${FILTERS[@]}; do
-		FILTER $i $CutoffCode $BAM_PATH $VCF_FILE $REF_FILE $PopMap $CONFIG_FILE $HWE_SCRIPT $RADHAP_SCRIPT $DataName $NumProc $PARALLEL
+		FILTER $i $CutoffCode $BAM_PATH $VCF_FILE $REF_FILE $PopMap $CONFIG_FILE $HWE_SCRIPT $RADHAP_SCRIPT $DataName $NumProc $PARALLEL $VCF_FILE_2
 		echo $i
 		if [ $PARALLEL == "FALSE" ]; then
 			VCF_FILE=$(ls -t ${DataName}*${i}*vcf | head -n 1)
+			VCF_FILE_2=$(ls -t ${DataName}*${i}*vcf | sed -n 2p)
 		else
 			VCF_FILE=$(ls -t ${DataName}*${i}*vcf.gz | head -n 1)
+			VCF_FILE_2=$(ls -t ${DataName}*${i}*vcf.gz | sed -n 2p)
 		fi
 	done
 
@@ -76,6 +93,7 @@ function FILTER(){
 	DataName=${10}
 	NumProc=${11}
 	PARALLEL=${12}
+	VCF_FILE_2=${13}
 
 	# echo $FILTER_ID
 	# echo $CutoffCode
@@ -425,19 +443,19 @@ EOF
 		
 	elif [ $FILTER_ID == "19" ]; then
 		echo; echo `date` "---------------------------FILTER19: Run rad_haplotyper to id paralogs,create haplotypes, etc -----------------------------"
-		THRESHOLDa=($(grep -P '^\t* *19\t* *rad_haplotyperHPC116\t* *-d\t* *\d' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyperHPC116\t* *-d\t* *//g' | sed 's/\t* *#.*//g' )) 
+		THRESHOLDa=($(grep -P '^\t* *19\t* *rad_haplotyper\t* *-d\t* *\d' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyper\t* *-d\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [ -z "${THRESHOLDa}" ]; then ${THRESHOLDa}=50; fi
-		THRESHOLDb=($(grep -P '^\t* *19\t* *rad_haplotyperHPC116\t* *-mp\t* *\d' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyperHPC116\t* *-mp\t* *//g' | sed 's/\t* *#.*//g' )) 
+		THRESHOLDb=($(grep -P '^\t* *19\t* *rad_haplotyper\t* *-mp\t* *\d' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyper\t* *-mp\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [ -z "${THRESHOLDb}" ]; then ${THRESHOLDb}=10; fi
-		THRESHOLDc=($(grep -P '^\t* *19\t* *rad_haplotyperHPC116\t* *-u\t* *\d' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyperHPC116\t* *-u\t* *//g' | sed 's/\t* *#.*//g' )) 
+		THRESHOLDc=($(grep -P '^\t* *19\t* *rad_haplotyper\t* *-u\t* *\d' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyper\t* *-u\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [ -z "${THRESHOLDc}" ]; then ${THRESHOLDd}=30; fi
-		THRESHOLDd=($(grep -P '^\t* *19\t* *rad_haplotyperHPC116\t* *-ml\t* *' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyperHPC116\t* *-ml\t* *//g' | sed 's/\t* *#.*//g' )) 
+		THRESHOLDd=($(grep -P '^\t* *19\t* *rad_haplotyper\t* *-ml\t* *' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyper\t* *-ml\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [ -z "${THRESHOLDd}" ]; then ${THRESHOLDd}=10; fi
-		THRESHOLDe=($(grep -P '^\t* *19\t* *rad_haplotyperHPC116\t* *-h\t* *\d' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyperHPC116\t* *-h\t* *//g' | sed 's/\t* *#.*//g' )) 
+		THRESHOLDe=($(grep -P '^\t* *19\t* *rad_haplotyper\t* *-h\t* *\d' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyper\t* *-h\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [ -z "${THRESHOLDe}" ]; then ${THRESHOLDe}=100; fi
-		THRESHOLDf=($(grep -P '^\t* *19\t* *rad_haplotyperHPC116\t* *-z\t* *\d' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyperHPC116\t* *-z\t* *//g' | sed 's/\t* *#.*//g' )) 
+		THRESHOLDf=($(grep -P '^\t* *19\t* *rad_haplotyper\t* *-z\t* *\d' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyper\t* *-z\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [ -z "${THRESHOLDf}" ]; then ${THRESHOLDf}=0.1; fi
-		THRESHOLDg=($(grep -P '^\t* *19\t* *rad_haplotyperHPC116\t* *-m\t* *\d' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyperHPC116\t* *-m\t* *//g' | sed 's/\t* *#.*//g' )) 
+		THRESHOLDg=($(grep -P '^\t* *19\t* *rad_haplotyper\t* *-m\t* *\d' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyper\t* *-m\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [ -z "${THRESHOLDg}" ]; then ${THRESHOLDg}=0.5; fi
 		VCF_OUT=$DataName$CutoffCode
 		echo "Read Sampling Depth:					$THRESHOLDa"
@@ -626,6 +644,40 @@ EOF
 			bgzip -@ $NumProc -c $VCF_OUT.randSNPperLoc.vcf > $VCF_OUT.randSNPperLoc.vcf.gz
 			tabix -p vcf $VCF_OUT.randSNPperLoc.vcf.gz
 		fi
+	
+	elif [ $FILTER_ID == "rmContigs" ]; then
+		if [ $PARALLEL == "TRUE" ]; then 
+			printf "${VCF_OUT}\n${VCF_OUT_2}\n" | parallel --no-notice "gunzip -k {}"
+			RMcontigs=($(comm -23 ${VCF_FILE_2%.*} ${VCF_FILE%.*} | cut -f1))
+			VCF_FILE=${VCF_FILE%.*}
+			VCF_FILE_2=${VCF_FILE_2%.*}			
+			parallel --no-notice -k -j ${NumProc} "grep -v {} $VCF_FILE_2" ::: "${RMcontigs[@]}"  > ${VCF_FILE%.*}_rmContigs.vcf
+			printf "${VCF_OUT}\n${VCF_OUT_2}\n" | parallel --no-notice rm {}
+			bgzip -@ $NumProc -c ${VCF_FILE%.*}_rmContigs.vcf > ${VCF_FILE%.*}_rmContigs.vcf.gz
+			tabix -p vcf ${VCF_FILE%.*}_rmContigs.vcf.gz
+		else
+			#This is a script that identifies which contigs had SNPs that were filtered, then filters those contigs
+			#in the next line, the first file is the orig and the second is filtered
+			RMcontigs=($(comm -23 $VCF_FILE_2 $VCF_FILE | cut -f1))
+			parallel --no-notice -k -j ${NumProc} "grep -v {} $VCF_FILE_2" ::: "${RMcontigs[@]}"  > ${VCF_FILE%.*}_rmContigs.vcf
+		fi
+	
+	elif [ $FILTER_ID == "99" ]; then
+		if [ $PARALLEL == "TRUE" ]; then 
+			printf "${VCF_OUT}\n${VCF_OUT_2}\n" | parallel --no-notice "gunzip -k {}"
+			RMcontigs=($(comm -23 ${VCF_FILE_2%.*} ${VCF_FILE%.*} | cut -f1))
+			VCF_FILE=${VCF_FILE%.*}
+			VCF_FILE_2=${VCF_FILE_2%.*}			
+			parallel --no-notice -k -j ${NumProc} "grep -v {} $VCF_FILE_2" ::: "${RMcontigs[@]}"  > ${VCF_FILE%.*}_rmContigs.vcf
+			printf "${VCF_OUT}\n${VCF_OUT_2}\n" | parallel --no-notice rm {}
+			bgzip -@ $NumProc -c ${VCF_FILE%.*}_rmContigs.vcf > ${VCF_FILE%.*}_rmContigs.vcf.gz
+			tabix -p vcf ${VCF_FILE%.*}_rmContigs.vcf.gz
+		else
+			#This is a script that identifies which contigs had SNPs that were filtered, then filters those contigs
+			#in the next line, the first file is the orig and the second is filtered
+			RMcontigs=($(comm -23 $VCF_FILE_2 $VCF_FILE | cut -f1))
+			parallel --no-notice -k -j ${NumProc} "grep -v {} $VCF_FILE_2" ::: "${RMcontigs[@]}"  > ${VCF_FILE%.*}_rmContigs.vcf
+		fi
 	fi
 }
 
@@ -741,11 +793,17 @@ BLOCK
 read -d '' OPTIONS <<"BLOCK"
 [filter settings]
                 -f <arg>        if set, controls filters to be run, in order. Argument should be 2
-                                 digit numbers separated by spaces. -f "01 04 02"  or  -f 01\ 04\ 02
+                                 digit numbers or the term rmContig separated by spaces. 
+								 -f "01 04 02 rmContig"  or  -f 01\ 04\ 02\ rmContig 
                                  will specify that filters 01, 04, and 02 will be run in succession.
-                                 Filters are described in the config files. If -f is not set, the
+								 Then, rmContig will remove the contigs that had SNPs filtered by 02.
+                                 rmContig should only be called after filters that remove SNPs. If 
+								 rmContig is the only filter called, it will compare the newest vcf to
+								 the penultimate vcf, and remove contigs based upon the differences.
+								 Filters are described in the config files. If -f is not set, the
                                  config file is used to determine the filters and order. If -f is
-                                 set, it will override the config file. []
+                                 set, it will override the config file. The results of each filter will
+								 be saved in a separate vcf file.[]
                 -s <arg>        file with filter settings [config.fltr.clean.ind]
 
 		[input files]
@@ -781,7 +839,7 @@ EXAMPLES
 
                 fltrVCF.bash -f "01 02 03" -c 25.10 -m ../mapping -v ../mapping/TotalRawSNPs.3.6.vcf
                         -p ../mapping/popmap.25.10 -s config.fltr.clean -w filter_hwe_by_pop.pl
-                        -r rad_haplotyperHPC116.pl -o ProjectX.A -t 40
+                        -r rad_haplotyper.pl -o ProjectX.A -t 40
 
 BLOCK
 
