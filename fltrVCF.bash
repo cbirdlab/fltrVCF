@@ -578,7 +578,6 @@ EOF
 				seq -f "%04g" 0 $NumProc | parallel --no-notice -k -j $NumProc "ForceParallelRadHap $RADHAP_SCRIPT $VCF_FILE $NumProc $THRESHOLDa $THRESHOLDb $THRESHOLDc $THRESHOLDd $THRESHOLDe $THRESHOLDf $THRESHOLDg $REF_FILE $BAM_PATH $PopMap $CutoffCode $VCF_OUT $FILTER_ID $DataName {} "
 				
 			#################END#######################################################
-			
 		else
 			#modify individual names in vcf to include cutoffcode
 			LineNum=$(awk '/^#CHROM/{print NR; exit}' $VCF_FILE)
@@ -645,16 +644,18 @@ EOF
 			tabix -p vcf $VCF_OUT.randSNPperLoc.vcf.gz
 		fi
 	
-	elif [ $FILTER_ID == "rmContigs" ]; then
+	elif [ $FILTER_ID == "rmContigs" ] || [ $Filter_ID == "99" ]; then
+		echo; echo `date` "---------------------------FILTER99: Remove contigs -----------------------------"
 		if [ $PARALLEL == "TRUE" ]; then 
-			printf "${VCF_OUT}\n${VCF_OUT_2}\n" | parallel --no-notice "gunzip -k {}"
-			RMcontigs=($(comm -23 ${VCF_FILE_2%.*} ${VCF_FILE%.*} | cut -f1))
 			VCF_FILE=${VCF_FILE%.*}
 			VCF_FILE_2=${VCF_FILE_2%.*}			
-			parallel --no-notice -k -j ${NumProc} "grep -v {} $VCF_FILE_2" ::: "${RMcontigs[@]}"  > ${VCF_FILE%.*}_rmContigs.vcf
-			printf "${VCF_OUT}\n${VCF_OUT_2}\n" | parallel --no-notice rm {}
-			bgzip -@ $NumProc -c ${VCF_FILE%.*}_rmContigs.vcf > ${VCF_FILE%.*}_rmContigs.vcf.gz
-			tabix -p vcf ${VCF_FILE%.*}_rmContigs.vcf.gz
+			VCF_OUT=${VCF_FILE%.*}_rmContigs.vcf
+			printf "${VCF_FILE}\n${VCF_FILE_2}\n" | parallel --no-notice "gunzip -c {}.gz > {}"
+			RMcontigs=($(comm -23 ${VCF_FILE_2} ${VCF_FILE} | cut -f1))
+			parallel --no-notice -k -j ${NumProc} "grep -v {} $VCF_FILE_2" ::: "${RMcontigs[@]}"  > ${VCF_OUT}
+			printf "${VCF_FILE}\n${VCF_FILE_2}\n" | parallel --no-notice rm {}
+			bgzip -@ $NumProc -c ${VCF_OUT} > ${VCF_OUT}.gz
+			tabix -p vcf ${VCF_OUT}.gz
 		else
 			#This is a script that identifies which contigs had SNPs that were filtered, then filters those contigs
 			#in the next line, the first file is the orig and the second is filtered
@@ -662,22 +663,25 @@ EOF
 			parallel --no-notice -k -j ${NumProc} "grep -v {} $VCF_FILE_2" ::: "${RMcontigs[@]}"  > ${VCF_FILE%.*}_rmContigs.vcf
 		fi
 	
-	elif [ $FILTER_ID == "99" ]; then
-		if [ $PARALLEL == "TRUE" ]; then 
-			printf "${VCF_OUT}\n${VCF_OUT_2}\n" | parallel --no-notice "gunzip -k {}"
-			RMcontigs=($(comm -23 ${VCF_FILE_2%.*} ${VCF_FILE%.*} | cut -f1))
-			VCF_FILE=${VCF_FILE%.*}
-			VCF_FILE_2=${VCF_FILE_2%.*}			
-			parallel --no-notice -k -j ${NumProc} "grep -v {} $VCF_FILE_2" ::: "${RMcontigs[@]}"  > ${VCF_FILE%.*}_rmContigs.vcf
-			printf "${VCF_OUT}\n${VCF_OUT_2}\n" | parallel --no-notice rm {}
-			bgzip -@ $NumProc -c ${VCF_FILE%.*}_rmContigs.vcf > ${VCF_FILE%.*}_rmContigs.vcf.gz
-			tabix -p vcf ${VCF_FILE%.*}_rmContigs.vcf.gz
-		else
-			#This is a script that identifies which contigs had SNPs that were filtered, then filters those contigs
-			#in the next line, the first file is the orig and the second is filtered
-			RMcontigs=($(comm -23 $VCF_FILE_2 $VCF_FILE | cut -f1))
-			parallel --no-notice -k -j ${NumProc} "grep -v {} $VCF_FILE_2" ::: "${RMcontigs[@]}"  > ${VCF_FILE%.*}_rmContigs.vcf
-		fi
+	# elif [ $FILTER_ID == "99" ]; then
+		# echo; echo `date` "---------------------------FILTER99: Remove contigs -----------------------------"
+		
+
+		# if [ $PARALLEL == "TRUE" ]; then 
+			# printf "${VCF_OUT%.*}\n${VCF_OUT_2%.*}\n" | parallel --no-notice "gunzip -c {}.gz > {}"
+			# RMcontigs=($(comm -23 ${VCF_FILE_2%.*} ${VCF_FILE%.*} | cut -f1))
+			# VCF_FILE=${VCF_FILE%.*}
+			# VCF_FILE_2=${VCF_FILE_2%.*}			
+			# parallel --no-notice -k -j ${NumProc} "grep -v {} $VCF_FILE_2" ::: "${RMcontigs[@]}"  > ${VCF_FILE%.*}_rmContigs.vcf
+			# printf "${VCF_OUT}\n${VCF_OUT_2}\n" | parallel --no-notice rm {}
+			# bgzip -@ $NumProc -c ${VCF_FILE%.*}_rmContigs.vcf > ${VCF_FILE%.*}_rmContigs.vcf.gz
+			# tabix -p vcf ${VCF_FILE%.*}_rmContigs.vcf.gz
+		# else
+			# #This is a script that identifies which contigs had SNPs that were filtered, then filters those contigs
+			# #in the next line, the first file is the orig and the second is filtered
+			# RMcontigs=($(comm -23 $VCF_FILE_2 $VCF_FILE | cut -f1))
+			# parallel --no-notice -k -j ${NumProc} "grep -v {} $VCF_FILE_2" ::: "${RMcontigs[@]}"  > ${VCF_FILE%.*}_rmContigs.vcf
+		# fi
 	fi
 }
 
@@ -735,6 +739,10 @@ function FILTER_VCFFILTER(){
 		tabix -f -p vcf $VCF_OUT.gz
 		#mawk '!/#/' $VCF_OUT.gz | wc -l
 		rm ${VCF_OUT%.*}.header.vcf
+		echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.recode.vcf.gz | wc -l " | awk -F: '{a+=$1} END{print a}'
+		echo ""
+		echo -n "	Contigs remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.recode.vcf.gz | cut -f1 | uniq | wc -l " | awk -F: '{a+=$1} END{print a}'
+
 	fi
 }
 
@@ -1139,7 +1147,7 @@ if [ ${PARALLEL} == "TRUE" ]; then
 		exit
 	fi
 	
-	get contigs with non-overlapping reads into 1 bed file and those with overlapping reads into another
+	#get contigs with non-overlapping reads into 1 bed file and those with overlapping reads into another
 	# cut -f1 ${BED_FILE} | uniq -d > $DataName$CutoffCode.nonoverlapping.contigs
 	# cat $DataName$CutoffCode.nonoverlapping.contigs | parallel --no-notice -k -j $NumProc grep {} ${BED_FILE} > $DataName$CutoffCode.nonoverlapping.contigs.bed
 	# cut -f1 ${BED_FILE} | uniq -u > $DataName$CutoffCode.overlapping.contigs
@@ -1156,11 +1164,11 @@ if [ ${PARALLEL} == "TRUE" ]; then
 	ls $DataName$CutoffCode.[0-9][0-9][0-9][0-9] | parallel --no-notice -j $NumProc mv {} {}.bed
 	
 	#double check that no contigs are split between files 
-	Indexes=($(seq -f "%04g" 0 $NumProc))
+	Indexes=($(seq -f "%04g" 0 $(($NumProc-1))))
 	FirstLinePos=($(ls *bed | parallel --no-notice -k head -n 1 {} | cut -f2 )) #takes 2nd col of first lines of each file, except first file
-	for i in $(seq 0 $NumProc)
+	for i in $(seq 0 $(($NumProc-1)))
 	do
-		if [ ${FirstLinePos[$i]} -ge 20 ]; then
+		if [ ${FirstLinePos[$i]} -ge 20 ]; then   #ceb this interrogates the position; >20 indicates that the pos is not the beginning of the contig
 			j=$(($i-1))
 			head -n 1 $DataName$CutoffCode.${Indexes[$i]}.bed >> $DataName$CutoffCode.${Indexes[$j]}.bed #copies first line of bed.index to last line of bed.index-1
 			sed -i '1d' $DataName$CutoffCode.${Indexes[$i]}.bed #removes first line of bed.index
