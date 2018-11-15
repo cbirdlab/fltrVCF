@@ -1157,16 +1157,16 @@ if [ ${PARALLEL} == "TRUE" ]; then
 	#cat $(head -n 2 ${BED_FILE) $(tail -n +3 ${BED_FILE} | shuf) 
 	
 	#split the bed file by the number of processors, making sure that no contig is split between the files
-	NumBedLines=$(($(wc -l ${BED_FILE} | sed 's/ .*//g')/${NumProc}))
-	RemainderBedLines=$((${NumBedLines}%2))
-	if [ ${RemainderBedLines} != 0 ]; then NumBedLines=$((NumBedLines+1)); fi
+	NumBedLines=$(($(wc -l ${BED_FILE} | sed 's/ .*//g')/$((${NumProc}-1))))
+	# RemainderBedLines=$((${NumBedLines}%2))
+	# if [ ${RemainderBedLines} != 0 ]; then NumBedLines=$((NumBedLines+1)); fi
 	split --lines=${NumBedLines} --numeric-suffixes --suffix-length=4 ${BED_FILE} $DataName$CutoffCode.
 	ls $DataName$CutoffCode.[0-9][0-9][0-9][0-9] | parallel --no-notice -j $NumProc mv {} {}.bed
-	
-	#double check that no contigs are split between files 
-	Indexes=($(seq -f "%04g" 0 $(($NumProc-1))))
+	NumBedFiles=$(ls $DataName$CutoffCode.*.bed | wc -l)
+	#ensure that no contigs are split between files 
+	Indexes=($(seq -f "%04g" 0 $NumBedFiles))
 	FirstLinePos=($(ls *bed | parallel --no-notice -k head -n 1 {} | cut -f2 )) #takes 2nd col of first lines of each file, except first file
-	for i in $(seq 0 $(($NumProc-1)))
+	for i in $(seq 0 $NumBedFiles)
 	do
 		if [ ${FirstLinePos[$i]} -ge 20 ]; then   #ceb this interrogates the position; >20 indicates that the pos is not the beginning of the contig
 			j=$(($i-1))
