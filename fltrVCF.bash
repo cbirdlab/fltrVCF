@@ -6,7 +6,7 @@
 #	Enable option to make haplotype files with radhaplotyper
 #	figure out how to combine haplotype files made by radhaplotyper in parallel mode
 
-VERSION=3.2
+VERSION=4
 # Files needed:
 	# popmap.x.x.xxx, 
 	# reference.x.x.fasta
@@ -24,7 +24,7 @@ echo ""
 ###################################################################################################################
 
 function MAIN(){
-	# echo `date` " reading variables into MAIN"
+	echo `date` " reading variables into MAIN"
 	name=$1[@]
 	FILTERS=("${!name}")
 	CutoffCode=$2
@@ -39,7 +39,7 @@ function MAIN(){
 	NumProc=${11}
 	PARALLEL=${12}
 	
-	# echo "	${FILTERS[0]}"
+	 echo "	Main filters are: ${FILTERS[@]}"
 	# echo "	$CutoffCode"
 	# echo $BAM_PATH
 	# echo $VCF_FILE
@@ -52,23 +52,23 @@ function MAIN(){
 	# echo $NumProc
 	# echo $PARALLEL
 	
-	if [ $i == "rmContig" ]; then
-		if [ $PARALLEL == "FALSE" ]; then
-			VCF_FILE_2=$(ls -t ${DataName}*${i}*vcf | sed -n 2p)
-		else
-			VCF_FILE_2=$(ls -t ${DataName}*${i}*vcf.gz | sed -n 2p)
-		fi
+	if [ $PARALLEL == "FALSE" ]; then
+		VCF_FILE=$(ls -t ${DataName}*vcf | head -n 1)
+		VCF_FILE_2=$(ls -t ${DataName}*vcf | sed -n 2p)
+	else
+		VCF_FILE=$(ls -t ${DataName}*vcf.gz | head -n 1)
+		VCF_FILE_2=$(ls -t ${DataName}*vcf.gz | sed -n 2p)
 	fi
 	
 	for i in ${FILTERS[@]}; do
 		FILTER $i $CutoffCode $BAM_PATH $VCF_FILE $REF_FILE $PopMap $CONFIG_FILE $HWE_SCRIPT $RADHAP_SCRIPT $DataName $NumProc $PARALLEL $VCF_FILE_2
-		echo $i
+		echo $i complete
 		if [ $PARALLEL == "FALSE" ]; then
-			VCF_FILE=$(ls -t ${DataName}*${i}*vcf | head -n 1)
-			VCF_FILE_2=$(ls -t ${DataName}*${i}*vcf | sed -n 2p)
+			VCF_FILE=$(ls -t ${DataName}*vcf | head -n 1)
+			VCF_FILE_2=$(ls -t ${DataName}*vcf | sed -n 2p)
 		else
-			VCF_FILE=$(ls -t ${DataName}*${i}*vcf.gz | head -n 1)
-			VCF_FILE_2=$(ls -t ${DataName}*${i}*vcf.gz | sed -n 2p)
+			VCF_FILE=$(ls -t ${DataName}*vcf.gz | head -n 1)
+			VCF_FILE_2=$(ls -t ${DataName}*vcf.gz | sed -n 2p)
 		fi
 	done
 
@@ -95,10 +95,10 @@ function FILTER(){
 	PARALLEL=${12}
 	VCF_FILE_2=${13}
 
-	# echo $FILTER_ID
+	 echo $FILTER_ID
 	# echo $CutoffCode
 	# echo $BAM_PATH
-	# echo $VCF_FILE
+	 echo $VCF_FILE
 	# echo $REF_FILE
 	# echo $PopMap
 	# echo $CONFIG_FILE
@@ -643,13 +643,58 @@ EOF
 			bgzip -@ $NumProc -c $VCF_OUT.randSNPperLoc.vcf > $VCF_OUT.randSNPperLoc.vcf.gz
 			tabix -p vcf $VCF_OUT.randSNPperLoc.vcf.gz
 		fi
-	
-	elif [ $FILTER_ID == "rmContigs" ] || [ $Filter_ID == "99" ]; then
-		echo; echo `date` "---------------------------FILTER99: Remove contigs -----------------------------"
+
+	elif [ $FILTER_ID == "21" ]; then
+		echo; echo `date` "---------------------------FILTER20: Select Most Informative SNP per Contig -----------------------------"
+		#Script to take random SNP from every contig in a vcffile
+		#Get name of VCF file
+		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
 		if [ $PARALLEL == "TRUE" ]; then 
+			gunzip -c $VCF_FILE > ${VCF_FILE%.*}
 			VCF_FILE=${VCF_FILE%.*}
-			VCF_FILE_2=${VCF_FILE_2%.*}			
-			VCF_OUT=${VCF_FILE%.*}_rmContigs.vcf
+		fi
+
+		NAME=$(echo $VCF_FILE | sed -e 's/\.recode.*//g' | sed -e 's/.vcf//g' ) 
+		#Calculate number of SNPs
+		Loci=(`mawk '!/#/' $VCF_FILE | wc -l `)
+		#Generate list of random numbers
+		#seq 1 500000 | shuf | head -$Loci > $VCF_OUT.nq
+		
+		AF=($(vcf-query *vcf -f '%INFO/AF\n'))
+		AF_len=$(( ${#AF[@]} - 1))
+		for i in $(seq 0 $AF_len); do
+			if (( $(echo "${AF[$i]} > 0.5" | bc) )); then
+				AF[$i]=$(echo "1 - ${AF[$i]}" | bc) 
+			fi
+		done
+		echo ${AF[@]} > $VCF_OUT.nq
+		
+		
+		#create temporary file that has a random number assigned to each SNP in first column
+		cat <(mawk '/^#/' $VCF_FILE) <(paste <(mawk '!/#/' $VCF_FILE | cut -f1-6) $VCF_OUT.nq <(mawk '!/#/' $VCF_FILE | cut -f8- ) )> $VCF_OUT.1RandSNP.temp
+		#Use awk (mawk) to parse file and select one snp per contig (one with largest random number)
+		cat $VCF_OUT.1RandSNP.temp | mawk 'BEGIN{last_loc = 0} { 
+			if ($1 ~/#/) print $0;
+			else if ($1 ~!/#/ && last_loc == 0) {last_contig=$0; last_loc=$1; last_qual=$6}
+			else if ($1 == last_loc && $6 > last_qual) {last_contig=$0; last_loc=$1; last_qual=$6}
+			else if ($1 != last_loc) {print last_contig; last_contig=$0; last_loc=$1; last_qual=$6}
+		} END{print last_contig}' | mawk 'NF > 0' > $VCF_OUT.randSNPperLoc.vcf
+		#Remove temp file
+		rm $VCF_OUT.1RandSNP.temp
+		mawk '!/#/' $VCF_OUT.randSNPperLoc.vcf  | wc -l 
+		rm $VCF_OUT.nq
+		if [ $PARALLEL == "TRUE" ]; then 
+			bgzip -@ $NumProc -c $VCF_OUT.randSNPperLoc.vcf > $VCF_OUT.randSNPperLoc.vcf.gz
+			tabix -p vcf $VCF_OUT.randSNPperLoc.vcf.gz
+		fi	
+	#elif [[ $FILTER_ID == "rmContigs" || $Filter_ID == "99" ]]; then
+	elif [ "$Filter_ID" == "99" ]; then
+		echo; echo `date` "---------------------------FILTER99: Remove contigs -----------------------------"
+		VCF_FILE=${VCF_FILE%.*}
+		VCF_FILE_2=${VCF_FILE_2%.*}			
+		VCF_OUT=${VCF_FILE%.*}_99rmContigs.vcf
+		echo $VCF_FILE $VCF_FILE_2 $VCF_OUT 
+		if [ $PARALLEL == "TRUE" ]; then 
 			printf "${VCF_FILE}\n${VCF_FILE_2}\n" | parallel --no-notice "gunzip -c {}.gz > {}"
 			RMcontigs=($(comm -23 ${VCF_FILE_2} ${VCF_FILE} | cut -f1))
 			parallel --no-notice -k -j ${NumProc} "grep -v {} $VCF_FILE_2" ::: "${RMcontigs[@]}"  > ${VCF_OUT}
@@ -660,28 +705,8 @@ EOF
 			#This is a script that identifies which contigs had SNPs that were filtered, then filters those contigs
 			#in the next line, the first file is the orig and the second is filtered
 			RMcontigs=($(comm -23 $VCF_FILE_2 $VCF_FILE | cut -f1))
-			parallel --no-notice -k -j ${NumProc} "grep -v {} $VCF_FILE_2" ::: "${RMcontigs[@]}"  > ${VCF_FILE%.*}_rmContigs.vcf
+			parallel --no-notice -k -j ${NumProc} "grep -v {} $VCF_FILE_2" ::: "${RMcontigs[@]}"  > ${VCF_OUT}
 		fi
-	
-	# elif [ $FILTER_ID == "99" ]; then
-		# echo; echo `date` "---------------------------FILTER99: Remove contigs -----------------------------"
-		
-
-		# if [ $PARALLEL == "TRUE" ]; then 
-			# printf "${VCF_OUT%.*}\n${VCF_OUT_2%.*}\n" | parallel --no-notice "gunzip -c {}.gz > {}"
-			# RMcontigs=($(comm -23 ${VCF_FILE_2%.*} ${VCF_FILE%.*} | cut -f1))
-			# VCF_FILE=${VCF_FILE%.*}
-			# VCF_FILE_2=${VCF_FILE_2%.*}			
-			# parallel --no-notice -k -j ${NumProc} "grep -v {} $VCF_FILE_2" ::: "${RMcontigs[@]}"  > ${VCF_FILE%.*}_rmContigs.vcf
-			# printf "${VCF_OUT}\n${VCF_OUT_2}\n" | parallel --no-notice rm {}
-			# bgzip -@ $NumProc -c ${VCF_FILE%.*}_rmContigs.vcf > ${VCF_FILE%.*}_rmContigs.vcf.gz
-			# tabix -p vcf ${VCF_FILE%.*}_rmContigs.vcf.gz
-		# else
-			# #This is a script that identifies which contigs had SNPs that were filtered, then filters those contigs
-			# #in the next line, the first file is the orig and the second is filtered
-			# RMcontigs=($(comm -23 $VCF_FILE_2 $VCF_FILE | cut -f1))
-			# parallel --no-notice -k -j ${NumProc} "grep -v {} $VCF_FILE_2" ::: "${RMcontigs[@]}"  > ${VCF_FILE%.*}_rmContigs.vcf
-		# fi
 	fi
 }
 
@@ -709,11 +734,13 @@ function FILTER_VCFTOOLS(){
 		NumHeaderLines=$(($NumHeaderLines+1))
 		ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -h -R {} $VCF_FILE | vcftools --vcf - \"$Filter\" --stdout 2> /dev/null | tail -n +$NumHeaderLines" 2> /dev/null | cat $VCF_OUT.header.vcf - | bgzip -@ $NumProc -c > $VCF_OUT.recode.vcf.gz
 		tabix -f -p vcf $VCF_OUT.recode.vcf.gz
-		echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.recode.vcf.gz | wc -l " | awk -F: '{a+=$1} END{print a}'
-		echo -n "	Contigs remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.recode.vcf.gz | cut -f1 | uniq | wc -l " | awk -F: '{a+=$1} END{print a}'
 		rm $VCF_OUT.header.vcf
 	fi
 	
+	echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.recode.vcf.gz | wc -l " | awk -F: '{a+=$1} END{print a}'
+	echo ""
+	echo -n "	Contigs remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.recode.vcf.gz | cut -f1 | uniq | wc -l " | awk -F: '{a+=$1} END{print a}'
+
 }
 
 function FILTER_VCFFILTER(){
@@ -739,11 +766,12 @@ function FILTER_VCFFILTER(){
 		tabix -f -p vcf $VCF_OUT.gz
 		#mawk '!/#/' $VCF_OUT.gz | wc -l
 		rm ${VCF_OUT%.*}.header.vcf
-		echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.recode.vcf.gz | wc -l " | awk -F: '{a+=$1} END{print a}'
-		echo ""
-		echo -n "	Contigs remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.recode.vcf.gz | cut -f1 | uniq | wc -l " | awk -F: '{a+=$1} END{print a}'
-
 	fi
+	
+	echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.recode.vcf.gz | wc -l " | awk -F: '{a+=$1} END{print a}'
+	echo ""
+	echo -n "	Contigs remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.recode.vcf.gz | cut -f1 | uniq | wc -l " | awk -F: '{a+=$1} END{print a}'
+
 }
 
 ###################################################################################################################
@@ -1164,9 +1192,9 @@ if [ ${PARALLEL} == "TRUE" ]; then
 	ls $DataName$CutoffCode.[0-9][0-9][0-9][0-9] | parallel --no-notice -j $NumProc mv {} {}.bed
 	NumBedFiles=$(ls $DataName$CutoffCode.*.bed | wc -l)
 	#ensure that no contigs are split between files 
-	Indexes=($(seq -f "%04g" 0 $NumBedFiles))
+	Indexes=($(seq -f "%04g" 0 $(($NumBedFiles-1))))
 	FirstLinePos=($(ls *bed | parallel --no-notice -k head -n 1 {} | cut -f2 )) #takes 2nd col of first lines of each file, except first file
-	for i in $(seq 0 $NumBedFiles)
+	for i in $(seq 0 $(($NumBedFiles-1)))
 	do
 		if [ ${FirstLinePos[$i]} -ge 20 ]; then   #ceb this interrogates the position; >20 indicates that the pos is not the beginning of the contig
 			j=$(($i-1))
