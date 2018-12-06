@@ -668,11 +668,11 @@ EOF
 				AF[$i]=$(echo "1 - ${AF[$i]}" | bc) 
 			fi
 		done
-		echo ${AF[@]} > $VCF_OUT.nq
+		echo ${AF[@]} > $VCF_OUT.mi
 		
 		
 		#create temporary file that has a random number assigned to each SNP in first column
-		cat <(mawk '/^#/' $VCF_FILE) <(paste <(mawk '!/#/' $VCF_FILE | cut -f1-6) $VCF_OUT.nq <(mawk '!/#/' $VCF_FILE | cut -f8- ) )> $VCF_OUT.1RandSNP.temp
+		cat <(mawk '/^#/' $VCF_FILE) <(paste <(mawk '!/#/' $VCF_FILE | cut -f1-6) $VCF_OUT.mi <(mawk '!/#/' $VCF_FILE | cut -f8- ) )> $VCF_OUT.1RandSNP.temp
 		#Use awk (mawk) to parse file and select one snp per contig (one with largest random number)
 		cat $VCF_OUT.MostInformativeSNP.temp | mawk 'BEGIN{last_loc = 0} { 
 			if ($1 ~/#/) print $0;
@@ -683,7 +683,7 @@ EOF
 		#Remove temp file
 		rm $VCF_OUT.MostInformativeSNP.temp
 		mawk '!/#/' $VCF_OUT.MostInformativeSNP.vcf  | wc -l 
-		rm $VCF_OUT.nq
+		rm $VCF_OUT.mi
 		if [ $PARALLEL == "TRUE" ]; then 
 			bgzip -@ $NumProc -c $VCF_OUT.MostInformativeSNP.vcf > $VCF_OUT.MostInformativeSNP.vcf.gz
 			tabix -p vcf $VCF_OUT.MostInformativeSNP.vcf.gz
