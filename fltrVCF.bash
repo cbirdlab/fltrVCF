@@ -660,6 +660,7 @@ EOF
 		#Generate list of random numbers
 		#seq 1 500000 | shuf | head -$Loci > $VCF_OUT.nq
 		
+		#Adjust AF values so that 0.5 is the max, 0.5 has most info
 		AF=($(vcf-query *vcf -f '%INFO/AF\n'))
 		AF_len=$(( ${#AF[@]} - 1))
 		for i in $(seq 0 $AF_len); do
@@ -673,20 +674,22 @@ EOF
 		#create temporary file that has a random number assigned to each SNP in first column
 		cat <(mawk '/^#/' $VCF_FILE) <(paste <(mawk '!/#/' $VCF_FILE | cut -f1-6) $VCF_OUT.nq <(mawk '!/#/' $VCF_FILE | cut -f8- ) )> $VCF_OUT.1RandSNP.temp
 		#Use awk (mawk) to parse file and select one snp per contig (one with largest random number)
-		cat $VCF_OUT.1RandSNP.temp | mawk 'BEGIN{last_loc = 0} { 
+		cat $VCF_OUT.MostInformativeSNP.temp | mawk 'BEGIN{last_loc = 0} { 
 			if ($1 ~/#/) print $0;
-			else if ($1 ~!/#/ && last_loc == 0) {last_contig=$0; last_loc=$1; last_qual=$6}
-			else if ($1 == last_loc && $6 > last_qual) {last_contig=$0; last_loc=$1; last_qual=$6}
-			else if ($1 != last_loc) {print last_contig; last_contig=$0; last_loc=$1; last_qual=$6}
-		} END{print last_contig}' | mawk 'NF > 0' > $VCF_OUT.randSNPperLoc.vcf
+			else if ($1 ~!/#/ && last_loc == 0) {last_contig=$0; last_loc=$1; last_qual=$7}
+			else if ($1 == last_loc && $7 > last_qual) {last_contig=$0; last_loc=$1; last_qual=$7}
+			else if ($1 != last_loc) {print last_contig; last_contig=$0; last_loc=$1; last_qual=$7}
+		} END{print last_contig}' | mawk 'NF > 0' > $VCF_OUT.MostInformativeSNP.vcf
 		#Remove temp file
-		rm $VCF_OUT.1RandSNP.temp
-		mawk '!/#/' $VCF_OUT.randSNPperLoc.vcf  | wc -l 
+		rm $VCF_OUT.MostInformativeSNP.temp
+		mawk '!/#/' $VCF_OUT.MostInformativeSNP.vcf  | wc -l 
 		rm $VCF_OUT.nq
 		if [ $PARALLEL == "TRUE" ]; then 
-			bgzip -@ $NumProc -c $VCF_OUT.randSNPperLoc.vcf > $VCF_OUT.randSNPperLoc.vcf.gz
-			tabix -p vcf $VCF_OUT.randSNPperLoc.vcf.gz
+			bgzip -@ $NumProc -c $VCF_OUT.MostInformativeSNP.vcf > $VCF_OUT.MostInformativeSNP.vcf.gz
+			tabix -p vcf $VCF_OUT.MostInformativeSNP.vcf.gz
 		fi	
+		
+		
 	#elif [[ $FILTER_ID == "rmContigs" || $Filter_ID == "99" ]]; then
 	elif [ "$Filter_ID" == "99" ]; then
 		echo; echo `date` "---------------------------FILTER99: Remove contigs -----------------------------"
