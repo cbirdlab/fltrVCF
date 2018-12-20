@@ -692,10 +692,10 @@ EOF
 		
 	#elif [[ $FILTER_ID == "rmContigs" || $Filter_ID == "99" ]]; then
 	elif [[ "$Filter_ID" == "86" ]]; then
-		echo; echo `date` "---------------------------FILTER99: Remove contigs -----------------------------"
+		echo; echo `date` "---------------------------FILTER 86: Remove contigs -----------------------------"
 		VCF_FILE=${VCF_FILE%.*}
 		VCF_FILE_2=${VCF_FILE_2%.*}			
-		VCF_OUT=${VCF_FILE%.*}_99rmContigs.vcf
+		VCF_OUT=${VCF_FILE%.*}_86rmContigs.vcf
 		echo $VCF_FILE $VCF_FILE_2 $VCF_OUT 
 		if [[ $PARALLEL == "TRUE" ]]; then 
 			printf "${VCF_FILE}\n${VCF_FILE_2}\n" | parallel --no-notice "gunzip -c {}.gz > {}"
