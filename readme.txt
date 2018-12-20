@@ -22,13 +22,13 @@ DESCRIPTION
         fltrVCF is a tool to filter VCF files created by dDocentHPC. The filters can be run in any order.
 
         Arguments can be controlled from either the command line or a configuration file.  Filter
-        thresholds can only be altered in the config.fltr file. Filters are described  and defined
-                in the config.fltr file.
+        thresholds can only be altered in the config.fltr file. Filters are described and defined
+        in the config.fltr file.
 
         fltrVCF is parallelized where possible, but only runs on one node or computer. MPI is not
         supported.
 
-        fltrVCF requires minor modification to work with dDocent output.  To do so, remove
+        fltrVCF requires minor modification to work with dDocent output (nonHPC).  To do so, remove
         ".$CutoffCode" "$CutoffCode." and "$CutoffCode" in order from the script). Both
         filter_hwe_by_pop_HPC.pl and rad_haplotyper.pl can be obtained from cbirdlab on github and
         are tested with fltrVCF and work.
@@ -37,19 +37,19 @@ OPTIONS
         [filter settings]
                 -f <arg>        if set, controls filters to be run, in order. Argument should be 2
                                  digit numbers or the term rmContig separated by spaces. 
-								 -f "01 04 02 rmContig"  or  -f 01\ 04\ 02\ rmContig 
+				 -f "01 04 02 rmContig"  or  -f 01\ 04\ 02\ rmContig 
                                  will specify that filters 01, 04, and 02 will be run in succession.
-								 Then, rmContig will remove the contigs that had SNPs filtered by 02.
+			         Then, rmContig will remove the contigs that had SNPs filtered by 02.
                                  rmContig should only be called after filters that remove SNPs. If 
-								 rmContig is the only filter called, it will compare the newest vcf to
-								 the penultimate vcf, and remove contigs based upon the differences.
-								 Filters are described in the config files. If -f is not set, the
+				 rmContig is the only filter called, it will compare the newest vcf to
+			         the penultimate vcf, and remove contigs based upon the differences.
+				 Filters are described in the config files. If -f is not set, the
                                  config file is used to determine the filters and order. If -f is
                                  set, it will override the config file. The results of each filter will
-								 be saved in a separate vcf file.[]
+				 be saved in a separate vcf file.[]
                 -s <arg>        file with filter settings [config.fltr.clean.ind]
 
-                [input files]
+        [input files]
                 -c <arg>        cutoff values used for reference genome [3.3]
                 -b <arg>        path to mapping directory with *.bam and *.bed files [../mapping]
                 -d <arg>        bed file describing complete data set. Required only if -P is set.
@@ -72,9 +72,9 @@ OPTIONS
 
 EXAMPLES
         
-		The following command is recommended for most users
+	The following command is recommended for most users
                 
-				fltrVCF.bash -P -s config.fltr.ind
+		fltrVCF.bash -P -s config.fltr.ind
 
         The following two commands are the same, the first takes advantage of the defaults,
         the second does not.
