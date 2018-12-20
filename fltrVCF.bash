@@ -63,7 +63,7 @@ function MAIN(){
 	for i in ${FILTERS[@]}; do
 		FILTER $i $CutoffCode $BAM_PATH $VCF_FILE $REF_FILE $PopMap $CONFIG_FILE $HWE_SCRIPT $RADHAP_SCRIPT $DataName $NumProc $PARALLEL $VCF_FILE_2
 		echo $i complete
-		if [ $PARALLEL == "FALSE" ]; then
+		if [[ $PARALLEL == "FALSE" ]]; then
 			VCF_FILE=$(ls -t ${DataName}*vcf | head -n 1)
 			VCF_FILE_2=$(ls -t ${DataName}*vcf | sed -n 2p)
 		else
@@ -645,11 +645,11 @@ EOF
 		fi
 
 	elif [ $FILTER_ID == "21" ]; then
-		echo; echo `date` "---------------------------FILTER20: Select Most Informative SNP per Contig -----------------------------"
+		echo; echo `date` "---------------------------FILTER21: Select Most Informative SNP per Contig -----------------------------"
 		#Script to take random SNP from every contig in a vcffile
 		#Get name of VCF file
 		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
-		if [ $PARALLEL == "TRUE" ]; then 
+		if [[ $PARALLEL == "TRUE" ]]; then 
 			gunzip -c $VCF_FILE > ${VCF_FILE%.*}
 			VCF_FILE=${VCF_FILE%.*}
 		fi
@@ -684,7 +684,7 @@ EOF
 		rm $VCF_OUT.MostInformativeSNP.temp
 		mawk '!/#/' $VCF_OUT.MostInformativeSNP.vcf  | wc -l 
 		rm $VCF_OUT.mi
-		if [ $PARALLEL == "TRUE" ]; then 
+		if [[ $PARALLEL == "TRUE" ]]; then 
 			bgzip -@ $NumProc -c $VCF_OUT.MostInformativeSNP.vcf > $VCF_OUT.MostInformativeSNP.vcf.gz
 			tabix -p vcf $VCF_OUT.MostInformativeSNP.vcf.gz
 		fi	
@@ -1244,7 +1244,7 @@ echo ""
 MAIN FILTERS $CutoffCode $BAM_PATH $VCF_FILE $REF_FILE $PopMap $CONFIG_FILE $HWE_SCRIPT $RADHAP_SCRIPT $DataName $NumProc $PARALLEL
 
 #cleanup files
-if [ ${PARALLEL} == "TRUE" ]; then
+if [[ ${PARALLEL} == "TRUE" ]]; then
 	ls $DataName$CutoffCode.[0-9][0-9][0-9][0-9].bed | parallel --no-notice -j $NumProc "rm {}"
 fi
 echo ""; echo `date` " --------------------------- Filtering complete! ---------------------------"; echo "" 
