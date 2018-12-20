@@ -691,7 +691,7 @@ EOF
 		
 		
 	#elif [[ $FILTER_ID == "rmContigs" || $Filter_ID == "99" ]]; then
-	elif [[ "$Filter_ID" == "99" ]]; then
+	elif [[ "$Filter_ID" == "86" ]]; then
 		echo; echo `date` "---------------------------FILTER99: Remove contigs -----------------------------"
 		VCF_FILE=${VCF_FILE%.*}
 		VCF_FILE_2=${VCF_FILE_2%.*}			
