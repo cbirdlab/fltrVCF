@@ -672,7 +672,7 @@ EOF
 		
 		
 		#create temporary file that has a random number assigned to each SNP in first column
-		cat <(mawk '/^#/' $VCF_FILE) <(paste <(mawk '!/#/' $VCF_FILE | cut -f1-6) $VCF_OUT.mi <(mawk '!/#/' $VCF_FILE | cut -f8- ) )> $VCF_OUT.1RandSNP.temp
+		cat <(mawk '/^#/' $VCF_FILE) <(paste <(mawk '!/#/' $VCF_FILE | cut -f1-6) $VCF_OUT.mi <(mawk '!/#/' $VCF_FILE | cut -f8- ) )> $VCF_OUT.MostInformativeSNP.temp
 		#Use awk (mawk) to parse file and select one snp per contig (one with largest random number)
 		cat $VCF_OUT.MostInformativeSNP.temp | mawk 'BEGIN{last_loc = 0} { 
 			if ($1 ~/#/) print $0;
