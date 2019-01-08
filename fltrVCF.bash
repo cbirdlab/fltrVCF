@@ -95,18 +95,18 @@ function FILTER(){
 	PARALLEL=${12}
 	VCF_FILE_2=${13}
 
-	echo $FILTER_ID
-	echo $CutoffCode
-	echo $BAM_PATH
-	echo $VCF_FILE
-	echo $REF_FILE
-	echo $PopMap
-	echo $CONFIG_FILE
-	echo $HWE_SCRIPT
-	echo $RADHAP_SCRIPT
-	echo $DataName
-	echo $NumProc
-	echo $PARALLEL
+	# echo $FILTER_ID
+	# echo $CutoffCode
+	# echo $BAM_PATH
+	# echo $VCF_FILE
+	# echo $REF_FILE
+	# echo $PopMap
+	# echo $CONFIG_FILE
+	# echo $HWE_SCRIPT
+	# echo $RADHAP_SCRIPT
+	# echo $DataName
+	# echo $NumProc
+	# echo $PARALLEL
 	
 	
 	if [[ $FILTER_ID == "01" ]]; then
@@ -564,7 +564,7 @@ EOF
 					#-x is the number of threads
 					perl $RADHAP_SCRIPT -v ${Indexing}.vcf -x 1 -e -d ${THRESHOLDa} -mp ${THRESHOLDb} -u ${THRESHOLDc} -ml ${THRESHOLDd} -h ${THRESHOLDe} -z ${THRESHOLDf} -m ${THRESHOLDg} -r ${REF_FILE} -bp ${BAM_PATH} -p ${PopMap}$CutoffCode -o ${VCF_OUT}.Fltr${FILTER_ID}.Haplotyped.vcf #-g ${VCF_OUT}.Fltr${FILTER_ID}.${PopMap##*/}.haps.genepop -a ${VCF_OUT}.Fltr${FILTER_ID}.${PopMap##*/}.haps.ima
 
-					if [[ -s ../$VCF_OUT.Fltr$FILTER_ID.stats.out ]]; then head -n 2 stats.out >> ../$VCF_OUT.Fltr$FILTER_ID.stats.out; fi
+					if [[ ! -f ../$VCF_OUT.Fltr$FILTER_ID.stats.out ]]; then head -n 2 stats.out > ../$VCF_OUT.Fltr$FILTER_ID.stats.out; fi
 					tail -n +3 stats.out >> ../$VCF_OUT.Fltr$FILTER_ID.stats.out
 					
 					cd ..
@@ -743,7 +743,7 @@ function FILTER_VCFTOOLS(){
 	echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.recode.vcf.gz | wc -l " | awk -F: '{a+=$1} END{print a}'
 	echo ""
 	echo -n "	Contigs remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.recode.vcf.gz | cut -f1 | uniq | wc -l " | awk -F: '{a+=$1} END{print a}'
-
+	echo ""
 }
 
 function FILTER_VCFFILTER(){
@@ -771,9 +771,9 @@ function FILTER_VCFFILTER(){
 		rm ${VCF_OUT%.*}.header.vcf
 	fi
 	
-	echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.recode.vcf.gz | wc -l " | awk -F: '{a+=$1} END{print a}'
+	echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.gz | wc -l " | awk -F: '{a+=$1} END{print a}'
 	echo ""
-	echo -n "	Contigs remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.recode.vcf.gz | cut -f1 | uniq | wc -l " | awk -F: '{a+=$1} END{print a}'
+	echo -n "	Contigs remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.gz | cut -f1 | uniq | wc -l " | awk -F: '{a+=$1} END{print a}'
 
 }
 
