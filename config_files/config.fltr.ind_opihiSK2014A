@@ -21,9 +21,9 @@ Filters
 	01 vcftools --min-alleles	2	#Remove sites with less alleles [2]
 	01 vcftools --max-alleles	2	#Remove sites with more alleles [2]
 	02 vcftools --remove-indels		#Remove sites with indels.  Not adjustable
-	03 vcftools --minQ		40	#Remove sites with lower QUAL [30]
+	03 vcftools --minQ		40	#Remove sites with lower QUAL, this is a sum across individuals [30]
 	04 vcftools --min-meanDP	20	#Remove sites with lower mean depth [2]
-	05 vcftools --max-missing	0.75	#Remove sites with lower proportion of data present [0.5]
+	05 vcftools --max-missing	0.7	#Remove sites with lower proportion of data present [0.5]
 	
 	06 vcffilter AB min		0.25	#Remove sites with equal or lower allele balance [0.375]#12/20/2018 we are relaxing because radhap will remove paralogs and this might remove sites with low DP and not due to paralogs.
 	06 vcffilter AB max		0.75	#Remove sites with equal or lower allele balance [0.625]#12/20/2018 we are relaxing... 
@@ -36,11 +36,11 @@ Filters
 	
 	12 vcftools QUAL/DP max			#Remove sites where the ratio of QUAL to DP is deemed to be too high (2x). Not adjustable
 	13 vcftools --max-meanDP	250	#Remove sites with higher mean depth [250]
-	14 vcftools --minDP		10	#Code genotypes with lesser mean depth as NA [3]
+	14 vcftools --minDP		10	#Code genotypes with lesser depth as NA [3]
 	15 vcftools --maf		0.005	#Remove sites with lesser minor allele frequency.  Adjust based upon sample size. [0.005] 
 	15 vcftools --max-maf		0.995	#Remove sites with greater minor allele frequency.  Adjust based upon sample size. [0.995]
-	16 vcftools --missing-indv	0.25	#Remove individuals with more missing data. [0.5]
-	17 vcftools --missing-sites	0.25	#Remove sites with more data missing in a pop sample. [0.5]
+	16 vcftools --missing-indv	0.3	#Remove individuals with more missing data. [0.5]
+	17 vcftools --missing-sites	0.3	#Remove sites with more data missing in a pop sample. [0.5]
 	18 filter_hwe_by_pop_HPC	0.001	#Remove sites with <p in test for HWE by pop sample. Adjust based upon sample size [0.001]
 	19 rad_haplotyper	-d	50	#depth of sampling reads for building haplotypes. [50]
 	19 rad_haplotyper	-mp	10	#Remove sites with more paralogous indivduals. Adjust according to sample size. [10]
