@@ -23,7 +23,7 @@ Filters
 	02 vcftools --remove-indels			#Remove sites with indels.  Not adjustable
 	03 vcftools --minQ			40		#Remove sites with lower QUAL [30]
 	04 vcftools --min-meanDP	10		#Remove sites with lower mean depth [2]
-	05 vcftools --max-missing	0.75		#Remove sites with less missing genotypes [0.5]
+	05 vcftools --max-missing	0.75		#Remove sites with lower proportion of data present [0.5]
 	
 	06 vcffilter AB min			0.25	#Remove sites with equal or lower allele balance [0.375]
 	06 vcffilter AB max			0.75	#Remove sites with equal or lower allele balance [0.625]
