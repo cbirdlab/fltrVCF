@@ -36,7 +36,7 @@ Filters
 	
 	12 vcftools QUAL/DP max			#Remove sites where the ratio of QUAL to DP is deemed to be too high (2x). Not adjustable
 	13 vcftools --max-meanDP	225		#Remove sites with higher mean depth [250]
-	14 vcftools --minDP			20		#Code genotypes with lesser mean depth as NA [3]
+	14 vcftools --minDP			20		#Code genotypes with lesser depth as NA [3]
 	15 vcftools --maf			0.005	#Remove sites with lesser minor allele frequency.  Adjust based upon sample size. [0.005] 
 	15 vcftools --max-maf		0.995	#Remove sites with greater minor allele frequency.  Adjust based upon sample size. [0.995]
 	16 vcftools --missing-indv	0.25		#Remove individuals with more missing data. [0.5]
