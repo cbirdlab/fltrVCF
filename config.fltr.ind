@@ -7,7 +7,7 @@ Notes: These settings are designed to clean a raw VCF file made from individuals
 fltrVCF Settings, run fltrVCF -h for description of settings
 	fltrVCF -f 01 02 03 06 08 09 05 16 17 07 04 18 19
 	fltrVCF -c 25.10
-	fltrVCF -b ../mapping/*.bam				#path to *.bam files
+	fltrVCF -b ../mapping				#path to *.bam files
 	fltrVCF -d ../mapping/mapped.25.10.bed
 	fltrVCF -v ../mapping/TotalRawSNPs.vcf
 	fltrVCF -g ../mapping/reference.25.10.fasta
@@ -23,7 +23,7 @@ Filters
 	02 vcftools --remove-indels			#Remove sites with indels.  Not adjustable
 	03 vcftools --minQ		40		#Remove sites with lower QUAL [30]
 	04 vcftools --min-meanDP	10		#Remove sites with lower mean depth [2]
-	05 vcftools --max-missing	0.5		#Remove sites with less missing genotypes [0.5]
+	05 vcftools --max-missing	0.5		#Remove sites with lower proportion of data present [0.5]
 	
 	06 vcffilter AB min		0.375		#Remove sites with equal or lower allele balance [0.375]
 	06 vcffilter AB max		0.625		#Remove sites with equal or lower allele balance [0.625]
