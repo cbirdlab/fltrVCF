@@ -24,7 +24,7 @@ Filters
 	02 vcftools --remove-indels			#Remove sites with indels.  Not adjustable
 	03 vcftools --minQ			30		#Remove sites with lower QUAL [20]
 	04 vcftools --min-meanDP	15		#Remove sites with lower mean depth [15]
-	05 vcftools --max-missing	0.7		#Remove sites with less missing genotypes [0.5]
+	05 vcftools --max-missing	0.7		#Remove sites with lower proportion of genotypes present [0.5]
 	
 	06 vcffilter AB min		0.2		#Remove sites with equal or lower allele balance [0.2]
 	06 vcffilter AB max		0.8		#Remove sites with equal or lower allele balance [0.8]
@@ -37,7 +37,7 @@ Filters
 	
 	12 vcftools QUAL/DP max				#Remove sites where the ratio of QUAL to DP is deemed to be too high (2x). Not adjustable
 	13 vcftools --max-meanDP	1000		#Remove sites with higher mean depth [250]
-	14 vcftools --minDP		10		#Code genotypes with lesser mean depth as NA [5]
+	14 vcftools --minDP		10		#Code genotypes with lesser depth of coverage as NA [5]
 	15 vcftools --maf		0.01		#Remove sites with lesser minor allele frequency.  Adjust based upon sample size. [0.005] 
 	15 vcftools --max-maf		0.99		#Remove sites with greater minor allele frequency.  Adjust based upon sample size. [0.995]
 	16 vcftools --missing-indv	0.5		#Remove individuals with more missing data. [0.5]
