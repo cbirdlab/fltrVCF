@@ -119,7 +119,8 @@ function FILTER(){
 		if [[ -z "$THRESHOLD" ]]; then THRESHOLD=2; fi
 		THRESHOLDb=($(grep -P '^\t* *01\t* *vcftools\t* *--max-alleles' ${CONFIG_FILE} | sed 's/\t* *01\t* *vcftools\t* *--max-alleles\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "$THRESHOLDb" ]]; then THRESHOLDb=2; fi
-		Filter="\"--min-alleles $THRESHOLD --max-alleles $THRESHOLDb --recode --recode-INFO-all\""
+		#Filter="\"--min-alleles $THRESHOLD --max-alleles $THRESHOLDb --recode --recode-INFO-all\""
+		Filter="--min-alleles $THRESHOLD --max-alleles $THRESHOLDb --recode --recode-INFO-all"
 		#VCF_OUT=$DataName$CutoffCode.Fltr${FILTER_ID}.${COUNTER}
 		#call function to filter vcf
 		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc
