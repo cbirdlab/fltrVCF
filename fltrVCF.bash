@@ -127,7 +127,7 @@ function FILTER(){
 
 	elif [[ $FILTER_ID == "02" ]]; then
 		echo; echo `date` "---------------------------FILTER02: Remove Sites with Indels -----------------------------"
-		Filter="\"--remove-indels --recode --recode-INFO-all\""
+		Filter="--remove-indels --recode --recode-INFO-all"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
 		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 
@@ -135,7 +135,7 @@ function FILTER(){
 		echo; echo `date` "---------------------------FILTER03: Remove Sites with QUAL < minQ -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *03\t* *vcftools\t* *--minQ' ${CONFIG_FILE} | sed 's/\t* *03\t* *vcftools\t* *--minQ\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=30; fi
-		Filter="\"--minQ ${THRESHOLD} --recode --recode-INFO-all\""
+		Filter="--minQ ${THRESHOLD} --recode --recode-INFO-all"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
 		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 
@@ -143,7 +143,7 @@ function FILTER(){
 		echo; echo `date` "---------------------------FILTER04: Remove Sites With Mean Depth of Coverage < min-meanDP -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *04\t* *vcftools\t* *--min-meanDP' ${CONFIG_FILE} | sed 's/\t* *04\t* *vcftools\t* *--min-meanDP\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=2; fi
-		Filter="\"--min-meanDP ${THRESHOLD} --recode --recode-INFO-all\""
+		Filter="--min-meanDP ${THRESHOLD} --recode --recode-INFO-all"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
 		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 
@@ -151,7 +151,7 @@ function FILTER(){
 		echo; echo `date` "---------------------------FILTER05: Remove sites called in <X proportion of individuals -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *05\t* *vcftools\t* *--max-missing' ${CONFIG_FILE} | sed 's/\t* *05\t* *vcftools\t* *--max-missing\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=0.5; fi
-		Filter="\"--max-missing ${THRESHOLD} --recode --recode-INFO-all\""
+		Filter="--max-missing ${THRESHOLD} --recode --recode-INFO-all"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
 		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 
@@ -161,7 +161,7 @@ function FILTER(){
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=0.375; fi
 		THRESHOLDb=($(grep -P '^\t* *06\t* *vcffilter\t* *AB\t* *max' ${CONFIG_FILE} | sed 's/\t* *06\t* *vcffilter\t* *AB\t* *max\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLDb}" ]]; then ${THRESHOLDb}=0.625; fi
-		Filter="\"AB > $THRESHOLD & AB < $THRESHOLDb | AB = 0\""
+		Filter="AB > $THRESHOLD & AB < $THRESHOLDb | AB = 0"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
 		FILTER_VCFFILTER "TRUE" #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc "TRUE" #the last option "TRUE" is for vcffixup
 
@@ -188,7 +188,7 @@ function FILTER(){
 		echo; echo `date` "---------------------------FILTER07: Remove sites with Alternate Allele Count <=X -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *07\t* *vcffilter\t* *AC\t* *min' ${CONFIG_FILE} | sed 's/\t* *07\t* *vcffilter\t* *AC\t* *min\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=1; fi
-		Filter="\"AC > $THRESHOLD & AN - AC > $THRESHOLD\""
+		Filter="AC > $THRESHOLD & AN - AC > $THRESHOLD"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
 		FILTER_VCFFILTER "FALSE" #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc "FALSE"
 
@@ -213,7 +213,7 @@ function FILTER(){
 		THRESHOLDmax=$(calc 1/${THRESHOLDmin})
 		#THRESHOLDmax=$(echo 1/${THRESHOLDmin} | R --vanilla --quiet | sed -n '2s/.* //p')
 #		Filter="\"MQM / MQMR > 1 - ${THRESHOLDmin} & MQM / MQMR < ${THRESHOLDmax}\""
-		Filter="\"MQM / MQMR > ${THRESHOLDmin} & MQM / MQMR < ${THRESHOLDmax}\""
+		Filter="MQM / MQMR > ${THRESHOLDmin} & MQM / MQMR < ${THRESHOLDmax}"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
 		FILTER_VCFFILTER "FALSE" #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc "FALSE"
 
@@ -222,7 +222,7 @@ function FILTER(){
 		# another filter that can be applied is whether or not their is a discrepancy in the properly paired status  for reads supporting reference or alternate alleles.
 		# Since de novo assembly is not perfect, some loci will only have unpaired reads mapping to them. This is not a problem. The problem occurs when all the reads supporting 
 		# the reference allele are paired but not supporting the alternate allele. That is indicative of a problem.
-		Filter="\"PAIRED > 0.05 & PAIREDR > 0.05 & PAIREDR / PAIRED < 1.75 & PAIREDR / PAIRED > 0.25 | PAIRED < 0.05 & PAIREDR < 0.05\""
+		Filter="PAIRED > 0.05 & PAIREDR > 0.05 & PAIREDR / PAIRED < 1.75 & PAIREDR / PAIRED > 0.25 | PAIRED < 0.05 & PAIREDR < 0.05"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
 		FILTER_VCFFILTER "FALSE" #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc "FALSE"
 		
@@ -232,7 +232,7 @@ function FILTER(){
 		# first, by removing any locus that has a quality score below 1/4 of the read depth.
 		THRESHOLD=($(grep -P '^\t* *11\t* *vcffilter\t* *QUAL\/DP\t* *min' ${CONFIG_FILE} | sed 's/\t* *11\t* *vcffilter\t* *QUAL\/DP\t* *min\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=0.25; fi
-		Filter="\"QUAL / DP > ${THRESHOLD}\""
+		Filter="QUAL / DP > ${THRESHOLD}"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
 		FILTER_VCFFILTER "FALSE" #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc "FALSE"
 
@@ -240,7 +240,7 @@ function FILTER(){
 		echo; echo `date` "---------------------------FILTER12: Remove sites with Quality > 2xDP -----------------------------"
 		# second, is a multistep process
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
-		Filter="\"--exclude-positions $VCF_OUT.lowQDloci --recode --recode-INFO-all\""
+		Filter="--exclude-positions $VCF_OUT.lowQDloci --recode --recode-INFO-all"
 		# create a list of the depth of each locus
 		if [[ $PARALLEL == "FALSE" ]]; then
 			cut -f8 $VCF_FILE | grep -oe "DP=[0-9]*" | sed -s 's/DP=//g' > $VCF_OUT.DEPTH
@@ -265,7 +265,7 @@ function FILTER(){
 		THRESHOLD=($(grep -P '^\t* *13\t* *vcftools\t* *--max-meanDP' ${CONFIG_FILE} | sed 's/\t* *13\t* *vcftools\t* *--max-meanDP\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=250; fi
 		Filter2="--site-depth"
-		Filter="\"--max-meanDP $THRESHOLD --recode --recode-INFO-all\""
+		Filter="--max-meanDP $THRESHOLD --recode --recode-INFO-all"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
 		#calculate the depth across loci with VCFtools
 		if [[ $PARALLEL == "FALSE" ]]; then 
@@ -335,7 +335,7 @@ EOF
 		echo; echo `date` "---------------------------FILTER14: If individual's genotype has DP < X, convert to missing data -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *14\t* *vcftools\t* *--minDP' ${CONFIG_FILE} | sed 's/\t* *14\t* *vcftools\t* *--minDP\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=3; fi
-		Filter="\"--minDP ${THRESHOLD} --recode --recode-INFO-all\""
+		Filter="--minDP ${THRESHOLD} --recode --recode-INFO-all"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
 		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 
@@ -347,7 +347,7 @@ EOF
 		if [[ -z "${THRESHOLDb}" ]]; then ${THRESHOLDb}=0.995; fi
 		# Remove sites with minor allele frequency: maf < x < max-maf
 		# inspect the AF values in the vcf.  This will affect the frequency of rare variants
-		Filter="\"--maf ${THRESHOLDa} --max-maf ${THRESHOLDb} --recode --recode-INFO-all\""
+		Filter="--maf ${THRESHOLDa} --max-maf ${THRESHOLDb} --recode --recode-INFO-all"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
 		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 
@@ -434,7 +434,7 @@ EOF
 		# if you have mixed sequence lengths, this will affect if the longer regions are typed
 		# UPDATE % missing threshold here	
 		cat $VCF_OUT.*.lmiss | mawk '!/CHR/' | mawk -v x=$THRESHOLD '$6 > x' | cut -f1,2 | sort | uniq > $VCF_OUT.badloci
-		Filter="\"--exclude-positions $VCF_OUT.badloci --recode --recode-INFO-all\""
+		Filter="--exclude-positions $VCF_OUT.badloci --recode --recode-INFO-all"
 		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 
 	elif [[ $FILTER_ID == "18" ]]; then
