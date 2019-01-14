@@ -6,7 +6,7 @@
 #	Enable option to make haplotype files with radhaplotyper
 #	figure out how to combine haplotype files made by radhaplotyper in parallel mode
 
-VERSION=4
+VERSION=4.1
 # Files needed:
 	# popmap.x.x.xxx, 
 	# reference.x.x.fasta
@@ -25,32 +25,32 @@ echo ""
 
 function MAIN(){
 	echo `date` " reading variables into MAIN"
-	name=$1[@]
-	FILTERS=("${!name}")
-	CutoffCode=$2
-	BAM_PATH=$3
-	VCF_FILE=$4
-	REF_FILE=$5
-	PopMap=$6
-	CONFIG_FILE=$7
-	HWE_SCRIPT=$8
-	RADHAP_SCRIPT=$9
-	DataName=${10}
-	NumProc=${11}
-	PARALLEL=${12}
+	# name=$1[@]
+	# FILTERS=("${!name}")
+	# CutoffCode=$2
+	# BAM_PATH=$3
+	# VCF_FILE=$4
+	# REF_FILE=$5
+	# PopMap=$6
+	# CONFIG_FILE=$7
+	# HWE_SCRIPT=$8
+	# RADHAP_SCRIPT=$9
+	# DataName=${10}
+	# NumProc=${11}
+	# PARALLEL=${12}
 	
-	# echo Main filters are: ${FILTERS[@]}
-	# echo $CutoffCode
-	# echo $BAM_PATH
-	# echo $VCF_FILE
-	# echo $REF_FILE
-	# echo $PopMap
-	# echo $CONFIG_FILE
-	# echo $HWE_SCRIPT
-	# echo $RADHAP_SCRIPT
-	# echo $DataName
-	# echo $NumProc
-	# echo $PARALLEL
+	# echo "     Main filters are: ${FILTERS[@]}"
+	# echo "          $CutoffCode"
+	# echo "          $BAM_PATH"
+	# echo "          $VCF_FILE"
+	# echo "          $REF_FILE"
+	# echo "          $PopMap"
+	# echo "          $CONFIG_FILE"
+	# echo "          $HWE_SCRIPT"
+	# echo "          $RADHAP_SCRIPT"
+	# echo "          $DataName"
+	# echo "          $NumProc"
+	# echo "          $PARALLEL"
 	
 	# if [[ $PARALLEL == "FALSE" ]]; then
 		# VCF_FILE=$(ls -t ${DataName}*vcf | head -n 1)
@@ -60,9 +60,10 @@ function MAIN(){
 		# VCF_FILE_2=$(ls -t ${DataName}*vcf.gz | sed -n 2p)
 	# fi
 	
+	COUNTER=1
 	for i in ${FILTERS[@]}; do
 		#echo $i Begin
-		FILTER $i $CutoffCode $BAM_PATH $VCF_FILE $REF_FILE $PopMap $CONFIG_FILE $HWE_SCRIPT $RADHAP_SCRIPT $DataName $NumProc $PARALLEL $VCF_FILE_2
+		FILTER $i #$CutoffCode $BAM_PATH $VCF_FILE $REF_FILE $PopMap $CONFIG_FILE $HWE_SCRIPT $RADHAP_SCRIPT $DataName $NumProc $PARALLEL $VCF_FILE_2 
 		#echo $i complete
 		if [[ $PARALLEL == "FALSE" ]]; then
 			VCF_FILE=$(ls -t ${DataName}*vcf | head -n 1)
@@ -71,6 +72,7 @@ function MAIN(){
 			VCF_FILE=$(ls -t ${DataName}*vcf.gz | head -n 1)
 			VCF_FILE_2=$(ls -t ${DataName}*vcf.gz | sed -n 2p)
 		fi
+		COUNTER=$((COUNTER+1))
 	done
 
 }
@@ -82,33 +84,34 @@ function MAIN(){
 function FILTER(){
 
 	FILTER_ID=$1
-	CutoffCode=$2
-	BAM_PATH=$3
-	VCF_FILE=$4
-	REF_FILE=$5
-	PopMap=$6
-	CONFIG_FILE=$7
-	HWE_SCRIPT=$8
-	RADHAP_SCRIPT=$9
-	DataName=${10}
-	NumProc=${11}
-	PARALLEL=${12}
-	VCF_FILE_2=${13}
-
-	# echo $FILTER_ID
-	# echo $CutoffCode
-	# echo $BAM_PATH
-	# echo $VCF_FILE
-	# echo $REF_FILE
-	# echo $PopMap
-	# echo $CONFIG_FILE
-	# echo $HWE_SCRIPT
-	# echo $RADHAP_SCRIPT
-	# echo $DataName
-	# echo $NumProc
-	# echo $PARALLEL
+	# CutoffCode=$2
+	# BAM_PATH=$3
+	# VCF_FILE=$4
+	# REF_FILE=$5
+	# PopMap=$6
+	# CONFIG_FILE=$7
+	# HWE_SCRIPT=$8
+	# RADHAP_SCRIPT=$9
+	# DataName=${10}
+	# NumProc=${11}
+	# PARALLEL=${12}
+	# VCF_FILE_2=${13}
 	
+	# echo "     $FILTER_ID"
+	# echo "     $CutoffCode"
+	# echo "     $BAM_PATH"
+	# echo "     $VCF_FILE"
+	# echo "     $REF_FILE"
+	# echo "     $PopMap"
+	# echo "     $CONFIG_FILE"
+	# echo "     $HWE_SCRIPT"
+	# echo "     $RADHAP_SCRIPT"
+	# echo "     $DataName"
+	# echo "     $NumProc"
+	# echo "     $PARALLEL"
+	# echo "     $COUNTER"
 	
+	VCF_OUT=$DataName$CutoffCode.Fltr${FILTER_ID}.${COUNTER}
 	if [[ $FILTER_ID == "01" ]]; then
 		echo; echo `date` "---------------------------FILTER01: Remove sites with Y < alleles < X -----------------------------"
 		#get settings from config file
@@ -117,39 +120,39 @@ function FILTER(){
 		THRESHOLDb=($(grep -P '^\t* *01\t* *vcftools\t* *--max-alleles' ${CONFIG_FILE} | sed 's/\t* *01\t* *vcftools\t* *--max-alleles\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "$THRESHOLDb" ]]; then THRESHOLDb=2; fi
 		Filter="\"--min-alleles $THRESHOLD --max-alleles $THRESHOLDb --recode --recode-INFO-all\""
-		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
+		#VCF_OUT=$DataName$CutoffCode.Fltr${FILTER_ID}.${COUNTER}
 		#call function to filter vcf
-		FILTER_VCFTOOLS $PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc
+		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc
 
 	elif [[ $FILTER_ID == "02" ]]; then
 		echo; echo `date` "---------------------------FILTER02: Remove Sites with Indels -----------------------------"
 		Filter="\"--remove-indels --recode --recode-INFO-all\""
-		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
-		FILTER_VCFTOOLS $PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
+		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
+		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 
 	elif [[ $FILTER_ID == "03" ]]; then
 		echo; echo `date` "---------------------------FILTER03: Remove Sites with QUAL < minQ -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *03\t* *vcftools\t* *--minQ' ${CONFIG_FILE} | sed 's/\t* *03\t* *vcftools\t* *--minQ\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=30; fi
 		Filter="\"--minQ ${THRESHOLD} --recode --recode-INFO-all\""
-		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
-		FILTER_VCFTOOLS $PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
+		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
+		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 
 	elif [[ $FILTER_ID == "04" ]]; then
 		echo; echo `date` "---------------------------FILTER04: Remove Sites With Mean Depth of Coverage < min-meanDP -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *04\t* *vcftools\t* *--min-meanDP' ${CONFIG_FILE} | sed 's/\t* *04\t* *vcftools\t* *--min-meanDP\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=2; fi
 		Filter="\"--min-meanDP ${THRESHOLD} --recode --recode-INFO-all\""
-		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
-		FILTER_VCFTOOLS $PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
+		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
+		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 
 	elif [[ $FILTER_ID == "05" ]]; then
 		echo; echo `date` "---------------------------FILTER05: Remove sites called in <X proportion of individuals -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *05\t* *vcftools\t* *--max-missing' ${CONFIG_FILE} | sed 's/\t* *05\t* *vcftools\t* *--max-missing\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=0.5; fi
 		Filter="\"--max-missing ${THRESHOLD} --recode --recode-INFO-all\""
-		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
-		FILTER_VCFTOOLS $PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
+		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
+		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 
 	elif [[ $FILTER_ID == "06" ]]; then
 		echo; echo `date` "---------------------------FILTER06: Remove sites with Average Allele Balance deviating too far from 0.5 while keeping those with AB=0  -----------------------------"
@@ -158,8 +161,8 @@ function FILTER(){
 		THRESHOLDb=($(grep -P '^\t* *06\t* *vcffilter\t* *AB\t* *max' ${CONFIG_FILE} | sed 's/\t* *06\t* *vcffilter\t* *AB\t* *max\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLDb}" ]]; then ${THRESHOLDb}=0.625; fi
 		Filter="\"AB > $THRESHOLD & AB < $THRESHOLDb | AB = 0\""
-		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
-		FILTER_VCFFILTER $PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc "TRUE" #the last option "TRUE" is for vcffixup
+		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
+		FILTER_VCFFILTER "TRUE" #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc "TRUE" #the last option "TRUE" is for vcffixup
 
 #UNDER CONSTRUCTION V
 #	elif [[ $FILTER_ID == "96" ]]; then
@@ -185,8 +188,8 @@ function FILTER(){
 		THRESHOLD=($(grep -P '^\t* *07\t* *vcffilter\t* *AC\t* *min' ${CONFIG_FILE} | sed 's/\t* *07\t* *vcffilter\t* *AC\t* *min\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=1; fi
 		Filter="\"AC > $THRESHOLD & AN - AC > $THRESHOLD\""
-		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
-		FILTER_VCFFILTER $PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc "FALSE"
+		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
+		FILTER_VCFFILTER "FALSE" #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc "FALSE"
 
 	elif [[ $FILTER_ID == "08" ]]; then
 		echo; echo `date` "---------------------------FILTER08: Remove sites covered by both F and R reads-----------------------------"
@@ -194,8 +197,8 @@ function FILTER(){
 		THRESHOLD=($(grep -P '^\t* *08\t* *vcffilter\t* *SAF\/SAR\t* *min' ${CONFIG_FILE} | sed 's/\t* *08\t* *vcffilter\t* *SAF\/SAR\t* *min\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=1; fi
 		Filter="\"SAF / SAR > ${THRESHOLD} & SRF / SRR > ${THRESHOLD} | SAR / SAF > ${THRESHOLD} & SRR / SRF > ${THRESHOLD}\""
-		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
-		FILTER_VCFFILTER $PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc "FALSE"
+		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
+		FILTER_VCFFILTER "FALSE" #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc "FALSE"
 
 	elif [[ $FILTER_ID == "09" ]]; then
 		echo; echo `date` "---------------------------FILTER09: Remove sites with low/high ratio of mean mapping quality of alt to ref -----------------------------"
@@ -208,9 +211,10 @@ function FILTER(){
 		#THRESHOLDmin=$(echo 1-${THRESHOLD} | R --vanilla --quiet | sed -n '2s/.* //p')
 		THRESHOLDmax=$(calc 1/${THRESHOLDmin})
 		#THRESHOLDmax=$(echo 1/${THRESHOLDmin} | R --vanilla --quiet | sed -n '2s/.* //p')
-		Filter="\"MQM / MQMR > 1 - ${THRESHOLDmin} & MQM / MQMR < ${THRESHOLDmax}\""
-		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
-		FILTER_VCFFILTER $PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc "FALSE"
+#		Filter="\"MQM / MQMR > 1 - ${THRESHOLDmin} & MQM / MQMR < ${THRESHOLDmax}\""
+		Filter="\"MQM / MQMR > ${THRESHOLDmin} & MQM / MQMR < ${THRESHOLDmax}\""
+		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
+		FILTER_VCFFILTER "FALSE" #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc "FALSE"
 
 	elif [[ $FILTER_ID == "10" ]]; then
 		echo; echo `date` "---------------------------FILTER10: Remove sites with one allele only supported by reads not properly paired -----------------------------"
@@ -218,8 +222,8 @@ function FILTER(){
 		# Since de novo assembly is not perfect, some loci will only have unpaired reads mapping to them. This is not a problem. The problem occurs when all the reads supporting 
 		# the reference allele are paired but not supporting the alternate allele. That is indicative of a problem.
 		Filter="\"PAIRED > 0.05 & PAIREDR > 0.05 & PAIREDR / PAIRED < 1.75 & PAIREDR / PAIRED > 0.25 | PAIRED < 0.05 & PAIREDR < 0.05\""
-		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
-		FILTER_VCFFILTER $PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc "FALSE"
+		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
+		FILTER_VCFFILTER "FALSE" #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc "FALSE"
 		
 	elif [[ $FILTER_ID == "11" ]]; then
 		echo; echo `date` "---------------------------FILTER11: Remove sites with Quality/DP ratio < 0.25 -----------------------------"
@@ -228,44 +232,49 @@ function FILTER(){
 		THRESHOLD=($(grep -P '^\t* *11\t* *vcffilter\t* *QUAL\/DP\t* *min' ${CONFIG_FILE} | sed 's/\t* *11\t* *vcffilter\t* *QUAL\/DP\t* *min\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=0.25; fi
 		Filter="\"QUAL / DP > ${THRESHOLD}\""
-		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
-		FILTER_VCFFILTER $PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc "FALSE"
+		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
+		FILTER_VCFFILTER "FALSE" #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc "FALSE"
 
 	elif [[ $FILTER_ID == "12" ]]; then
 		echo; echo `date` "---------------------------FILTER12: Remove sites with Quality > 2xDP -----------------------------"
 		# second, is a multistep process
-		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
+		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
 		Filter="\"--exclude-positions $VCF_OUT.lowQDloci --recode --recode-INFO-all\""
 		# create a list of the depth of each locus
-		cut -f8 $VCF_FILE | grep -oe "DP=[0-9]*" | sed -s 's/DP=//g' > $VCF_OUT.DEPTH
+		if [[ $PARALLEL == "FALSE" ]]; then
+			cut -f8 $VCF_FILE | grep -oe "DP=[0-9]*" | sed -s 's/DP=//g' > $VCF_OUT.DEPTH
+		else
+			zcat $VCF_FILE | grep -oe "DP=[0-9]*" | sed -s 's/DP=//g' > $VCF_OUT.DEPTH
+		fi
 		#Then make a list of quality scores
 		mawk '!/#/' $VCF_FILE | cut -f1,2,6 > $VCF_OUT.loci.qual
 		#Then calculate mean depth
 		MeanDepth=$(mawk '{ sum += $1; n++ } END { if (n > 0) print sum / n; }' $VCF_OUT.DEPTH )
 		#echo $MeanDepth
-		MeanDepth2=$(python -c "print int($MeanDepth+3*($MeanDepth**0.5))" )
+		#MeanDepth2=$(python -c "print int($MeanDepth+3*($MeanDepth**0.5))" )
+		MeanDepth2=$(echo "$MeanDepth+3*sqrt($MeanDepth)" | bc)
 		#echo $MeanDepth2
 		#Next we paste the depth and quality files together and find the loci above the cutoff that do not have quality scores 2 times the depth
 		paste $VCF_OUT.loci.qual $VCF_OUT.DEPTH | mawk -v x=$MeanDepth2 '$4 > x' | mawk '$3 < 2 * $4' > $VCF_OUT.lowQDloci
 		#cat $VCF_OUT.lowQDloci
-		FILTER_VCFTOOLS $PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
+		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 
 	elif [[ $FILTER_ID == "13" ]]; then
 		echo; echo `date` "---------------------------FILTER13: Remove sites with mean DP greater than X  -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *13\t* *vcftools\t* *--max-meanDP' ${CONFIG_FILE} | sed 's/\t* *13\t* *vcftools\t* *--max-meanDP\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=250; fi
-		Filter="--site-depth"
-		Filter2="\"--max-meanDP $THRESHOLD --recode --recode-INFO-all\""
-		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
+		Filter2="--site-depth"
+		Filter="\"--max-meanDP $THRESHOLD --recode --recode-INFO-all\""
+		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
 		#calculate the depth across loci with VCFtools
 		if [[ $PARALLEL == "FALSE" ]]; then 
-			vcftools --vcf ${VCF_FILE} $Filter --out $VCF_OUT 2> /dev/null
+			vcftools --vcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
 			#Now let’s take VCFtools output and cut it to only the depth scores
 			cut -f3 $VCF_OUT.ldepth > $VCF_OUT.site.depth
 			#Now let’s calculate the average depth by dividing the above file by the number of individuals
 			NumInd=$(awk '{if ($1 == "#CHROM"){print NF-9; exit}}' $VCF_FILE )
 		else
-			vcftools --gzvcf ${VCF_FILE} $Filter --out $VCF_OUT 2> /dev/null
+			vcftools --gzvcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
 			#Now let’s take VCFtools output and cut it to only the depth scores
 			cut -f3 $VCF_OUT.ldepth > $VCF_OUT.site.depth
 			#Now let’s calculate the average depth by dividing the above file by the number of individuals
@@ -318,7 +327,7 @@ EOF
 	pause -1
 EOF
    
-		FILTER_VCFTOOLS $PARALLEL $VCF_FILE "${Filter2}" $VCF_OUT $DataName $CutoffCode $NumProc 
+		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 		rm meandepthpersite
 
 	elif [[ $FILTER_ID == "14" ]]; then
@@ -326,8 +335,8 @@ EOF
 		THRESHOLD=($(grep -P '^\t* *14\t* *vcftools\t* *--minDP' ${CONFIG_FILE} | sed 's/\t* *14\t* *vcftools\t* *--minDP\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=3; fi
 		Filter="\"--minDP ${THRESHOLD} --recode --recode-INFO-all\""
-		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
-		FILTER_VCFTOOLS $PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
+		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
+		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 
 	elif [[ $FILTER_ID == "15" ]]; then
 		echo; echo `date` "---------------------------FILTER15: Remove sites with maf > minor allele frequency > max-maf -----------------------------"
@@ -338,21 +347,21 @@ EOF
 		# Remove sites with minor allele frequency: maf < x < max-maf
 		# inspect the AF values in the vcf.  This will affect the frequency of rare variants
 		Filter="\"--maf ${THRESHOLDa} --max-maf ${THRESHOLDb} --recode --recode-INFO-all\""
-		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
-		FILTER_VCFTOOLS $PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
+		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
+		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 
 	elif [[ $FILTER_ID == "16" ]]; then
 		echo; echo `date` "---------------------------FILTER16: Remove Individuals with Too Much Missing Data-----------------------------"
 		THRESHOLD=($(grep -P '^\t* *16\t* *vcftools\t* *--missing-indv' ${CONFIG_FILE} | sed 's/\t* *16\t* *vcftools\t* *--missing-indv\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=0.5; fi
 		Filter="--missing-indv"
-		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
+		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
 		if [[ $PARALLEL == "FALSE" ]]; then 
 			vcftools --vcf ${VCF_FILE} $Filter --out $VCF_OUT 2> /dev/null
 		else
 			vcftools --gzvcf ${VCF_FILE} $Filter --out $VCF_OUT 2> /dev/null
 		fi
-		echo; echo "Missing Data Report, file=*out.imiss, Numbers Near 0 are Good"
+		echo; echo "  Missing Data Report, file=*out.imiss, Numbers Near 0 are Good"
 		#cat $VCF_OUT.imiss
 		#graph missing data for individuals
 		mawk '!/IN/' $VCF_OUT.imiss | cut -f5 > $VCF_OUT.totalmissing
@@ -376,29 +385,33 @@ EOF
 		#examine the plot and the $DataName$CutoffCode.out.imiss file to determine if this cutoff is ok
 		mawk -v x="$THRESHOLD" '$5 > x' $VCF_OUT.imiss | cut -f1 > $VCF_OUT.lowDP-2.indv
 		##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		Filter2="\"--remove $VCF_OUT.lowDP-2.indv --recode --recode-INFO-all\""
+		Filter="\"--remove $VCF_OUT.lowDP-2.indv --recode --recode-INFO-all\""
 		#list of individuals to remove
-		echo `date` " Individuals with too much missing data:"
+		echo " Individuals with too much missing data:"
 		cat $VCF_OUT.lowDP-2.indv
 		#remove individuals with low reads
-		FILTER_VCFTOOLS $PARALLEL $VCF_FILE "${Filter2}" $VCF_OUT $DataName $CutoffCode $NumProc 
+		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 		#need to remove individuals from header
-		gunzip $VCF_OUT.recode.vcf.gz
+		if [[ $PARALLEL == "TRUE" ]]; then gunzip $VCF_OUT.recode.vcf.gz; fi
 		while read i; do
 			sed -i "s/\t$i//g" $VCF_OUT.recode.vcf
 		done < $VCF_OUT.lowDP-2.indv
-		bgzip -@ $NumProc -c $VCF_OUT.recode.vcf > $VCF_OUT.recode.vcf.gz
-		tabix -p vcf $VCF_OUT.recode.vcf.gz
+		if [[ $PARALLEL == "TRUE" ]]; then 
+			bgzip -@ $NumProc -c $VCF_OUT.recode.vcf > $VCF_OUT.recode.vcf.gz
+			tabix -p vcf $VCF_OUT.recode.vcf.gz
+			rm $VCF_OUT.recode.vcf
+		fi
 		rm totalmissing 
+		
 		
 	elif [[ $FILTER_ID == "17" ]]; then
 		echo; echo `date` "---------------------------FILTER17: Remove sites with data missing for too many individuals in a population -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *17\t* *vcftools\t* *--missing-sites' ${CONFIG_FILE} | sed 's/\t* *17\t* *vcftools\t* *--missing-sites\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=0.5; fi
-		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
+		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
 		# restrict the data to loci with a high percentage of individuals that geneotyped
 		#SitesMissData: on/off switch for this filter at beginning of script
-		echo "Using PopMap File: $PopMap"
+		echo "     Using PopMap File: $PopMap"
 		#cat $PopMap
 		# get the popnames from the popmap
 		popnames=`mawk '{print $2}' $PopMap | sort | uniq `
@@ -420,14 +433,14 @@ EOF
 		# if you have mixed sequence lengths, this will affect if the longer regions are typed
 		# UPDATE % missing threshold here	
 		cat $VCF_OUT.*.lmiss | mawk '!/CHR/' | mawk -v x=$THRESHOLD '$6 > x' | cut -f1,2 | sort | uniq > $VCF_OUT.badloci
-		Filter2="\"--exclude-positions $VCF_OUT.badloci --recode --recode-INFO-all\""
-		FILTER_VCFTOOLS $PARALLEL $VCF_FILE "${Filter2}" $VCF_OUT $DataName $CutoffCode $NumProc 
+		Filter="\"--exclude-positions $VCF_OUT.badloci --recode --recode-INFO-all\""
+		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 
 	elif [[ $FILTER_ID == "18" ]]; then
 		echo; echo `date` "---------------------------FILTER18: Remove sites not in HWE p<X) -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *18\t* *filter_hwe_by_pop_HPC' ${CONFIG_FILE} | sed 's/\t* *18\t* *filter_hwe_by_pop_HPC\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=0.001; fi
-		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
+		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
 		if [[ $PARALLEL == "TRUE" ]]; then 
 			gunzip -c $VCF_FILE > ${VCF_FILE%.*}
 			perl $HWE_SCRIPT -v ${VCF_FILE%.*} -p $PopMap -h ${THRESHOLD} -d $DataName -co $CutoffCode -o $VCF_OUT.HWE
@@ -458,13 +471,13 @@ EOF
 		THRESHOLDg=($(grep -P '^\t* *19\t* *rad_haplotyper\t* *-m\t* *\d' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyper\t* *-m\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLDg}" ]]; then ${THRESHOLDg}=0.5; fi
 		VCF_OUT=$DataName$CutoffCode
-		echo "Read Sampling Depth:					$THRESHOLDa"
-		echo "Max Paralogous Individuals: 				$THRESHOLDb"
-		echo "Max Num SNPs per Contig:				$THRESHOLDc"
-		echo "Max Low Cov Individuals:				$THRESHOLDd"
-		echo "Max Haplotypes in XS of NumSNPs:			$THRESHOLDe"
-		echo "Num or Prop of Reads With Rare Haplotypes to Ignore:	$THRESHOLDf"
-		echo "Min Prop of Individuals with Haplotypes to Keep Locus:	$THRESHOLDg"
+		echo "     Read Sampling Depth:					$THRESHOLDa"
+		echo "     Max Paralogous Individuals: 				$THRESHOLDb"
+		echo "     Max Num SNPs per Contig:				$THRESHOLDc"
+		echo "     Max Low Cov Individuals:				$THRESHOLDd"
+		echo "     Max Haplotypes in XS of NumSNPs:			$THRESHOLDe"
+		echo "     Num or Prop of Reads With Rare Haplotypes to Ignore:	$THRESHOLDf"
+		echo "     Min Prop of Individuals with Haplotypes to Keep Locus:	$THRESHOLDg"
 		
 		# restrict the data to loci with a high percentage of individuals that geneotyped
 		###rad_haplotyper will create a vcf file with only the haplotypable snps, a genepop file with haps, and an ima file with haps
@@ -615,7 +628,7 @@ EOF
 		echo; echo `date` "---------------------------FILTER20: Select 1 Random SNP per Contig -----------------------------"
 		#Script to take random SNP from every contig in a vcffile
 		#Get name of VCF file
-		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
+		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
 		if [[ $PARALLEL == "TRUE" ]]; then 
 			gunzip -c $VCF_FILE > ${VCF_FILE%.*}
 			VCF_FILE=${VCF_FILE%.*}
@@ -648,7 +661,7 @@ EOF
 		echo; echo `date` "---------------------------FILTER21: Select Most Informative SNP per Contig -----------------------------"
 		#Script to take random SNP from every contig in a vcffile
 		#Get name of VCF file
-		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
+		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
 		if [[ $PARALLEL == "TRUE" ]]; then 
 			gunzip -c $VCF_FILE > ${VCF_FILE%.*}
 			VCF_FILE=${VCF_FILE%.*}
@@ -719,19 +732,37 @@ EOF
 ###################################################################################################################
 
 function FILTER_VCFTOOLS(){
-	PARALLEL=$1
-	VCF_FILE=$2
-	Filter=$(echo "$3")
-	VCF_OUT=$4
-	DataName=$5
-	CutoffCode=$6
-	NumProc=$7
+	# PARALLEL=$1
+	# VCF_FILE=$2
+	# Filter=$(echo "$3")
+	# VCF_OUT=$4
+	# DataName=$5
+	# CutoffCode=$6
+	# NumProc=$7
+	
+	# echo "     $Filter"
+	# echo "     $FILTER_ID"
+	# echo "     $CutoffCode"
+	# echo "     $BAM_PATH"
+	# echo "     $VCF_FILE"
+	# echo "     $REF_FILE"
+	# echo "     $PopMap"
+	# echo "     $CONFIG_FILE"
+	# echo "     $HWE_SCRIPT"
+	# echo "     $RADHAP_SCRIPT"
+	# echo "     $DataName"
+	# echo "     $NumProc"
+	# echo "     $PARALLEL"
+	# echo "     $COUNTER"
+	# echo "     $VCF_OUT"
 	
 	if [[ $PARALLEL == "FALSE" ]]; then 
+		echo "     vcftools --vcf $VCF_FILE $Filter --out $VCF_OUT.recode.vcf 2> /dev/null"
 		vcftools --vcf $VCF_FILE $Filter --out $VCF_OUT 2> /dev/null
 		echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.recode.vcf | wc -l
 		echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.recode.vcf | cut -f1 | uniq | wc -l
 	else
+		echo "     ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc \"tabix -h -R {} $VCF_FILE | vcftools --vcf - \"$Filter\" --stdout 2> /dev/null | tail -n +$NumHeaderLines\" 2> /dev/null | cat $VCF_OUT.header.vcf - | bgzip -@ $NumProc -c > $VCF_OUT.recode.vcf.gz"
 		tabix -H $VCF_FILE > $VCF_OUT.header.vcf
 		NumHeaderLines=$(tabix -H $VCF_FILE | wc -l)
 		NumHeaderLines=$(($NumHeaderLines+1))
@@ -740,23 +771,42 @@ function FILTER_VCFTOOLS(){
 		rm $VCF_OUT.header.vcf
 	fi
 	
-	echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.recode.vcf.gz | wc -l " | awk -F: '{a+=$1} END{print a}'
-	echo ""
+	echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.recode.vcf.gz | wc -l " | awk -F: '{a+=$1} END{print a}' 
 	echo -n "	Contigs remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.recode.vcf.gz | cut -f1 | uniq | wc -l " | awk -F: '{a+=$1} END{print a}'
 	echo ""
 }
 
 function FILTER_VCFFILTER(){
-	PARALLEL=$1
-	VCF_FILE=$2
-	Filter=$(echo "$3")
-	VCF_OUT=$4
-	DataName=$5
-	CutoffCode=$6
-	NumProc=$7
-	VCFFIXUP=$8
+	# PARALLEL=$1
+	# VCF_FILE=$2
+	# Filter=$(echo "$3")
+	# VCF_OUT=$4.vcf
+	# DataName=$5
+	# CutoffCode=$6
+	# NumProc=$7
+	VCFFIXUP=$1
+	VCF_OUT=$VCF_OUT.vcf
 
+	# echo "     $Filter"
+	# echo "     $FILTER_ID"
+	# echo "     $CutoffCode"
+	# echo "     $BAM_PATH"
+	# echo "     $VCF_FILE"
+	# echo "     $REF_FILE"
+	# echo "     $PopMap"
+	# echo "     $CONFIG_FILE"
+	# echo "     $HWE_SCRIPT"
+	# echo "     $RADHAP_SCRIPT"
+	# echo "     $DataName"
+	# echo "     $NumProc"
+	# echo "     $PARALLEL"
+	# echo "     $COUNTER"
+	# echo "     $VCF_OUT"
+	# echo "     $VCFFIXUP"
+	
 	if [[ $PARALLEL == "FALSE" ]]; then 
+		if [[  $VCFFIXUP == "TRUE" ]]; then echo "     vcffilter -s -f \"$Filter\" $VCF_FILE | vcffixup - > $VCF_OUT"; fi
+		if [[  $VCFFIXUP == "FALSE" ]]; then echo "     vcffilter -s -f \"$Filter\" $VCF_FILE > $VCF_OUT"; fi
 		if [[  $VCFFIXUP == "TRUE" ]]; then vcffilter -s -f "$Filter" $VCF_FILE | vcffixup - > $VCF_OUT ; fi
 		if [[  $VCFFIXUP == "FALSE" ]]; then vcffilter -s -f "$Filter" $VCF_FILE > $VCF_OUT; fi
 		mawk '!/#/' $VCF_OUT | wc -l
@@ -764,6 +814,8 @@ function FILTER_VCFFILTER(){
 		tabix -H $VCF_FILE > ${VCF_OUT%.*}.header.vcf
 		NumHeaderLines=$(tabix -H $VCF_FILE | wc -l)
 		NumHeaderLines=$(($NumHeaderLines+2))
+		if [[  $VCFFIXUP == "TRUE" ]]; then echo "     ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc \"tabix -h -R {} $VCF_FILE | vcffilter -s -f $Filter | vcffixup - | tail -n +$NumHeaderLines\" | cat ${VCF_OUT%.*}.header.vcf - | bgzip -@ $NumProc -c > ${VCF_OUT}.gz"; fi
+		if [[  $VCFFIXUP == "FALSE" ]]; then echo "     ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc \"tabix -h -R {} $VCF_FILE | vcffilter -s -f $Filter | tail -n +$NumHeaderLines\" | cat ${VCF_OUT%.*}.header.vcf - | bgzip -@ $NumProc -c > ${VCF_OUT}.gz"; fi
 		if [[  $VCFFIXUP == "TRUE" ]]; then ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -h -R {} $VCF_FILE | vcffilter -s -f $Filter | vcffixup - | tail -n +$NumHeaderLines" | cat ${VCF_OUT%.*}.header.vcf - | bgzip -@ $NumProc -c > ${VCF_OUT}.gz; fi
 		if [[  $VCFFIXUP == "FALSE" ]]; then ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -h -R {} $VCF_FILE | vcffilter -s -f $Filter | tail -n +$NumHeaderLines" | cat ${VCF_OUT%.*}.header.vcf - | bgzip -@ $NumProc -c > ${VCF_OUT}.gz; fi
 		tabix -f -p vcf $VCF_OUT.gz
@@ -771,8 +823,8 @@ function FILTER_VCFFILTER(){
 		rm ${VCF_OUT%.*}.header.vcf
 	fi
 	
-	echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.gz | wc -l " | awk -F: '{a+=$1} END{print a}'
-	echo ""
+	echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.gz | wc -l " | awk -F: '{a+=$1} END{print a}' 
+	#echo ""
 	echo -n "	Contigs remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.gz | cut -f1 | uniq | wc -l " | awk -F: '{a+=$1} END{print a}'
 
 }
@@ -843,7 +895,7 @@ read -d '' OPTIONS <<"BLOCK"
                                  config file is used to determine the filters and order. If -f is
                                  set, it will override the config file. The results of each filter will
 								 be saved in a separate vcf file.[]
-                -s <arg>        file with filter settings [config.fltr.clean.ind]
+                -s <arg>        file with filter settings [config.fltr.ind]
 
 		[input files]
                 -v <arg>        vcf file to be filtered [${b}/TotalRawSNPs.${c}.vcf]
@@ -1241,10 +1293,7 @@ echo ""
 #Run script
 ###################################################################################################################
 
-echo $VCF_FILE
-echo $DataName
-
-MAIN FILTERS $CutoffCode $BAM_PATH $VCF_FILE $REF_FILE $PopMap $CONFIG_FILE $HWE_SCRIPT $RADHAP_SCRIPT $DataName $NumProc $PARALLEL
+MAIN #FILTERS $CutoffCode $BAM_PATH $VCF_FILE $REF_FILE $PopMap $CONFIG_FILE $HWE_SCRIPT $RADHAP_SCRIPT $DataName $NumProc $PARALLEL
 
 #cleanup files
 if [[ ${PARALLEL} == "TRUE" ]]; then

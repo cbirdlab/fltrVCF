@@ -5,7 +5,7 @@ For all fltrVCF options use the -h argument at the command line.
 Notes: These settings are designed to clean a raw VCF file made from individuals and retain as much biological variation as possible.
 
 fltrVCF Settings, run fltrVCF -h for description of settings
-	fltrVCF -f 01 02 14 03 04 15 05 16 17 07 06 11 09 08 12 13 16 05 18
+	fltrVCF -f 01 02 14 03 04 15 05 16 17 07 06 11 09 08 10 12 13 16 05 18
 	
 	fltrVCF -c 25.10
 	fltrVCF -b ../mapping/*.bam				#path to *.bam files
@@ -31,7 +31,7 @@ Filters
 	06 vcffilter AB nohet		0		#Keep sites with AB=0. Not adjustable
 	07 vcffilter AC	min		0		#Remove sites with equal or lower MINOR allele count [3]
 	08 vcffilter SAF/SAR min	10		#Remove sites where both read1 and 2 overlap. Remove sites with equal or lower (SAF/SAR & SRF/SRR | SAR/SAF & SRR/SRF). These are the number of F and R reads supporting the REF or ALT alleles.  [10]
-	09 vcffilter MQM/MQMR min	0.25		#Remove sites where the difference in mean mapping quality between REF and ALT alleles is greater than this proportion. Keep sites where the following is true: 1-X < MQM/MQMR < 1/(1-X) [0.1]
+	09 vcffilter MQM/MQMR min	0.25		#Remove sites where the difference in the ratio of mean mapping quality between REF and ALT alleles is greater than this proportion from 1. Ex: 0 means the mapping quality must be equal between REF and ALTERNATE. Smaller numbers are more stringent. Keep sites where the following is true: 1-X < MQM/MQMR < 1/(1-X) [0.1]
 	10 vcffilter PAIRED				#Remove sites where one of the alleles is only supported by reads that are not properly paired (see SAM format specification). Not adjustabe
 	11 vcffilter QUAL/DP min	0.2		#Remove sites where the ratio of QUAL to DP is deemed to be too low. [0.25]
 	

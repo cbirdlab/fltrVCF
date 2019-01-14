@@ -8,7 +8,7 @@
 #SBATCH --mail-type=end    # email me when the job finish
 
 #to run use the following command:
-#sbatch fltrVCF.bash -P config.fltr.ind
+#sbatch fltrVCF.sbatch config.fltr.ind
 
 module load ddocent
 module load perl/5.22.0
@@ -19,4 +19,4 @@ module load vcflib/1.0
 module load samtools
 
 
-bash fltrVCF3.bash -P -s $1
+bash fltrVCF.bash -P -s $1
