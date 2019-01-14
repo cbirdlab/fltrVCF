@@ -197,7 +197,7 @@ function FILTER(){
 		# This should not be run if you expect to have a lot of overlap between forward and rev reads (Miseq 2 x 300bp)
 		THRESHOLD=($(grep -P '^\t* *08\t* *vcffilter\t* *SAF\/SAR\t* *min' ${CONFIG_FILE} | sed 's/\t* *08\t* *vcffilter\t* *SAF\/SAR\t* *min\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=1; fi
-		Filter="\"SAF / SAR > ${THRESHOLD} & SRF / SRR > ${THRESHOLD} | SAR / SAF > ${THRESHOLD} & SRR / SRF > ${THRESHOLD}\""
+		Filter="SAF / SAR > ${THRESHOLD} & SRF / SRR > ${THRESHOLD} | SAR / SAF > ${THRESHOLD} & SRR / SRF > ${THRESHOLD}"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
 		FILTER_VCFFILTER "FALSE" #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc "FALSE"
 
@@ -386,7 +386,7 @@ EOF
 		#examine the plot and the $DataName$CutoffCode.out.imiss file to determine if this cutoff is ok
 		mawk -v x="$THRESHOLD" '$5 > x' $VCF_OUT.imiss | cut -f1 > $VCF_OUT.lowDP-2.indv
 		##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		Filter="\"--remove $VCF_OUT.lowDP-2.indv --recode --recode-INFO-all\""
+		Filter="--remove $VCF_OUT.lowDP-2.indv --recode --recode-INFO-all"
 		#list of individuals to remove
 		echo " Individuals with too much missing data:"
 		cat $VCF_OUT.lowDP-2.indv
@@ -770,10 +770,10 @@ function FILTER_VCFTOOLS(){
 		ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -h -R {} $VCF_FILE | vcftools --vcf - \"$Filter\" --stdout 2> /dev/null | tail -n +$NumHeaderLines" 2> /dev/null | cat $VCF_OUT.header.vcf - | bgzip -@ $NumProc -c > $VCF_OUT.recode.vcf.gz
 		tabix -f -p vcf $VCF_OUT.recode.vcf.gz
 		rm $VCF_OUT.header.vcf
+		echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.recode.vcf.gz | wc -l " | awk -F: '{a+=$1} END{print a}' 
+		echo -n "	Contigs remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.recode.vcf.gz | cut -f1 | uniq | wc -l " | awk -F: '{a+=$1} END{print a}'
 	fi
 	
-	echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.recode.vcf.gz | wc -l " | awk -F: '{a+=$1} END{print a}' 
-	echo -n "	Contigs remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.recode.vcf.gz | cut -f1 | uniq | wc -l " | awk -F: '{a+=$1} END{print a}'
 	echo ""
 }
 
