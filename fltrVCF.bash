@@ -822,11 +822,11 @@ function FILTER_VCFFILTER(){
 		tabix -f -p vcf $VCF_OUT.gz
 		#mawk '!/#/' $VCF_OUT.gz | wc -l
 		rm ${VCF_OUT%.*}.header.vcf
+		echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.gz | wc -l " | awk -F: '{a+=$1} END{print a}' 
+		echo -n "	Contigs remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.gz | cut -f1 | uniq | wc -l " | awk -F: '{a+=$1} END{print a}'
+
 	fi
 	
-	echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.gz | wc -l " | awk -F: '{a+=$1} END{print a}' 
-	#echo ""
-	echo -n "	Contigs remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.gz | cut -f1 | uniq | wc -l " | awk -F: '{a+=$1} END{print a}'
 
 }
 
