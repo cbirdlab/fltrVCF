@@ -44,7 +44,7 @@ Filters
 	18 filter_hwe_by_pop_HPC	0.001	#Remove sites with <p in test for HWE by pop sample. Adjust based upon sample size [0.001]
 	19 rad_haplotyper	-d	50	#depth of sampling reads for building haplotypes. [50]
 	19 rad_haplotyper	-mp	10	#Remove sites with more paralogous indivduals. Adjust according to sample size. [10]
-	19 rad_haplotyper	-u	30	#Remove contigs with more SNPs. Adjust according to sequence length. [30]
+	19 rad_haplotyper	-u	100	#Remove contigs with more SNPs. Adjust according to sequence length. [30]
 	19 rad_haplotyper	-ml 10		#Remove contigs with more individuals exhibiting low coverage or genotyping errors [10]
 	19 rad_haplotyper	-h	100	#Remove contigs with greater NumHaplotypes-NumSNPs. [100]
 	19 rad_haplotyper	-z	0.2	#Remove up to this proportion or number of reads when testing for paralogs.  The more real variation in your data set, the greater this number will be. (<1) or number (>=1) of reads. [0.1]
