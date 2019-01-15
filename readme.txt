@@ -1,4 +1,4 @@
-fltrVCF.bash v3.2 -- a program to filter vcf files with RAD data
+fltrVCF.bash v4.2 -- a program to filter vcf files with RAD data
 
 Dependencies:
         vcftools
@@ -13,7 +13,7 @@ Dependencies:
 Reading options from command line:
 
 NAME
-        fltrVCF.bash v3.2  -- a program to filter vcf files with RAD data
+        fltrVCF.bash v4.2  -- a program to filter vcf files with RAD data
 
 SYNOPSIS
         fltrVCF.bash [filter settings] [input files] [output file prefix] [parallelization]
@@ -36,7 +36,7 @@ DESCRIPTION
 OPTIONS
         [filter settings]
                 -f <arg>        if set, controls filters to be run, in order. Argument should be 2
-                                 digit numbers or the term rmContig separated by spaces. 
+                                 digit numbers separated by spaces. 
 				 -f "01 04 02 rmContig"  or  -f 01\ 04\ 02\ 86 
                                  will specify that filters 01, 04, and 02 will be run in succession.
 			         Then, filter 86 will remove the contigs that had SNPs filtered by 02.
@@ -47,7 +47,7 @@ OPTIONS
                                  config file is used to determine the filters and order. If -f is
                                  set, it will override the config file. The results of each filter will
 				 be saved in a separate vcf file.[]
-                -s <arg>        file with filter settings [config.fltr.clean.ind]
+                -s <arg>        file with filter settings [config.fltr.ind]. Should be used.
 
         [input files]
                 -c <arg>        cutoff values used for reference genome [3.3]
