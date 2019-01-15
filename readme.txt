@@ -29,7 +29,7 @@ DESCRIPTION
         supported.
 
         fltrVCF requires minor modification to work with dDocent output (nonHPC).  To do so, remove
-        ".$CutoffCode" "$CutoffCode." and "$CutoffCode" in order from the script). Both
+        ".$CutoffCode" "$CutoffCode." and "$CutoffCode" in order from the script). Forks of both
         filter_hwe_by_pop_HPC.pl and rad_haplotyper.pl can be obtained from cbirdlab on github and
         are tested with fltrVCF and work.
 
@@ -37,11 +37,11 @@ OPTIONS
         [filter settings]
                 -f <arg>        if set, controls filters to be run, in order. Argument should be 2
                                  digit numbers or the term rmContig separated by spaces. 
-				 -f "01 04 02 rmContig"  or  -f 01\ 04\ 02\ rmContig 
+				 -f "01 04 02 rmContig"  or  -f 01\ 04\ 02\ 86 
                                  will specify that filters 01, 04, and 02 will be run in succession.
-			         Then, rmContig will remove the contigs that had SNPs filtered by 02.
-                                 rmContig should only be called after filters that remove SNPs. If 
-				 rmContig is the only filter called, it will compare the newest vcf to
+			         Then, filter 86 will remove the contigs that had SNPs filtered by 02.
+                                 Filter 86 should only be called after filters that remove SNPs. If 
+				 Filter 86 is the only filter called, it will compare the newest vcf to
 			         the penultimate vcf, and remove contigs based upon the differences.
 				 Filters are described in the config files. If -f is not set, the
                                  config file is used to determine the filters and order. If -f is
