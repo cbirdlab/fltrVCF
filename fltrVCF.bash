@@ -316,56 +316,61 @@ function FILTER(){
 			#Now let’s calculate the average depth by dividing the above file by the number of individuals
 			NumInd=$(gunzip -c $VCF_FILE | awk '{if ($1 == "#CHROM"){print NF-9; exit}}' )
 		fi
-		mawk '!/D/' $VCF_OUT.site.depth | mawk -v x=$NumInd '{print $1/x}' > $VCF_OUT.meandepthpersite
-		cp $VCF_OUT.meandepthpersite meandepthpersite
+		mawk '!/D/' $VCF_OUT.site.depth | mawk -v x=$NumInd '{print $1/x}' > $VCF_OUT.meandepthpersitebefore
+		cp $VCF_OUT.meandepthpersitebefore meandepthpersitebefore
 		
 gnuplot << \EOF 
-	set terminal dumb size 120, 30
-	set autoscale
-	set xrange [0:100] 
-	unset label
-	set title "Histogram of mean depth per site"
-	set ylabel "Number of Occurrences"
-	set xlabel "Mean Depth"
-	binwidth=1
-	bin(x,width)=width*floor(x/width) + binwidth/2.0
-	set xtics 5
-	plot 'meandepthpersite' using (bin($1,binwidth)):(1.0) smooth freq with boxes
-	pause -1
+set terminal dumb size 120, 30
+set autoscale
+set xrange [0:*] 
+unset label
+set title "Histogram of mean depth per site before filter"
+set ylabel "Number of Occurrences"
+set xlabel "Mean Depth"
+binwidth=1
+bin(x,width)=width*floor(x/width) + binwidth/2.0
+#set xtics 5
+plot 'meandepthpersitebefore' using (bin($1,binwidth)):(1.0) smooth freq with boxes
+pause -1
 EOF
-	gnuplot << \EOF 
-	set terminal dumb size 120, 30
-	set autoscale
-	set xrange [0:500] 
-	unset label
-	set title "Histogram of mean depth per site"
-	set ylabel "Number of Occurrences"
-	set xlabel "Mean Depth"
-	binwidth=5
-	bin(x,width)=width*floor(x/width) + binwidth/2.0
-	set xtics 25
-	plot 'meandepthpersite' using (bin($1,binwidth)):(1.0) smooth freq with boxes
-	pause -1
-EOF
-   
-	gnuplot << \EOF 
-	set terminal dumb size 120, 30
-	set autoscale
-	set xrange [0:1000] 
-	unset label
-	set title "Histogram of mean depth per site"
-	set ylabel "Number of Occurrences"
-	set xlabel "Mean Depth"
-	binwidth=10
-	bin(x,width)=width*floor(x/width) + binwidth/2.0
-	set xtics 50
-	plot 'meandepthpersite' using (bin($1,binwidth)):(1.0) smooth freq with boxes
-	pause -1
-EOF
+
    
 		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
-		rm meandepthpersite
 
+		if [[ $PARALLEL == "FALSE" ]]; then 
+			vcftools --vcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
+			#Now let’s take VCFtools output and cut it to only the depth scores
+			cut -f3 $VCF_OUT.ldepth > $VCF_OUT.site.depth
+			#Now let’s calculate the average depth by dividing the above file by the number of individuals
+			NumInd=$(awk '{if ($1 == "#CHROM"){print NF-9; exit}}' $VCF_FILE )
+		else
+			vcftools --gzvcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
+			#Now let’s take VCFtools output and cut it to only the depth scores
+			cut -f3 $VCF_OUT.ldepth > $VCF_OUT.site.depth
+			#Now let’s calculate the average depth by dividing the above file by the number of individuals
+			NumInd=$(gunzip -c $VCF_FILE | awk '{if ($1 == "#CHROM"){print NF-9; exit}}' )
+		fi
+		mawk '!/D/' $VCF_OUT.site.depth | mawk -v x=$NumInd '{print $1/x}' > $VCF_OUT.meandepthpersiteafter
+		cp $VCF_OUT.meandepthpersiteafter meandepthpersiteafter
+		
+gnuplot << \EOF 
+set terminal dumb size 120, 30
+set autoscale
+set xrange [0:*] 
+unset label
+set title "Histogram of mean depth per site after filter"
+set ylabel "Number of Occurrences"
+set xlabel "Mean Depth"
+binwidth=1
+bin(x,width)=width*floor(x/width) + binwidth/2.0
+#set xtics 5
+plot 'meandepthpersiteafter' using (bin($1,binwidth)):(1.0) smooth freq with boxes
+pause -1
+EOF
+		
+		rm meandepthpersite*
+		
+		
 	elif [[ $FILTER_ID == "14" ]]; then
 		echo; echo `date` "---------------------------FILTER14: If individual's genotype has DP < X, convert to missing data -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *14\t* *vcftools\t* *--minDP' ${CONFIG_FILE} | sed 's/\t* *14\t* *vcftools\t* *--minDP\t* *//g' | sed 's/\t* *#.*//g' )) 
@@ -401,7 +406,7 @@ EOF
 		else
 			vcftools --gzvcf ${VCF_FILE} $Filter --out $VCF_OUT 2> /dev/null
 		fi
-		echo; echo "  Missing Data Report, file=*out.imiss, Numbers Near 0 are Good"
+		#echo; echo "  Missing Data Report, file=*out.imiss, Numbers Near 0 are Good"
 		#cat $VCF_OUT.imiss
 		#graph missing data for individuals
 		mawk '!/IN/' $VCF_OUT.imiss | cut -f5 | sort -r > $VCF_OUT.totalmissing
@@ -413,14 +418,29 @@ gnuplot << \EOF
 		set terminal dumb size 120, 30
 		set autoscale 
 		unset label
-		set title "Histogram of % missing data per individual. Bars to the left are good."
+		set title "Histogram of % missing data per individual before filter. Bars to the left are desireable."
 		set ylabel "Number of Individuals"
-		set xlabel "% of missing data"
+		set xlabel "% missing genotypes"
 		set yrange [0:*]
 		set xrange [0:1]
 		binwidth=0.01
 		bin(x,width)=width*floor(x/width) + binwidth/2.0
 		plot 'totalmissing' using (bin($1,binwidth)):(1.0) smooth freq with boxes
+		pause -1
+EOF
+gnuplot << \EOF 
+		#filename=system("echo $VCF_OUT.totalmissing")
+		set terminal dumb size 120, 30
+		set autoscale 
+		unset label
+		set title "Histogram of % missing data per individual before filter. Bars to the left are desireable."
+		set ylabel "Number of Individuals"
+		set xlabel "% missing genotypes"
+		set yrange [0:*]
+		set xrange [0:1]
+		binwidth=0.01
+		bin(x,width)=width*floor(x/width) + binwidth/2.0
+		plot 'totalmissing' using (bin($1,binwidth)):(1.0) with boxes
 		pause -1
 EOF
 gnuplot << \EOF 
@@ -433,6 +453,7 @@ set xlabel "Individual"
 xmax="`cut -f1 imiss.dat | tail -1`"
 xmax=xmax+1
 set xrange [0:xmax]
+set yrange [0:1]
 plot 'imiss.dat' pt "*" 
 pause -1
 EOF
