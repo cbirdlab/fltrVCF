@@ -404,7 +404,7 @@ EOF
 		echo; echo "  Missing Data Report, file=*out.imiss, Numbers Near 0 are Good"
 		#cat $VCF_OUT.imiss
 		#graph missing data for individuals
-		mawk '!/IN/' $VCF_OUT.imiss | cut -f5 | sort > $VCF_OUT.totalmissing
+		mawk '!/IN/' $VCF_OUT.imiss | cut -f5 | sort -r > $VCF_OUT.totalmissing
 		cp $VCF_OUT.totalmissing totalmissing
 		seq 1 $(cat totalmissing | wc -l) > ind.txt
 		paste ind.txt totalmissing > imiss.dat
@@ -414,9 +414,10 @@ gnuplot << \EOF
 		set autoscale 
 		unset label
 		set title "Histogram of % missing data per individual. Bars to the left are good."
-		set ylabel "Number of Occurrences"
+		set ylabel "Number of Individuals"
 		set xlabel "% of missing data"
-		#set yr [0:100000]
+		set yrange [0:*]
+		set xrange [0:1]
 		binwidth=0.01
 		bin(x,width)=width*floor(x/width) + binwidth/2.0
 		plot 'totalmissing' using (bin($1,binwidth)):(1.0) smooth freq with boxes
@@ -429,13 +430,16 @@ unset label
 set title "Scatter plot of % missing data per individual."
 set ylabel "% of missing data"
 set xlabel "Individual"
-plot 'imiss.dat' 
+xmax="`cut -f1 imiss.dat | tail -1`"
+xmax=xmax+1
+set xrange [0:xmax]
+plot 'imiss.dat' pt "*" 
 pause -1
 EOF
 		##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		#id individuals to remove based upon the proportion of missing data
 		#examine the plot and the $DataName$CutoffCode.out.imiss file to determine if this cutoff is ok
-		mawk -v x="$THRESHOLD" '$5 > x' $VCF_OUT.imiss | cut -f1 > $VCF_OUT.lowDP-2.indv
+		mawk -v x="$THRESHOLD" ' $5 > x' $VCF_OUT.imiss | cut -f1 > $VCF_OUT.lowDP-2.indv
 		##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		Filter="--remove $VCF_OUT.lowDP-2.indv --recode --recode-INFO-all"
 		#list of individuals to remove
