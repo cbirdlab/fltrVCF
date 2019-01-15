@@ -404,8 +404,10 @@ EOF
 		echo; echo "  Missing Data Report, file=*out.imiss, Numbers Near 0 are Good"
 		#cat $VCF_OUT.imiss
 		#graph missing data for individuals
-		mawk '!/IN/' $VCF_OUT.imiss | cut -f5 > $VCF_OUT.totalmissing
+		mawk '!/IN/' $VCF_OUT.imiss | cut -f5 | sort > $VCF_OUT.totalmissing
 		cp $VCF_OUT.totalmissing totalmissing
+		seq 1 $(cat totalmissing | wc -l) > ind.txt
+		paste ind.txt totalmissing > imiss.dat
 gnuplot << \EOF 
 		#filename=system("echo $VCF_OUT.totalmissing")
 		set terminal dumb size 120, 30
@@ -419,6 +421,16 @@ gnuplot << \EOF
 		bin(x,width)=width*floor(x/width) + binwidth/2.0
 		plot 'totalmissing' using (bin($1,binwidth)):(1.0) smooth freq with boxes
 		pause -1
+EOF
+gnuplot << \EOF 
+set terminal dumb size 120, 30
+set autoscale 
+unset label
+set title "Scatter plot of % missing data per individual."
+set ylabel "% of missing data"
+set xlabel "Individual"
+plot 'imiss.dat' 
+pause -1
 EOF
 		##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		#id individuals to remove based upon the proportion of missing data
@@ -441,7 +453,7 @@ EOF
 			tabix -p vcf $VCF_OUT.recode.vcf.gz
 			rm $VCF_OUT.recode.vcf
 		fi
-		rm totalmissing 
+		rm totalmissing ind.txt imiss.dat
 		
 		
 	elif [[ $FILTER_ID == "17" ]]; then
