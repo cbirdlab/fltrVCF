@@ -428,21 +428,7 @@ gnuplot << \EOF
 		plot 'totalmissing' using (bin($1,binwidth)):(1.0) smooth freq with boxes
 		pause -1
 EOF
-gnuplot << \EOF 
-		#filename=system("echo $VCF_OUT.totalmissing")
-		set terminal dumb size 120, 30
-		set autoscale 
-		unset label
-		set title "Histogram of % missing data per individual before filter. Bars to the left are desireable."
-		set ylabel "Number of Individuals"
-		set xlabel "% missing genotypes"
-		set yrange [0:*]
-		set xrange [0:1]
-		binwidth=0.01
-		bin(x,width)=width*floor(x/width) + binwidth/2.0
-		plot 'totalmissing' using (bin($1,binwidth)):(1.0) with boxes
-		pause -1
-EOF
+
 gnuplot << \EOF 
 set terminal dumb size 120, 30
 set autoscale 
@@ -674,7 +660,7 @@ EOF
 				#make files to receive output from radhap instances
 				touch $VCF_OUT.Fltr$FILTER_ID.stats.out
 				
-				seq -f "%04g" 0 $NumProc | parallel --no-notice -k -j $NumProc "ForceParallelRadHap $RADHAP_SCRIPT $VCF_FILE $NumProc $THRESHOLDa $THRESHOLDb $THRESHOLDc $THRESHOLDd $THRESHOLDe $THRESHOLDf $THRESHOLDg $REF_FILE $BAM_PATH $PopMap $CutoffCode $VCF_OUT $FILTER_ID $DataName {} "
+				seq -f "%04g" 0 $((NumProc-1)) | parallel --no-notice -k -j $NumProc "ForceParallelRadHap $RADHAP_SCRIPT $VCF_FILE $NumProc $THRESHOLDa $THRESHOLDb $THRESHOLDc $THRESHOLDd $THRESHOLDe $THRESHOLDf $THRESHOLDg $REF_FILE $BAM_PATH $PopMap $CutoffCode $VCF_OUT $FILTER_ID $DataName {} "
 				
 			#################END#######################################################
 		else
