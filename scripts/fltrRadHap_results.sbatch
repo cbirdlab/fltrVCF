@@ -15,7 +15,7 @@ module load ddocent
 #genotype and low coverage. The cut offs will change according to your specific data set. List: CgsToFilter.txt
 
 #Write the cut offs in the echo bellow
-echo 'date' "Filtering contigs using resuts from RadHaplotyper: possible paralogs >10, missGen+LowCov >107, haplotypes >100"
+echo 'date' "Filtering contigs using resuts from RadHaplotyper: possible paralogs >10, missGen+LowCov >100, haplotypes >100"
 
 #Replace the input file, which should be the input file that was used to run the radhaplotyper filter.
 zgrep '^dDocent' opihiSK2014A.10.25.Fltr07.vcf.gz | cut -f 1,2 | grep -w -f CgsToFilter.txt > contigsRadHap.txt
