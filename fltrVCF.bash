@@ -489,16 +489,41 @@ EOF
 			else
 				vcftools --gzvcf $VCF_FILE --keep $VCF_OUT.$1.keep --missing-site --out $VCF_OUT.$1 2> /dev/null
 			fi
+			
+#			cat $VCF_OUT.$1.lmiss | cut -f6 | tail -n +2 | sort -r > lmiss.txt
 		}
 		export -f missingDataByPop
 		parallel --no-notice -k -j $NumProc "missingDataByPop {} $PopMap $PARALLEL $VCF_FILE $VCF_OUT 2> /dev/null" ::: ${popnames[*]}
-
+		
+		while re
+		# cat opihiSK2014A.10.25.Fltr17.8.opihiSK2014-EastMaui1-A.lmiss | cut -f6 | tail -n +2 | sort -r > lmiss.txt
+		# seq 1 $(cat lmiss.txt | wc -l) > snplmiss.txt
+		# paste snplmiss.txt lmiss.txt > lmiss.dat
+		
+# gnuplot << \EOF 
+# set terminal dumb size 120, 30
+# set autoscale 
+# unset label
+# set title "Scatter plot of the proportion of missing genotypes by SNP before filtering."
+# set ylabel "% missing genotypes"
+# set xlabel "SNP"
+# xmax="`cut -f1 lmiss.dat | tail -1`"
+# xmax=xmax+1
+# set xrange [0:xmax]
+# set yrange [0:1]
+# plot 'lmiss.dat' pt "*" 
+# pause -1
+# EOF
+		
 		# remove loci with more than X proportion of missing data
 		# if you have mixed sequence lengths, this will affect if the longer regions are typed
 		# UPDATE % missing threshold here	
 		cat $VCF_OUT.*.lmiss | mawk '!/CHR/' | mawk -v x=$THRESHOLD '$6 > x' | cut -f1,2 | sort | uniq > $VCF_OUT.badloci
+		
 		Filter="--exclude-positions $VCF_OUT.badloci --recode --recode-INFO-all"
 		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
+		
+		cut -f1 $VCF_OUT.badloci | parallel "grep -v {} "
 
 	elif [[ $FILTER_ID == "18" ]]; then
 		echo; echo `date` "---------------------------FILTER18: Remove sites not in HWE p<X) -----------------------------"
