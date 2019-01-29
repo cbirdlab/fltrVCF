@@ -163,21 +163,38 @@ function FILTER(){
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		Filter="--minQ ${THRESHOLD} --recode --recode-INFO-all"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
-		grep 'dDocent_Contig' ${VCF_FILE} | -cut f6 | sort -r > ${VCF_OUT}.QUAL.before
-		cp ${VCF_OUT}.QUAL.before QUALbefore
+		grep 'dDocent_Contig' ${VCF_FILE} | -cut f6 | sort -r > ${VCF_OUT}.QUAL.before.dat
+		TITLE="Histogram of QUAL before FILTER03"
+		cp ${VCF_OUT}.QUAL.before.dat QUALbefore
 		
 gnuplot << \EOF 
 set terminal dumb size 120, 30
 set autoscale
 set xrange [0:*] 
 unset label
-set title "Histogram of mean depth per site before filter"
-set ylabel "Number of Contigs"
-set xlabel "Mean Depth"
+TITLE=$(echo $TITLE)
+set title TITLE
+set ylabel "Number of Sites"
+set xlabel "QUAL ~ Phred-Scaled Probality of Zero Alternate Alleles"
 binwidth=1
 bin(x,width)=width*floor(x/width) + binwidth/2.0
 #set xtics 5
 plot 'QUALbefore' using (bin($1,binwidth)):(1.0) smooth freq with boxes
+pause -1
+EOF
+
+gnuplot << \EOF 
+set terminal dumb size 120, 30
+set autoscale 
+unset label
+set title "Scatter plot of QUAL per site."
+set ylabel "QUAL ~ Phred-Scaled Probality of Zero Alternate Alleles"
+set xlabel "Site"
+xmax="`cut -f1 imiss.dat | tail -1`"
+xmax=xmax+1
+set xrange [0:xmax]
+set yrange [0:1]
+plot 'QUALbefore' pt "*" 
 pause -1
 EOF
 		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
@@ -212,13 +229,28 @@ set terminal dumb size 120, 30
 set autoscale
 set xrange [0:*] 
 unset label
-set title "Histogram of mean depth per site before filter"
-set ylabel "Number of Contigs"
+set title "Histogram of mean depth per site before FILTER04"
+set ylabel "Number of Sites"
 set xlabel "Mean Depth"
 binwidth=1
 bin(x,width)=width*floor(x/width) + binwidth/2.0
 #set xtics 5
 plot 'sitedepthmeanbefore' using (bin($1,binwidth)):(1.0) smooth freq with boxes
+pause -1
+EOF
+
+gnuplot << \EOF 
+set terminal dumb size 120, 30
+set autoscale 
+unset label
+set title "Scatter plot of mean depth per site before FILTER04."
+set ylabel "Mean Depth"
+set xlabel "Site"
+xmax="`cut -f1 imiss.dat | tail -1`"
+xmax=xmax+1
+set xrange [0:xmax]
+set yrange [0:1]
+plot 'QUALbefore' pt "*" 
 pause -1
 EOF
 		

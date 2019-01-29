@@ -24,7 +24,7 @@ Filters
 	01 vcftools --min-alleles	2		#Remove sites with less alleles [2]
 	01 vcftools --max-alleles	2		#Remove sites with more alleles [2]
 	02 vcftools --remove-indels			#Remove sites with indels.  Not adjustable
-	03 vcftools --minQ		30:40		#Remove sites with lower QUAL [30]
+	03 vcftools --minQ		30:40		#Remove sites with lower QUAL, the probabilty that zero alternate alleles are in the site [30]
 	04 vcftools --min-meanDP	10		#Remove sites with lower mean depth [2]
 	05 vcftools --max-missing	0.5		#Remove sites with lower proportion of data present [0.5]
 	
