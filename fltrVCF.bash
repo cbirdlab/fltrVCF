@@ -495,7 +495,7 @@ EOF
 		export -f missingDataByPop
 		parallel --no-notice -k -j $NumProc "missingDataByPop {} $PopMap $PARALLEL $VCF_FILE $VCF_OUT 2> /dev/null" ::: ${popnames[*]}
 		
-		while re
+		#while re
 		# cat opihiSK2014A.10.25.Fltr17.8.opihiSK2014-EastMaui1-A.lmiss | cut -f6 | tail -n +2 | sort -r > lmiss.txt
 		# seq 1 $(cat lmiss.txt | wc -l) > snplmiss.txt
 		# paste snplmiss.txt lmiss.txt > lmiss.dat
