@@ -163,39 +163,44 @@ function FILTER(){
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		Filter="--minQ ${THRESHOLD} --recode --recode-INFO-all"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
-		grep 'dDocent_Contig' ${VCF_FILE} | cut -f6 | sort -r > ${VCF_OUT}.QUAL.before.dat
-		TITLE="Histogram of QUAL before FILTER03"
+		if [[ $PARALLEL == "FALSE" ]]; then 
+			grep '^dDocent_Contig' ${VCF_FILE} | cut -f6 | sort -rg > ${VCF_OUT}.QUAL.before.dat
+		else
+			zgrep '^dDocent_Contig' ${VCF_FILE} | cut -f6 | sort -rg > ${VCF_OUT}.QUAL.before.dat
+		fi
 		cp ${VCF_OUT}.QUAL.before.dat QUALbefore
 		
 gnuplot << \EOF 
-set terminal dumb size 120, 30
-set autoscale
-set xrange [0:*] 
-unset label
-TITLE=$(echo $TITLE)
-set title TITLE
-set ylabel "Number of Sites"
-set xlabel "QUAL ~ Phred-Scaled Probality of Zero Alternate Alleles"
-binwidth=1
-bin(x,width)=width*floor(x/width) + binwidth/2.0
-#set xtics 5
-plot 'QUALbefore' using (bin($1,binwidth)):(1.0) smooth freq with boxes
-pause -1
+	set terminal dumb size 120, 30
+	set autoscale
+	set xrange [0:*] 
+	unset label
+	set title Histogram of QUAL before FILTER03
+	set ylabel "Number of Sites"
+	set xlabel "QUAL ~ Phred-Scaled Probality of Zero Alternate Alleles"
+	xmax=500
+	set xrange [0:xmax]
+	binwidth=xmax/50
+	bin(x,width)=width*floor(x/width) + binwidth/2.0
+	#set xtics 5
+	plot 'QUALbefore' using (bin($1,binwidth)):(1.0) smooth freq with boxes
+	#plot 'QUALbefore' smooth freq with boxes
+	pause -1
 EOF
 
 gnuplot << \EOF 
-set terminal dumb size 120, 30
-set autoscale 
-unset label
-set title "Scatter plot of QUAL per site."
-set ylabel "QUAL ~ Phred-Scaled Probality of Zero Alternate Alleles"
-set xlabel "Site"
-xmax="`cut -f1 imiss.dat | tail -1`"
-xmax=xmax+1
-set xrange [0:xmax]
-set yrange [0:1]
-plot 'QUALbefore' pt "*" 
-pause -1
+	set terminal dumb size 120, 30
+	set autoscale 
+	unset label
+	set title "Scatter plot of QUAL per site."
+	set ylabel "QUAL ~ Phred-Scaled Probality of Zero Alternate Alleles"
+	set xlabel "Site"
+	#xmax="`cut -f1 QUALbefore | tail -1`"
+	#xmax=xmax+1
+	#set xrange [0:xmax]
+	set yrange [0:500]
+	plot 'QUALbefore' pt "*" 
+	pause -1
 EOF
 		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 
@@ -211,18 +216,13 @@ EOF
 		#calculate the mean depth by site with VCFtools
 		if [[ $PARALLEL == "FALSE" ]]; then 
 			vcftools --vcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
-			#Now let’s take VCFtools output and cut it to only the depth scores
 			cut -f3 $VCF_OUT.ldepth.mean > $VCF_OUT.site.depth.mean
-			#Now let’s calculate the average depth by dividing the above file by the number of individuals
-			#NumInd=$(awk '{if ($1 == "#CHROM"){print NF-9; exit}}' $VCF_FILE )
 		else
 			vcftools --gzvcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
-			#Now let’s take VCFtools output and cut it to only the depth scores
 			cut -f3 $VCF_OUT.ldepth.mean > $VCF_OUT.site.depth.mean
-			#Now let’s calculate the average depth by dividing the above file by the number of individuals
-			#NumInd=$(gunzip -c $VCF_FILE | awk '{if ($1 == "#CHROM"){print NF-9; exit}}' )
 		fi
-		cp $VCF_OUT.site.depth.mean sitedepthmeanbefore
+		tail -n +2 $VCF_OUT.site.depth.mean | sort -rg > sitedepthmeanbefore
+		cut -f3-4 $VCF_OUT.ldepth.mean | tail -n +2 > meandepthVSvariance
 		
 gnuplot << \EOF 
 set terminal dumb size 120, 30
@@ -246,11 +246,18 @@ unset label
 set title "Scatter plot of mean depth per site before FILTER04."
 set ylabel "Mean Depth"
 set xlabel "Site"
-xmax="`cut -f1 imiss.dat | tail -1`"
-xmax=xmax+1
-set xrange [0:xmax]
-set yrange [0:1]
-plot 'QUALbefore' pt "*" 
+plot 'sitedepthmeanbefore' pt "*" 
+pause -1
+EOF
+
+gnuplot << \EOF 
+set terminal dumb size 120, 30
+set autoscale 
+unset label
+set title "Scatter plot of depth variance vs mean depth per site before FILTER04."
+set ylabel "Variance in Depth"
+set xlabel "Mean Depth"
+plot 'meandepthVSvariance' pt "*"
 pause -1
 EOF
 		
@@ -262,8 +269,43 @@ EOF
 		THRESHOLD=($(grep -P '^\t* *05\t* *vcftools\t* *--max-missing' ${CONFIG_FILE} | sed 's/\t* *05\t* *vcftools\t* *--max-missing\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=0.5; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
+		Filter2="--missing-site"
 		Filter="--max-missing ${THRESHOLD} --recode --recode-INFO-all"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
+
+		if [[ $PARALLEL == "FALSE" ]]; then 
+			vcftools --vcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
+		else
+			vcftools --gzvcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
+		fi
+		cut -f6 $VCF_OUT.lmiss | tail -n +2 | sort -rg > sitemissingness
+		
+gnuplot << \EOF 
+set terminal dumb size 120, 30
+set autoscale
+unset label
+set title "Histogram of the proportion of genotypes that are missing"
+set ylabel "Number of Sites"
+set xlabel "Proportion Missing"
+set xrange [0:1]
+binwidth=0.05
+bin(x,width)=width*floor(x/width) + binwidth/2.0
+plot 'sitemissingness' using (bin($1,binwidth)):(1.0) smooth freq with boxes
+pause -1
+EOF
+
+gnuplot << \EOF 
+set terminal dumb size 120, 30
+set autoscale 
+unset label
+set title "Scatter plot of the proportion of genotypes that are missing."
+set ylabel "Proportion Missing Genotypes"
+set xlabel "Site"
+plot 'sitemissingness' pt "*" 
+pause -1
+EOF
+
+
 		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 
 	elif [[ $FILTER_ID == "06" ]]; then
@@ -420,47 +462,85 @@ EOF
    
 		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 
-		if [[ $PARALLEL == "FALSE" ]]; then 
-			vcftools --vcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
-			#Now let’s take VCFtools output and cut it to only the depth scores
-			cut -f3 $VCF_OUT.ldepth > $VCF_OUT.site.depth
-			#Now let’s calculate the average depth by dividing the above file by the number of individuals
-			NumInd=$(awk '{if ($1 == "#CHROM"){print NF-9; exit}}' $VCF_FILE )
-		else
-			vcftools --gzvcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
-			#Now let’s take VCFtools output and cut it to only the depth scores
-			cut -f3 $VCF_OUT.ldepth > $VCF_OUT.site.depth
-			#Now let’s calculate the average depth by dividing the above file by the number of individuals
-			NumInd=$(gunzip -c $VCF_FILE | awk '{if ($1 == "#CHROM"){print NF-9; exit}}' )
-		fi
-		mawk '!/D/' $VCF_OUT.site.depth | mawk -v x=$NumInd '{print $1/x}' > $VCF_OUT.meandepthpersiteafter
-		cp $VCF_OUT.meandepthpersiteafter meandepthpersiteafter
+		# if [[ $PARALLEL == "FALSE" ]]; then 
+			# vcftools --vcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
+			# #Now let’s take VCFtools output and cut it to only the depth scores
+			# cut -f3 $VCF_OUT.ldepth > $VCF_OUT.site.depth
+			# #Now let’s calculate the average depth by dividing the above file by the number of individuals
+			# NumInd=$(awk '{if ($1 == "#CHROM"){print NF-9; exit}}' $VCF_FILE )
+		# else
+			# vcftools --gzvcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
+			# #Now let’s take VCFtools output and cut it to only the depth scores
+			# cut -f3 $VCF_OUT.ldepth > $VCF_OUT.site.depth
+			# #Now let’s calculate the average depth by dividing the above file by the number of individuals
+			# NumInd=$(gunzip -c $VCF_FILE | awk '{if ($1 == "#CHROM"){print NF-9; exit}}' )
+		# fi
+		# mawk '!/D/' $VCF_OUT.site.depth | mawk -v x=$NumInd '{print $1/x}' > $VCF_OUT.meandepthpersiteafter
+		# cp $VCF_OUT.meandepthpersiteafter meandepthpersiteafter
 		
-gnuplot << \EOF 
-set terminal dumb size 120, 30
-set autoscale
-set xrange [0:*] 
-unset label
-set title "Histogram of mean depth per site after filter"
-set ylabel "Number of Occurrences"
-set xlabel "Mean Depth"
-binwidth=1
-bin(x,width)=width*floor(x/width) + binwidth/2.0
-#set xtics 5
-plot 'meandepthpersiteafter' using (bin($1,binwidth)):(1.0) smooth freq with boxes
-pause -1
-EOF
-		
-		rm meandepthpersite*
-		
+# gnuplot << \EOF 
+# set terminal dumb size 120, 30
+# set autoscale
+# set xrange [0:*] 
+# unset label
+# set title "Histogram of mean depth per site after filter"
+# set ylabel "Number of Occurrences"
+# set xlabel "Mean Depth"
+# binwidth=1
+# bin(x,width)=width*floor(x/width) + binwidth/2.0
+# #set xtics 5
+# plot 'meandepthpersiteafter' using (bin($1,binwidth)):(1.0) smooth freq with boxes
+# pause -1
+# EOF
 		
 	elif [[ $FILTER_ID == "14" ]]; then
 		echo; echo `date` "---------------------------FILTER14: If individual's genotype has DP < X, convert to missing data -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *14\t* *vcftools\t* *--minDP' ${CONFIG_FILE} | sed 's/\t* *14\t* *vcftools\t* *--minDP\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=3; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
+		Filter2="--geno-depth"
 		Filter="--minDP ${THRESHOLD} --recode --recode-INFO-all"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
+		
+				#calculate the mean depth by site with VCFtools
+		if [[ $PARALLEL == "FALSE" ]]; then 
+			vcftools --vcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
+		else
+			vcftools --gzvcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
+		fi
+		cut -f3- $VCF_OUT.gdepth | tail -n +2 > $VCF_OUT.genotype.depth
+		NumCols=$(head -1 $VCF_OUT.genotype.depth | tr "\t" "\n" | wc -l)
+		seq 1 $NumCols | parallel --no-notice -j $NumProc "cut -f {} $VCF_OUT.genotype.depth " | sort -rg | sed 's/-1/0/g' > genotypedepthbefore
+		
+gnuplot << \EOF 
+set terminal dumb size 120, 30
+set autoscale
+unset label
+set title "Histogram of genotype depth before FILTER14"
+set ylabel "Number of Genotypes"
+set xlabel "Depth"
+xmax=100
+set xrange [0:xmax]
+binwidth=xmax/20
+bin(x,width)=width*floor(x/width) + binwidth/2.0
+plot 'genotypedepthbefore' using (bin($1,binwidth)):(1.0) smooth freq with boxes
+pause -1
+EOF
+
+gnuplot << \EOF 
+set terminal dumb size 120, 30
+set autoscale 
+unset label
+set title "Scatter plot of mean depth per site before FILTER14."
+set ylabel "Depth"
+set xlabel "Genotype"
+set yrange [0-100]
+plot 'genotypedepthbefore' pt "*" 
+pause -1
+EOF
+
+
+		
 		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 
 	elif [[ $FILTER_ID == "15" ]]; then
