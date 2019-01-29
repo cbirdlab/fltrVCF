@@ -163,7 +163,7 @@ function FILTER(){
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		Filter="--minQ ${THRESHOLD} --recode --recode-INFO-all"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
-		grep 'dDocent_Contig' ${VCF_FILE} | -cut f6 | sort -r > ${VCF_OUT}.QUAL.before.dat
+		grep 'dDocent_Contig' ${VCF_FILE} | cut -f6 | sort -r > ${VCF_OUT}.QUAL.before.dat
 		TITLE="Histogram of QUAL before FILTER03"
 		cp ${VCF_OUT}.QUAL.before.dat QUALbefore
 		
