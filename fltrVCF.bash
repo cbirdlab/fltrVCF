@@ -170,8 +170,42 @@ function FILTER(){
 		THRESHOLD=($(grep -P '^\t* *04\t* *vcftools\t* *--min-meanDP' ${CONFIG_FILE} | sed 's/\t* *04\t* *vcftools\t* *--min-meanDP\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=2; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
+		Filter2="--site-mean-depth"
 		Filter="--min-meanDP ${THRESHOLD} --recode --recode-INFO-all"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
+		
+		#calculate the mean depth by site with VCFtools
+		if [[ $PARALLEL == "FALSE" ]]; then 
+			vcftools --vcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
+			#Now let’s take VCFtools output and cut it to only the depth scores
+			cut -f3 $VCF_OUT.ldepth.mean > $VCF_OUT.site.depth.mean
+			#Now let’s calculate the average depth by dividing the above file by the number of individuals
+			#NumInd=$(awk '{if ($1 == "#CHROM"){print NF-9; exit}}' $VCF_FILE )
+		else
+			vcftools --gzvcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
+			#Now let’s take VCFtools output and cut it to only the depth scores
+			cut -f3 $VCF_OUT.ldepth.mean > $VCF_OUT.site.depth.mean
+			#Now let’s calculate the average depth by dividing the above file by the number of individuals
+			#NumInd=$(gunzip -c $VCF_FILE | awk '{if ($1 == "#CHROM"){print NF-9; exit}}' )
+		fi
+		cp $VCF_OUT.site.depth.mean sitedepthmeanbefore
+		
+gnuplot << \EOF 
+set terminal dumb size 120, 30
+set autoscale
+set xrange [0:*] 
+unset label
+set title "Histogram of mean depth per site before filter"
+set ylabel "Number of Contigs"
+set xlabel "Mean Depth"
+binwidth=1
+bin(x,width)=width*floor(x/width) + binwidth/2.0
+#set xtics 5
+plot 'sitedepthmeanbefore' using (bin($1,binwidth)):(1.0) smooth freq with boxes
+pause -1
+EOF
+		
+		
 		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 
 	elif [[ $FILTER_ID == "05" ]]; then
