@@ -318,6 +318,36 @@ EOF
 		THRESHOLDb=$(PARSE_THRESHOLDS $THRESHOLDb) 
 		Filter="AB > $THRESHOLD & AB < $THRESHOLDb | AB = 0"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
+		
+		vcf-query ${VCF_FILE}  -f '%INFO/AB\n' > $VCF_OUT.siteAB.dat
+		sort -rg $VCF_OUT.siteAB.dat > siteAB.dat
+		
+gnuplot << \EOF 
+set terminal dumb size 120, 30
+set autoscale
+unset label
+set title "Histogram of Allele Balance"
+set ylabel "Number of Sites"
+set xlabel "Allele Balance ~ proportion of alleles in heterozygotes that are reference allelic state"
+set xrange [0:1]
+binwidth=0.01
+bin(x,width)=width*floor(x/width) + binwidth/2.0
+plot 'siteAB.dat' using (bin($1,binwidth)):(1.0) smooth freq with boxes
+pause -1
+EOF
+
+gnuplot << \EOF 
+set terminal dumb size 120, 30
+set autoscale 
+unset label
+set title "Scatter plot of Allele Balance."
+set ylabel "Allele Balance"
+set xlabel "Site"
+plot 'siteAB.dat' pt "*" 
+pause -1
+EOF
+
+		
 		FILTER_VCFFILTER "TRUE" #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc "TRUE" #the last option "TRUE" is for vcffixup
 
 #UNDER CONSTRUCTION V
