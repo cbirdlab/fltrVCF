@@ -175,7 +175,7 @@ gnuplot << \EOF
 	set autoscale
 	set xrange [0:*] 
 	unset label
-	set title Histogram of QUAL before FILTER03
+	set title "Histogram of QUAL before FILTER03"
 	set ylabel "Number of Sites"
 	set xlabel "QUAL ~ Phred-Scaled Probality of Zero Alternate Alleles"
 	xmax=500
@@ -564,7 +564,7 @@ unset label
 set title "Scatter plot of mean depth per site before FILTER14."
 set ylabel "Depth"
 set xlabel "Genotype"
-set yrange [0-100]
+set yrange [0:100]
 plot 'genotypedepthbefore' pt "*" 
 pause -1
 EOF
