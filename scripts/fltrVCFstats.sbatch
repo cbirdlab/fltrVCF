@@ -18,7 +18,7 @@ module load parallel
 
 echo -e "File NumInd NumContigs NumSNPs NumMissingGeno NumGenoLess10X NumGenoLess20X NumGenoLess30X NumGenoLess40X NumGenoLess50X NumGenoLess100X NumGenoLess1000X" > $1.fltrStats.dat
 
-if [[ $2 == "gz"]]; then
+if [[ $2 == "gz" ]]; then
 	ls -tr ${1}*vcf.gz | parallel -j 32 -k "echo -n {}' ' && \  
 		zcat {} | tail -n 1 | cut -f 10- | tr '\t' '\n' | wc -l | tr -d '\n' &&\   #num individuals
 		echo -n ' ' && \
