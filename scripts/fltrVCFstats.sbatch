@@ -42,7 +42,7 @@ if [[ $3 == "gz" ]]; then
 		echo -e -n '\t' && \
 		zgrep -oh '[01]/[01]:[5-9][0-9]:' {} | wc -l | tr -d '\n' && \   #num genotypes w 50-99x cvg
 		echo -e -n '\t' && \
-		zgrep -oh '[01]/[01]:[1-9][0-9][0-9]:' {} | wc -l | tr -d '\n' && \   #num genotypes w 100-999x cvg
+		zgrep -oh '[01]/[01]:[1-9][0-9][0-9]:' {} | wc -l && \   #num genotypes w 100-999x cvg
 		" >> $PREFIX.fltrStats.dat
 else
 	ls -tr ${PREFIX}*vcf | parallel -j $THREADS -k "echo -e -n {}'\t' && \  
@@ -62,6 +62,6 @@ else
 		echo -e -n '\t' && \
 		grep -oh '[01]/[01]:[5-9][0-9]:' {} | wc -l | tr -d '\n' && \   #num genotypes w 50-99x cvg
 		echo -e -n '\t' && \
-		grep -oh '[01]/[01]:[1-9][0-9][0-9]:' {} | wc -l | tr -d '\n' && \   #num genotypes w 100-999x cvg
+		grep -oh '[01]/[01]:[1-9][0-9][0-9]:' {} | wc -l && \   #num genotypes w 100-999x cvg
 		" >> $PREFIX.fltrStats.dat
 fi
