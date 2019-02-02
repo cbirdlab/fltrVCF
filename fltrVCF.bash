@@ -1125,28 +1125,50 @@ function FILTER_VCFFILTER(){
 #stats functions
 ###################################################################################################################
 
-function STATS() {
-	name=$1[@]
-	FILTERS=("${!name}")
-	CutoffCode=$2
-	BAM_PATH=$3
-	VCF_FILE=$4
-	REF_FILE=$5
-	PopMap=$6
-	CONFIG_FILE=$7
-	HWE_SCRIPT=$8
-	RADHAP_SCRIPT=$9
-	DataName=${10}
-	NumProc=${11}
-	PARALLEL=${12}
-	
-	echo ${FILTERS[@]} | sed 's/ /\n/g' > $DataName$CutoffCode.filters.txt
-	ls $DataName$CutoffCode.*vcf | parallel --no-notice -k -j $NumProc "grep -c '^dDocent_Contig' {} " | sort -r > $DataName$CutoffCode.SNPcnt.txt
-	ls $DataName$CutoffCode.*vcf | parallel --no-notice -k -j $NumProc "grep '^dDocent_Contig' {} | cut -f1 | uniq | wc -l" | sort -r > $DataName$CutoffCode.ContigCnt.txt
+function fltrVCFstats() {
+echo -e "File	NumInd	NumContigs	NumSNPs	NumMissingGeno	NumGenoLess10X	NumGeno10-19X	NumGeno20-49X	NumGeno50-99X	NumGeno100-999X" > $DataName$CutoffCode.fltrStats.dat
 
-	#num missing genotypes for a particular snp
-	zgrep -P 'dDocent_Contig_1\t' OpihiSK2014.A.25.10.Fltr18.HWE.recode.vcf.gz | sed '1q;d' | sed 's/\t/\n/g' | grep -c '^\.'
-	
+if [[ $PARALLEL == "TRUE" ]]; then
+	ls -tr $DataName$CutoffCode*vcf.gz | parallel -j $NumProc -k "echo -e -n {}'\t' && \  
+		zcat {} | tail -n 1 | cut -f 10- | tr '\t' '\n' | wc -l | tr -d '\n' &&\   #num individuals
+		echo -e -n '\t' && \
+		zgrep '^dDocent' {} | cut -f1 | uniq | wc -l | tr -d '\n' && \   #num contigs
+		echo -e -n '\t' && \
+		zgrep -c '^dDocent' {} | tr -d '\n' && \   #num snps
+		echo -e -n '\t' && \
+		zgrep -oh '\./\.:' {} | wc -l | tr -d '\n' && \   #num missing genotypes
+		echo -e -n '\t' && \
+		zgrep -oh '[01]/[01]:[1-9]:' {} | wc -l | tr -d '\n' && \   #num genotypes w less than 10x cvg
+		echo -e -n '\t' && \
+		zgrep -oh '[01]/[01]:1[0-9]:' {} | wc -l | tr -d '\n' && \   #num genotypes w 10-19x cvg
+		echo -e -n '\t' && \
+		zgrep -oh '[01]/[01]:[2-4][0-9]:' {} | wc -l | tr -d '\n' && \   #num genotypes w 20-49x cvg
+		echo -e -n '\t' && \
+		zgrep -oh '[01]/[01]:[5-9][0-9]:' {} | wc -l | tr -d '\n' && \   #num genotypes w 50-99x cvg
+		echo -e -n '\t' && \
+		zgrep -oh '[01]/[01]:[1-9][0-9][0-9]:' {} | wc -l && \   #num genotypes w 100-999x cvg
+		" >> $DataName$CutoffCode.fltrStats.dat
+else
+	ls -tr $DataName$CutoffCode*vcf | parallel -j $NumProc -k "echo -e -n {}'\t' && \  
+		cat {} | tail -n 1 | cut -f 10- | tr '\t' '\n' | wc -l | tr -d '\n' &&\   #num individuals
+		echo -e -n '\t' && \
+		grep '^dDocent' {} | cut -f1 | uniq | wc -l | tr -d '\n' && \   #num contigs
+		echo -e -n '\t' && \
+		grep -c '^dDocent' {} | tr -d '\n' && \   #num snps
+		echo -e -n '\t' && \
+		grep -oh '\./\.:' {} | wc -l | tr -d '\n' && \   #num missing genotypes
+		echo -e -n '\t' && \
+		grep -oh '[01]/[01]:[1-9]:' {} | wc -l | tr -d '\n' && \   #num genotypes w less than 10x cvg
+		echo -e -n '\t' && \
+		grep -oh '[01]/[01]:1[0-9]:' {} | wc -l | tr -d '\n' && \   #num genotypes w 10-19x cvg
+		echo -e -n '\t' && \
+		grep -oh '[01]/[01]:[2-4][0-9]:' {} | wc -l | tr -d '\n' && \   #num genotypes w 20-49x cvg
+		echo -e -n '\t' && \
+		grep -oh '[01]/[01]:[5-9][0-9]:' {} | wc -l | tr -d '\n' && \   #num genotypes w 50-99x cvg
+		echo -e -n '\t' && \
+		grep -oh '[01]/[01]:[1-9][0-9][0-9]:' {} | wc -l && \   #num genotypes w 100-999x cvg
+		" >> $DataName$CutoffCode.fltrStats.dat
+fi
 }
 
 
@@ -1243,7 +1265,7 @@ echo "	filter_hwe_by_pop_HPC"
 echo ""
 
 echo "Reading options from command line:"
-while getopts ":f:c:b:d:v:g:p:s:w:r:o:t:Ph" opt; do
+while getopts ":f:c:b:d:v:g:p:s:w:r:o:t:PSh" opt; do
   case $opt in
     h)
         echo ""
@@ -1385,6 +1407,10 @@ while getopts ":f:c:b:d:v:g:p:s:w:r:o:t:Ph" opt; do
 	P)
         echo "	Forcing all filters to run in parallel:	$OPTARG"
 		PARALLEL=TRUE
+		;;
+	S)
+        echo "	Forcing all filters to run in parallel:	$OPTARG"
+		STATS=TRUE
 		;;
   esac
 done
@@ -1595,6 +1621,12 @@ else
 	fi
 fi
 
+if [[ $STATS == "TRUE" ]]; then
+	echo "Summary filter data will be saved to a *fltrVCFstats.dat file."
+else
+	STATS=FALSE
+fi
+
 echo ""
 
 ###################################################################################################################
@@ -1608,3 +1640,9 @@ if [[ ${PARALLEL} == "TRUE" ]]; then
 	ls $DataName$CutoffCode.[0-9][0-9][0-9][0-9].bed | parallel --no-notice -j $NumProc "rm {}"
 fi
 echo ""; echo `date` " --------------------------- Filtering complete! ---------------------------"; echo "" 
+
+if [[ $STATS == "TRUE" ]]; then
+	echo ""; echo `date` " --------------------------- Compile summary stats! ---------------------------"; echo "" 
+	fltrVCFstats
+	echo ""; echo `date` " --------------------------- Summary stats complete! ---------------------------"; echo "" 
+fi
