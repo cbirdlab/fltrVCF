@@ -21,7 +21,7 @@ if [[ -z $THREADS ]]; then
 	THREADS=20
 fi
 
-echo -e "File'	'NumInd'	'NumContigs'	'NumSNPs'	'NumMissingGeno'	'NumGenoLess10X'	'NumGeno10-19X'	'NumGeno20-49X'	'NumGeno50-99X'	'NumGeno100-999X" > $1.fltrStats.dat
+echo -e "File'	'NumInd'	'NumContigs'	'NumSNPs'	'NumMissingGeno'	'NumGenoLess10X'	'NumGeno10-19X'	'NumGeno20-49X'	'NumGeno50-99X'	'NumGeno100-999X" > $2.fltrStats.dat
 
 if [[ $3 == "gz" ]]; then
 	ls -tr ${1}*vcf.gz | parallel -j $THREADS -k "echo -n {}' ' && \  
