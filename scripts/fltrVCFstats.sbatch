@@ -24,7 +24,7 @@ fi
 echo -e "File'	'NumInd'	'NumContigs'	'NumSNPs'	'NumMissingGeno'	'NumGenoLess10X'	'NumGeno10-19X'	'NumGeno20-49X'	'NumGeno50-99X'	'NumGeno100-999X" > $2.fltrStats.dat
 
 if [[ $3 == "gz" ]]; then
-	ls -tr ${1}*vcf.gz | parallel -j $THREADS -k "echo -n {}' ' && \  
+	ls -tr ${2}*vcf.gz | parallel -j $THREADS -k "echo -n {}' ' && \  
 		zcat {} | tail -n 1 | cut -f 10- | tr '\t' '\n' | wc -l | tr -d '\n' &&\   #num individuals
 		echo -n '\t' && \
 		zgrep '^dDocent' {} | cut -f1 | uniq | wc -l | tr -d '\n' && \   #num contigs
@@ -44,7 +44,7 @@ if [[ $3 == "gz" ]]; then
 		zgrep -oh '[01]/[01]:[1-9][0-9][0-9]:' {} | wc -l | tr -d '\n' && \   #num genotypes w 100-999x cvg
 		" >> $2.fltrStats.dat
 else
-	ls -tr ${1}*vcf | parallel -j $THREADS -k "echo -n {}' ' && \  
+	ls -tr ${2}*vcf | parallel -j $THREADS -k "echo -n {}' ' && \  
 		cat {} | tail -n 1 | cut -f 10- | tr '\t' '\n' | wc -l | tr -d '\n' &&\   #num individuals
 		echo -n '\t' && \
 		grep '^dDocent' {} | cut -f1 | uniq | wc -l | tr -d '\n' && \   #num contigs
