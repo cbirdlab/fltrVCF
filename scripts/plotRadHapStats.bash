@@ -8,8 +8,8 @@
 #example when filter19 (radhaplotyper) produced the following vcf: Hlobatus.D.5.5.Fltr19.Haplotyped.vcf
 #bash plotRadHapStats.bash Hlobatus.D.5.5
 
-$VCF_OUT=$1
-$FILTER_ID=19
+VCF_OUT=$1
+FILTER_ID=19
 
 #histogram of # SNPs
 tail -n +3 $VCF_OUT.Fltr$FILTER_ID.stats.out | cut -f2 | sort -rg > sites.dat
