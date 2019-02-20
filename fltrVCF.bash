@@ -865,7 +865,7 @@ EOF
 					sed -i "${LineNum}s/.*/$(echo $NewLine | sed "s/ /\t/g")/" ${Indexing}.vcf 
 					
 					#-x is the number of threads
-					perl $RADHAP_SCRIPT -v ${Indexing}.vcf -x 1 -e -d ${THRESHOLDa} -mp ${THRESHOLDb} -u ${THRESHOLDc} -ml ${THRESHOLDd} -h ${THRESHOLDe} -z ${THRESHOLDf} -m ${THRESHOLDg} -r ${REF_FILE} -bp ${BAM_PATH} -p ${PopMap}$CutoffCode -o ${VCF_OUT}.Fltr${FILTER_ID}.Haplotyped.vcf #-g ${VCF_OUT}.Fltr${FILTER_ID}.${PopMap##*/}.haps.genepop -a ${VCF_OUT}.Fltr${FILTER_ID}.${PopMap##*/}.haps.ima
+					perl $RADHAP_SCRIPT -v ${Indexing}.vcf -x 1 -e -d ${THRESHOLDa} -mp ${THRESHOLDb} -u ${THRESHOLDc} -ml ${THRESHOLDd} -h ${THRESHOLDe} -z ${THRESHOLDf} -m ${THRESHOLDg} -r ${REF_FILE} -bp ${BAM_PATH} -p ${PopMap}$CutoffCode -o ${VCF_OUT}.Fltr${FILTER_ID}.Haplotyped.vcf -g ${VCF_OUT}.Fltr${FILTER_ID}.${PopMap##*/}.haps.genepop -a ${VCF_OUT}.Fltr${FILTER_ID}.${PopMap##*/}.haps.ima
 
 					if [[ ! -f ../$VCF_OUT.Fltr$FILTER_ID.stats.out ]]; then head -n 2 stats.out > ../$VCF_OUT.Fltr$FILTER_ID.stats.out; fi
 					tail -n +3 stats.out >> ../$VCF_OUT.Fltr$FILTER_ID.stats.out
@@ -889,7 +889,7 @@ EOF
 			NewLine=$(echo $FirstCols $NewIndNames)
 			sed "${LineNum}s/.*/$(echo $NewLine | sed "s/ /\t/g")/" $VCF_FILE > $VCF_FILE.1.vcf
 			
-			perl $RADHAP_SCRIPT -v $VCF_FILE.1.vcf -x ${NumProc} -e -d ${THRESHOLDa} -mp ${THRESHOLDb} -u ${THRESHOLDc} -ml ${THRESHOLDd} -h ${THRESHOLDe} -z ${THRESHOLDf} -m ${THRESHOLDg} -r ${REF_FILE} -bp ${BAM_PATH} -p ${PopMap}$CutoffCode -o $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf #-g $VCF_OUT.Fltr$FILTER_ID.${PopMap##*/}.haps.genepop -a $VCF_OUT.Fltr$FILTER_ID.${PopMap##*/}.haps.ima
+			perl $RADHAP_SCRIPT -v $VCF_FILE.1.vcf -x ${NumProc} -e -d ${THRESHOLDa} -mp ${THRESHOLDb} -u ${THRESHOLDc} -ml ${THRESHOLDd} -h ${THRESHOLDe} -z ${THRESHOLDf} -m ${THRESHOLDg} -r ${REF_FILE} -bp ${BAM_PATH} -p ${PopMap}$CutoffCode -o $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf -g $VCF_OUT.Fltr$FILTER_ID.${PopMap##*/}.haps.genepop -a $VCF_OUT.Fltr$FILTER_ID.${PopMap##*/}.haps.ima
 			mawk '!/#/' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | wc -l
 			rm $VCF_FILE.1.vcf
 		fi
@@ -1230,6 +1230,18 @@ EOF
 			tabix -p vcf $VCF_OUT.MostInformativeSNP.vcf.gz
 		fi	
 		
+	elif [[ $FILTER_ID == "22" ]]; then
+		echo; echo `date` "---------------------------FILTER22: Test For LD -----------------------------"
+		
+		# grep '^dDocent' Hlobatus.D2.5.5.Fltr21.1.MostInformativeSNP.vcf | cut -f1-2 | tr "_" "\t" | awk 'NR==1 {a1=$1} {printf "%s %.0f\n", $4, ($3*1000)+$4}' | tr " " "\t" | cut -f2 > contig_pos.txt
+		# cat <(mawk '/^#/' Hlobatus.D2.5.5.Fltr21.1.MostInformativeSNP.vcf) <(paste <(mawk '!/#/' Hlobatus.D2.5.5.Fltr21.1.MostInformativeSNP.vcf | cut -f1) contig_pos.txt <(mawk '!/#/' Hlobatus.D2.5.5.Fltr21.1.MostInformativeSNP.vcf | cut -f3- ) )> Hlobatus.D2.5.5.Fltr21.1.MostInformativeSNP.ld.vcf
+		# sed -i 's/dDocent_Contig_[0-9]*/fltrVCF_ld_1/g' Hlobatus.D2.5.5.Fltr21.1.MostInformativeSNP.ld.vcf
+
+		grep '^dDocent' $VCF_FILE | cut -f1-2 | tr "_" "\t" | awk 'NR==1 {a1=$1} {printf "%s %.0f\n", $4, ($3*1000)+$4}' | tr " " "\t" | cut -f2 > contig_pos.txt
+		cat <(mawk '/^#/' $VCF_FILE) <(paste <(mawk '!/#/' $VCF_FILE | cut -f1) contig_pos.txt <(mawk '!/#/' $VCF_FILE | cut -f3- ) )> ${VCF_FILE%.*}.ld.vcf
+		sed -i 's/dDocent_Contig_[0-9]*/fltrVCF_ld_1/g' ${VCF_FILE%.*}.ld.vcf
+		Filter="--geno-r2"
+		vcftools --vcf ${VCF_FILE%.*}.ld.vcf $Filter
 		
 	#elif [[ $FILTER_ID == "rmContigs" || $Filter_ID == "99" ]]; then
 	elif [[ "$Filter_ID" == "86" ]]; then
