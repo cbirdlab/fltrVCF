@@ -74,7 +74,7 @@ EXAMPLES
         
 	The following command is recommended for most users
                 
-		fltrVCF.bash -P -s config.fltr.ind
+		fltrVCF.bash -s config.fltr.ind
 
         The following two commands are the same, the first takes advantage of the defaults,
         the second does not.

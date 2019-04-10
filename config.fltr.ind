@@ -55,4 +55,4 @@ Filters
 	20 OneRandSNP					#Keep 1 random SNP per contig. Not adjustable. Can't be run after filter 21.
 	21 MostInformativeSNPs				#Keep the most informative SNP per contig. Not adjustable.  Can't be run after filter 20.
 	86 rmContigs					#Remove contigs that have had SNPs removed by the previous filter.  Intended to be run after filters 05, 06, 13, 14, 17, 18 if desired. 
-        181 filter_hwe_by_pop_HPC			#Uses setting from Fltr 18, produces vcf files for sites and contigs that both pass and fail HWE, sites on contigs that pass are pushed forward to the next filter
+	181 filter_hwe_by_pop_HPC			#Uses setting from Fltr 18, produces vcf files for both sites and contigs that both pass and fail HWE, only contigs where all sites passed the HWE test are pushed forward to the next filter

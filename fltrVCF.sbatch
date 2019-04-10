@@ -19,4 +19,4 @@ module load vcflib/1.0
 module load samtools
 
 
-bash fltrVCF.bash -P -s $1
+bash fltrVCF.bash -s $1
