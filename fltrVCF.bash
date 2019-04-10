@@ -52,14 +52,13 @@ function MAIN(){
 	# echo "          $NumProc"
 	# echo "          $PARALLEL"
 	
-	# if [[ $PARALLEL == "FALSE" ]]; then
-		# VCF_FILE=$(ls -t ${DataName}*vcf | head -n 1)
-		# VCF_FILE_2=$(ls -t ${DataName}*vcf | sed -n 2p)
-	# else
-		# VCF_FILE=$(ls -t ${DataName}*vcf.gz | head -n 1)
-		# VCF_FILE_2=$(ls -t ${DataName}*vcf.gz | sed -n 2p)
-	# fi
-	
+	if [[ $PARALLEL == "FALSE" ]]; then
+#		VCF_FILE=$(ls -t ${DataName}*vcf | head -n 1)
+		VCF_FILE_2=$(ls -t ${DataName}*vcf | sed -n 2p)
+	else
+#		VCF_FILE=$(ls -t ${DataName}*vcf.gz | head -n 1)
+		VCF_FILE_2=$(ls -t ${DataName}*vcf.gz | sed -n 2p)
+	fi	
 	#this keeps track of number of filters run
 	COUNTER=1
 	
@@ -737,7 +736,29 @@ EOF
 		fi
 		
 		
-	elif [[ $FILTER_ID == "19" ]]; then
+	elif [[ $FILTER_ID == "181" ]]; then
+		echo; echo `date` "---------------------------FILTER181: Remove sites & contigs in & not in HWE p<X) -----------------------------"
+		THRESHOLD=($(grep -P '^\t* *18\t* *filter_hwe_by_pop_HPC' ${CONFIG_FILE} | sed 's/\t* *18\t* *filter_hwe_by_pop_HPC\t* *//g' | sed 's/\t* *#.*//g' )) 
+		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
+		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=0.001; fi
+		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
+		if [[ $PARALLEL == "TRUE" ]]; then 
+			gunzip -c $VCF_FILE > ${VCF_FILE%.*}
+			VCF_FILE=${VCF_FILE%.*}
+		fi
+		perl $HWE_SCRIPT -v $VCF_FILE -p $PopMap -h ${THRESHOLD} -d $DataName -co $CutoffCode -o $VCF_OUT.HWE
+		cat <(grep -v '^dDocent_Contig' ${VCF_FILE}) <(comm -23 <(grep '^dDocent_Contig' ${VCF_FILE} | sort -g) <(grep '^dDocent_Contig' $VCF_OUT.HWE.recode.vcf | sort -g) | sort -V ) > $VCF_OUT.SITES.NOT.IN.HWE.vcf
+		cat $VCF_OUT.SITES.NOT.IN.HWE.vcf | grep '^dDocent_Contig' | cut -f1 | uniq > contigs_failing_HWE.txt
+		grep -f "contigs_failing_HWE.txt" ${VCF_FILE} > $VCF_OUT.CONTIGS.NOT.IN.HWE.vcf
+		grep -v -f "contigs_failing_HWE.txt" ${VCF_FILE} > $VCF_OUT.CONTIGS.IN.HWE.vcf
+		mawk '!/#/' $VCF_OUT.CONTIGS.IN.HWE.vcf | wc -l
+		if [[ $PARALLEL == "TRUE" ]]; then 
+			bgzip -@ $NumProc -c $VCF_OUT.CONTIGS.IN.HWE.vcf > $VCF_OUT.SITES.NOT.IN.HWE.vcf.gz
+			tabix -p vcf $VCF_OUT.CONTIGS.IN.HWE.vcf.gz
+		fi
+		
+		
+		elif [[ $FILTER_ID == "19" ]]; then
 		echo; echo `date` "---------------------------FILTER19: Run rad_haplotyper to id paralogs,create haplotypes, etc -----------------------------"
 		THRESHOLDa=($(grep -P '^\t* *19\t* *rad_haplotyper\t* *-d\t* *\d' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyper\t* *-d\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLDa}" ]]; then ${THRESHOLDa}=50; fi
@@ -1243,26 +1264,25 @@ EOF
 		Filter="--geno-r2"
 		vcftools --vcf ${VCF_FILE%.*}.ld.vcf $Filter
 		
-	#elif [[ $FILTER_ID == "rmContigs" || $Filter_ID == "99" ]]; then
-	elif [[ "$Filter_ID" == "86" ]]; then
+	elif [[ $FILTER_ID == "86" ]]; then
 		echo; echo `date` "---------------------------FILTER 86: Remove contigs -----------------------------"
-		VCF_FILE=${VCF_FILE%.*}
-		VCF_FILE_2=${VCF_FILE_2%.*}			
-		VCF_OUT=${VCF_FILE%.*}_86rmContigs.vcf
-		echo $VCF_FILE $VCF_FILE_2 $VCF_OUT 
+		echo "	Before site filter: $VCF_FILE_2"
+		echo "	After site filter: $VCF_FILE"
 		if [[ $PARALLEL == "TRUE" ]]; then 
+			VCF_FILE=${VCF_FILE%.*}
+			VCF_FILE_2=${VCF_FILE_2%.*}
+			#echo $VCF_FILE $VCF_FILE_2 $VCF_OUT 
 			printf "${VCF_FILE}\n${VCF_FILE_2}\n" | parallel --no-notice "gunzip -c {}.gz > {}"
-			RMcontigs=($(comm -23 ${VCF_FILE_2} ${VCF_FILE} | cut -f1))
-			parallel --no-notice -k -j ${NumProc} "grep -v {} $VCF_FILE_2" ::: "${RMcontigs[@]}"  > ${VCF_OUT}
-			printf "${VCF_FILE}\n${VCF_FILE_2}\n" | parallel --no-notice rm {}
+		fi
+		VCF_OUT=${VCF_FILE%.*}.Fltr${FILTER_ID}.rmCONTIGS.${COUNTER}.vcf
+		echo "	After contig filter: $VCF_OUT"
+		comm -23 <(grep '^dDocent_Contig' ${VCF_FILE_2} | sort -g) <(grep '^dDocent_Contig' ${VCF_FILE} | sort -g) | sort -V | cut -f1 | uniq > rmCONTIGS.txt
+		grep -v -f "rmCONTIGS.txt" ${VCF_FILE_2} > ${VCF_OUT}
+		if [[ $PARALLEL == "TRUE" ]]; then 
 			bgzip -@ $NumProc -c ${VCF_OUT} > ${VCF_OUT}.gz
 			tabix -p vcf ${VCF_OUT}.gz
-		else
-			#This is a script that identifies which contigs had SNPs that were filtered, then filters those contigs
-			#in the next line, the first file is the orig and the second is filtered
-			RMcontigs=($(comm -23 $VCF_FILE_2 $VCF_FILE | cut -f1))
-			parallel --no-notice -k -j ${NumProc} "grep -v {} $VCF_FILE_2" ::: "${RMcontigs[@]}"  > ${VCF_OUT}
 		fi
+		echo "	$(wc -l rmCONTIGS.txt | cut -f1) contigs filtered"
 	fi
 }
 
