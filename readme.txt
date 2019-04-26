@@ -71,8 +71,7 @@ OPTIONS
                 -t <arg>        number of threads available for parallel processing [1]
 
 EXAMPLES
-        
-	The following command is recommended for most users
+        The following command is recommended for most users
                 
 		fltrVCF.bash -s config.fltr.ind
 
@@ -84,3 +83,11 @@ EXAMPLES
                 fltrVCF.bash -f "01 02 03" -c 25.10 -m ../mapping -v ../mapping/TotalRawSNPs.3.6.vcf
                         -p ../mapping/popmap.25.10 -s config.fltr.clean -w filter_hwe_by_pop.pl
                         -r rad_haplotyperHPC116.pl -o ProjectX.A -t 40
+SCRIPTS
+	Additional scripts for filtering are provided in the scripts subdirectory
+	
+	fltrVCFstats
+		Collects summary statisics from all vcf files in a directory with a matching prefix and
+		returns a tidy table where each row is a vcf file and columns are: vcf file name, 
+		number of individuals, number of contigs, number of snps, and number of genotype calls 
+		based on 0, 1-9, 10-19, etc...  reads.
