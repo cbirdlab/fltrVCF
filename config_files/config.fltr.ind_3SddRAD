@@ -8,7 +8,7 @@ fltrVCF Settings, run fltrVCF -h for description of settings
 	fltrVCF -f 01 02 14 03 04 15 05 16 17 07 06 11 09 08 10 12 13 16 05 18
 	
 	fltrVCF -c 10.10
-	fltrVCF -b ../mkBAM/*.bam				#path to *.bam files
+	fltrVCF -b ../mkBAM/				#path to *.bam files
 	fltrVCF -d ../mkBAM/mapped.10.10.bed
 	fltrVCF -v ../mkBAM/TotalRawSNPs.10.10.vcf.gz
 	fltrVCF -g ../mkBAM/reference.10.10.fasta
