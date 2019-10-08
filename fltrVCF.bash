@@ -133,7 +133,21 @@ function FILTER(){
 
 	
 	VCF_OUT=$DataName$CutoffCode.Fltr${FILTER_ID}.${COUNTER}
-	if [[ $FILTER_ID == "01" ]]; then
+	if [[ $FILTER_ID == "00" ]]; then
+		echo; echo `date` "---------------------------FILTER00: Remove Positions From Consideration -----------------------------"
+		COUNTER01=$((1+COUNTER01))
+		#get settings from config file
+		THRESHOLD=$(grep -P '^\t* *00\t* *custom\t* *bash\t* *..*\t* *#Keep sites after this position' ${CONFIG_FILE} | sed 's/\t* *00\t* *custom\t* *bash\t* *//g' | sed 's/\t* *#.*//g' ) 
+		if [[ -z "$THRESHOLD" ]]; then THRESHOLD=0; fi
+		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
+		THRESHOLDb=$(grep -P '^\t* *00\t* *custom\t* *bash\t* *..*\t* *#Keep sites before this position' ${CONFIG_FILE} | sed 's/\t* *00\t* *custom\t* *bash\t* *//g' | sed 's/\t* *#.*//g' ) 
+		if [[ -z "$THRESHOLDb" ]]; then THRESHOLDb=5000; fi
+		THRESHOLDb=$(PARSE_THRESHOLDS $THRESHOLDb) 
+		cat <(grep -Pv '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE}) \
+			<(grep -P '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE} | awk -v bp=$THRESHOLD '$2 > bp {print ;}' | awk -v bp=$THRESHOLDb '$2 < bp {print ;}' ) \
+			> $VCF_OUT.vcf
+
+	elif [[ $FILTER_ID == "01" ]]; then
 		echo; echo `date` "---------------------------FILTER01: Remove sites with Y < alleles < X -----------------------------"
 		COUNTER01=$((1+COUNTER01))
 		#get settings from config file
@@ -145,7 +159,6 @@ function FILTER(){
 		THRESHOLDb=$(PARSE_THRESHOLDS $THRESHOLDb) 
 		#Filter="\"--min-alleles $THRESHOLD --max-alleles $THRESHOLDb --recode --recode-INFO-all\""
 		Filter="--min-alleles $THRESHOLD --max-alleles $THRESHOLDb --recode --recode-INFO-all"
-		#VCF_OUT=$DataName$CutoffCode.Fltr${FILTER_ID}.${COUNTER}
 		#call function to filter vcf
 		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc
 
@@ -259,7 +272,6 @@ set xlabel "Mean Depth"
 plot 'meandepthVSvariance' pt "*"
 pause -1
 EOF
-		
 		
 		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 
