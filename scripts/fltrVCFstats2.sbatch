@@ -56,7 +56,6 @@ fi
 cat <(echo $HEADER | tr ' ' '\t') \
 	<( \
 		paste <(echo $Col01 | tr ' ' '\n') \
-			<(echo $Col01 | tr ' ' '\n') \
 			<(echo $Col02 | tr ' ' '\n' | paste - -) \
 			<(echo $Col04 | tr ' ' '\n') \
 			<(echo $Col05 | tr ' ' '\n') \
