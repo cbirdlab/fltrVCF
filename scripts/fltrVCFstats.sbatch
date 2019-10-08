@@ -15,6 +15,7 @@
 
 enable_lmod
 module load parallel
+module load R
 
 THREADS=$1
 PREFIX=$2
@@ -70,3 +71,4 @@ else
 		" >> $PREFIX.fltrStats.dat
 fi
 
+Rscript plot_fltrVCFstats.R $PREFIX.fltrStats.dat $PREFIX.fltrStats.pdf
