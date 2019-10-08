@@ -22,10 +22,12 @@ if [[ -z $THREADS ]]; then
 	THREADS=20
 fi
 
-echo -e "File	NumInd	NumContigs	NumSNPs	NumMissingGeno	NumGenoLess10X	NumGeno10-19X	NumGeno20-49X	NumGeno50-99X	NumGeno100-999X" > $PREFIX.fltrStats.dat
+echo -e "File	FilterID	FilterOrder	NumInd	NumContigs	NumSNPs	NumMissingGeno	NumGenoLess10X	NumGeno10-19X	NumGeno20-49X	NumGeno50-99X	NumGeno100-999X" > $PREFIX.fltrStats.dat
 
 if [[ $3 == "gz" ]]; then
-	ls -tr ${PREFIX}*vcf.gz | parallel -j $THREADS -k "echo -e -n {}'\t' && \  
+	ls -tr ${PREFIX}*vcf.gz | parallel -j $THREADS -k "echo -e -n {}'\t' && \
+		echo -e -n {} | tr "." "\t" | cut -f5-6 &&\	#Filter Order
+		echo -e -n '\t' && \
 		zcat {} | tail -n 1 | cut -f 10- | tr '\t' '\n' | wc -l | tr -d '\n' &&\   #num individuals
 		echo -e -n '\t' && \
 		zgrep '^dDocent' {} | cut -f1 | uniq | wc -l | tr -d '\n' && \   #num contigs
@@ -46,6 +48,8 @@ if [[ $3 == "gz" ]]; then
 		" >> $PREFIX.fltrStats.dat
 else
 	ls -tr ${PREFIX}*vcf | parallel -j $THREADS -k "echo -e -n {}'\t' && \  
+		echo -e -n {} | tr "." "\t" | cut -f5-6 &&\     #Filter Order
+                echo -e -n '\t' && \
 		cat {} | tail -n 1 | cut -f 10- | tr '\t' '\n' | wc -l | tr -d '\n' &&\   #num individuals
 		echo -e -n '\t' && \
 		grep '^dDocent' {} | cut -f1 | uniq | wc -l | tr -d '\n' && \   #num contigs
@@ -65,3 +69,4 @@ else
 		grep -oh '[01]/[01]:[1-9][0-9][0-9]:' {} | wc -l && \   #num genotypes w 100-999x cvg
 		" >> $PREFIX.fltrStats.dat
 fi
+
