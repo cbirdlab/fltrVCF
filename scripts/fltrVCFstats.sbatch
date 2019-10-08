@@ -1,9 +1,8 @@
-#!/bin/bash -l
+#!/bin/bash 
 
 #SBATCH --job-name=fltrstats
-#SBATCH -p main
+#SBATCH -p normal
 #SBATCH --time=96:00:00
-#SBATCH --ntasks=32
 
 #This is a script to quantify the number of individuals, contigs, and variants in a filtering directory
 #Need to grab and sort the vcf files, then quantify each file, and output results to new file
@@ -13,9 +12,9 @@
 #to run on vcf.gz files: sbatch fltrVCFstats.sbatch 40 SpeciesX.A gz
 #both arguments are optional
 
-enable_lmod
+#enable_lmod
 module load parallel
-module load R
+module load R/gcc7/3.5.3
 
 THREADS=$1
 PREFIX=$2
