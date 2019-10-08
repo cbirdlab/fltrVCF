@@ -143,9 +143,15 @@ function FILTER(){
 		THRESHOLDb=$(grep -P '^\t* *00\t* *custom\t* *bash\t* *..*\t* *#Keep sites before this position' ${CONFIG_FILE} | sed 's/\t* *00\t* *custom\t* *bash\t* *//g' | sed 's/\t* *#.*//g' ) 
 		if [[ -z "$THRESHOLDb" ]]; then THRESHOLDb=5000; fi
 		THRESHOLDb=$(PARSE_THRESHOLDS $THRESHOLDb) 
-		cat <(grep -Pv '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE}) \
-			<(grep -P '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE} | awk -v bp=$THRESHOLD '$2 > bp {print ;}' | awk -v bp=$THRESHOLDb '$2 < bp {print ;}' ) \
-			> $VCF_OUT.vcf
+		if [[ $PARALLEL == "FALSE" ]]; then
+			cat <(grep -Pv '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE}) \
+				<(grep -P '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE} | awk -v bp=$THRESHOLD '$2 > bp {print ;}' | awk -v bp=$THRESHOLDb '$2 < bp {print ;}' ) \
+				> $VCF_OUT.vcf
+		else
+			cat <(grep -Pv '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE}) \
+				<(grep -P '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE} | awk -v bp=$THRESHOLD '$2 > bp {print ;}' | awk -v bp=$THRESHOLDb '$2 < bp {print ;}' ) \
+				| bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
+		fi
 
 	elif [[ $FILTER_ID == "01" ]]; then
 		echo; echo `date` "---------------------------FILTER01: Remove sites with Y < alleles < X -----------------------------"
