@@ -48,7 +48,8 @@ lineplot <- function(DATA=df, X='FilterID_Order', Y='NumInd', G=1){
   ggplot(data=df, aes_string(x=X, y=Y, group=G)) +
   geom_line(color="black") +
   geom_point() +
-  theme_classic()
+  theme_classic() +
+  theme(axis.text.x = element_text(angle=45, hjust=1))
 }
 
 #Create Plots
@@ -59,12 +60,14 @@ plotNumSNPs <- lineplot(Y='NumSNPs')
 plotNumGenoDepth <- ggplot(data=df_cvgNum, aes(x=FilterID_Order, y=NumGenotypes, color=Depth, group=Depth)) +
   geom_line() +
   geom_point() +
-  theme_classic()
+  theme_classic() +
+  theme(axis.text.x = element_text(angle=45, hjust=1))
 
 plotPropGenoDepth <- ggplot(data=df_cvgProp, aes(x=FilterID_Order, y=ProportionGenotypes, color=Depth, group=Depth)) +
   geom_line() +
   geom_point() +
-  theme_classic()
+  theme_classic() +
+  theme(axis.text.x = element_text(angle=45, hjust=1))
 
 pdf(outputFile)
 plotNumInd

@@ -6,7 +6,7 @@
 #	Enable option to make haplotype files with radhaplotyper
 #	figure out how to combine haplotype files made by radhaplotyper in parallel mode
 
-VERSION=4.2
+VERSION=4.3
 # Files needed:
 	# popmap.x.x.xxx, 
 	# reference.x.x.fasta
@@ -130,29 +130,126 @@ function FILTER(){
 	#Keep track of times each filter has been run
 	INDEX=$(echo $FILTER_ID | sed -e 's:^0*::')
 	COUNTERS[$INDEX]=$((1+COUNTERS[$INDEX]))
-
 	
 	VCF_OUT=$DataName$CutoffCode.Fltr${FILTER_ID}.${COUNTER}
-	if [[ $FILTER_ID == "00" ]]; then
-		echo; echo `date` "---------------------------FILTER00: Remove Positions From Consideration -----------------------------"
-		COUNTER01=$((1+COUNTER01))
+	if [[ $FILTER_ID == "30" ]]; then
+		echo; echo `date` "---------------------------FILTER30: Remove Positions From Consideration -----------------------------"
+		COUNTER30=$((1+COUNTER30))
 		#get settings from config file
-		THRESHOLD=$(grep -P '^\t* *00\t* *custom\t* *bash\t* *..*\t* *#Keep sites after this position' ${CONFIG_FILE} | sed 's/\t* *00\t* *custom\t* *bash\t* *//g' | sed 's/\t* *#.*//g' ) 
+		THRESHOLD=$(grep -P '^\t* *30\t* *custom\t* *bash\t* *..*\t* *#Keep sites after this position' ${CONFIG_FILE} | sed 's/\t* *30\t* *custom\t* *bash\t* *//g' | sed 's/\t* *#.*//g' ) 
 		if [[ -z "$THRESHOLD" ]]; then THRESHOLD=0; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
-		THRESHOLDb=$(grep -P '^\t* *00\t* *custom\t* *bash\t* *..*\t* *#Keep sites before this position' ${CONFIG_FILE} | sed 's/\t* *00\t* *custom\t* *bash\t* *//g' | sed 's/\t* *#.*//g' ) 
+		THRESHOLDb=$(grep -P '^\t* *30\t* *custom\t* *bash\t* *..*\t* *#Keep sites before this position' ${CONFIG_FILE} | sed 's/\t* *30\t* *custom\t* *bash\t* *//g' | sed 's/\t* *#.*//g' ) 
 		if [[ -z "$THRESHOLDb" ]]; then THRESHOLDb=5000; fi
 		THRESHOLDb=$(PARSE_THRESHOLDS $THRESHOLDb) 
 		if [[ $PARALLEL == "FALSE" ]]; then
+			grep '^dDocent' $VCF_FILE | grep -w "TYPE=snp" | cut -f1-4 > $VCF_OUT.prefltr.snp &
+			grep '^dDocent' $VCF_FILE | grep -w "TYPE=ins" | cut -f1-4 > $VCF_OUT.prefltr.ins &
+			grep '^dDocent' $VCF_FILE | grep -w "TYPE=del" | cut -f1-4 > $VCF_OUT.prefltr.del &
+			vcftools --vcf ${VCF_FILE} --site-mean-depth --out $VCF_OUT.prefltr 2> /dev/null &
+			wait
+			tail -n+2 $VCF_OUT.prefltr.ldepth.mean | cut -f1-3 | grep -v 'nan' > $VCF_OUT.ldepth.mean.prefltr30
+			Rscript plotFltr30.R $VCF_OUT.ldepth.mean.prefltr30 $VCF_OUT.prefltr.snp $VCF_OUT.prefltr.ins $VCF_OUT.prefltr.del $THRESHOLD $THRESHOLDb $VCF_OUT.prefltr.plots.pdf
+			echo " Plots output to $VCF_OUT.prefltr.plots.pdf"
+
 			cat <(grep -Pv '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE}) \
 				<(grep -P '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE} | awk -v bp=$THRESHOLD '$2 > bp {print ;}' | awk -v bp=$THRESHOLDb '$2 < bp {print ;}' ) \
 				> $VCF_OUT.vcf
+			
+			grep '^dDocent' $VCF_OUT.vcf | grep -w "TYPE=snp" | cut -f1-4 > $VCF_OUT.postfltr.snp &
+			grep '^dDocent' $VCF_OUT.vcf | grep -w "TYPE=ins" | cut -f1-4 > $VCF_OUT.postfltr.ins &
+			grep '^dDocent' $VCF_OUT.vcf | grep -w "TYPE=del" | cut -f1-4 > $VCF_OUT.postfltr.del &
+			vcftools --vcf $VCF_OUT.vcf --site-mean-depth --out $VCF_OUT.postfltr 2> /dev/null &
+			wait
+			tail -n+2 $VCF_OUT.postfltr.ldepth.mean | cut -f1-3 | grep -v 'nan' > $VCF_OUT.ldepth.mean.postfltr30
+			Rscript plotFltr30.R $VCF_OUT.ldepth.mean.postfltr30 $VCF_OUT.postfltr.snp $VCF_OUT.postfltr.ins $VCF_OUT.postfltr.del $THRESHOLD $THRESHOLDb $VCF_OUT.postfltr.plots.pdf
+			echo " Plots output to $VCF_OUT.postfltr.plots.pdf"
+			
 		else
-			cat <(grep -Pv '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE}) \
-				<(grep -P '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE} | awk -v bp=$THRESHOLD '$2 > bp {print ;}' | awk -v bp=$THRESHOLDb '$2 < bp {print ;}' ) \
+			zgrep '^dDocent' $VCF_FILE | grep -w "TYPE=snp" | cut -f1-4 > $VCF_OUT.prefltr.snp &
+			zgrep '^dDocent' $VCF_FILE | grep -w "TYPE=ins" | cut -f1-4 > $VCF_OUT.prefltr.ins &
+			zgrep '^dDocent' $VCF_FILE | grep -w "TYPE=del" | cut -f1-4 > $VCF_OUT.prefltr.del &
+			vcftools --vcf ${VCF_FILE} --site-mean-depth --out $VCF_OUT.prefltr 2> /dev/null &
+			#ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -h -R {} $VCF_FILE | vcftools --vcf - $Filter --stdout 2> /dev/null | tail -n +$NumHeaderLines" 2> /dev/null | cat $VCF_OUT.header.vcf - | bgzip -@ $NumProc -c > $VCF_OUT.recode.vcf.gz
+			wait
+			tail -n+2 $VCF_OUT.prefltr.ldepth.mean | cut -f1-3 | grep -v 'nan' > $VCF_OUT.ldepth.mean.prefltr.fltr30
+			Rscript plotFltr30.R $VCF_OUT.ldepth.mean.prefltr.fltr30 $VCF_OUT.prefltr.snp $VCF_OUT.prefltr.ins $VCF_OUT.prefltr.del $THRESHOLD $THRESHOLDb $VCF_OUT.prefltr.plots.pdf
+			echo " Plots output to $VCF_OUT.prefltr.plots.pdf"
+			cat <(zgrep -Pv '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE}) \
+				<(zgrep -P '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE} | awk -v bp=$THRESHOLD '$2 > bp {print ;}' | awk -v bp=$THRESHOLDb '$2 < bp {print ;}' ) \
 				| bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
+			tabix -f -p vcf $VCF_OUT.vcf.gz
+
+			zgrep '^dDocent' $VCF_OUT.vcf.gz | grep -w "TYPE=snp" | cut -f1-4 > $VCF_OUT.postfltr.snp &
+			zgrep '^dDocent' $VCF_OUT.vcf.gz | grep -w "TYPE=ins" | cut -f1-4 > $VCF_OUT.postfltr.ins &
+			zgrep '^dDocent' $VCF_OUT.vcf.gz | grep -w "TYPE=del" | cut -f1-4 > $VCF_OUT.postfltr.del &
+			vcftools --vcf $VCF_OUT.vcf.gz --site-mean-depth --out $VCF_OUT.postfltr 2> /dev/null &
+			wait
+			tail -n+2 $VCF_OUT.postfltr.ldepth.mean | cut -f1-3 | grep -v 'nan' > $VCF_OUT.ldepth.mean.postfltr30
+			Rscript plotFltr30.R $VCF_OUT.ldepth.mean.postfltr30 $VCF_OUT.postfltr.snp $VCF_OUT.postfltr.ins $VCF_OUT.postfltr.del $THRESHOLD $THRESHOLDb $VCF_OUT.postfltr.plots.pdf
+			echo " Plots output to $VCF_OUT.postfltr.plots.pdf"
+
 		fi
 
+	elif [[ $FILTER_ID == "31" ]]; then
+		echo; echo `date` "---------------------------FILTER31: Remove Contigs With Fewer BP -----------------------------"
+		COUNTER31=$((1+COUNTER31))
+		#get settings from config file
+		THRESHOLD=$(grep -P '^\t* *31\t* *custom\t* *bash\t* *..*\t* *#Remove contigs with fewer BP' ${CONFIG_FILE} | sed 's/\t* *31\t* *custom\t* *bash\t* *//g' | sed 's/\t* *#.*//g' ) 
+		if [[ -z "$THRESHOLD" ]]; then THRESHOLD=0; fi
+		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
+
+		if [[ $PARALLEL == "FALSE" ]]; then
+			#calculate the mean depth by site with VCFtools
+			vcftools --vcf ${VCF_FILE} --site-mean-depth --out $VCF_OUT 2> /dev/null
+			tail -n+2 $VCF_OUT.ldepth.mean | cut -f1-3 | grep -v 'nan' | awk '{x[$1] += $3; N[$1]++} END{for (i in x) print i, N[i], x[i]/N[i]}' | tr -s " " "\t" | sort -nk3 > $VCF_OUT.ldepth.mean.contigs
+			Rscript plotFltr31.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $VCF_OUT.ldepth.mean.contigs.plots.pdf
+			awk -v BP=$THRESHOLD '$2 > BP {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > fltr31_keep.contigs
+			cat <(grep -v '^dDocent_Contig' $VCF_FILE) <(grep -f fltr31_keep.contigs $VCF_FILE) > $VCF_OUT.vcf
+		else
+			#calculate the mean depth by site with VCFtools
+			vcftools --gzvcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
+			tail -n+2 $VCF_OUT.ldepth.mean | cut -f1-3 | grep -v 'nan' | awk '{x[$1] += $3; N[$1]++} END{for (i in x) print i, N[i], x[i]/N[i]}' | tr -s " " "\t" | sort -nk3 > $VCF_OUT.ldepth.mean.contigs
+			Rscript plotFltr31.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $VCF_OUT.ldepth.mean.contigs.plots.pdf
+			awk -v BP=$THRESHOLD '$2 > BP {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > fltr31_keep.contigs
+			cat <(zgrep -v '^dDocent_Contig' $VCF_FILE) <(zgrep -f fltr31_keep.contigs $VCF_FILE) | bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
+			tabix -f -p vcf $VCF_OUT.vcf.gz
+		fi
+		echo " Plots output to $VCF_OUT.ldepth.mean.contigs.pdf"
+		
+	elif [[ $FILTER_ID == "041" ]]; then
+		echo; echo `date` "---------------------------FILTER041: Remove Contigs With Extreme DP -----------------------------"
+		COUNTER041=$((1+COUNTER041))
+		#get settings from config file
+		THRESHOLD=$(grep -P '^\t* *041\t* *custom\t* *bash\t* *..*\t* *#Remove contigs with lower mean of mean depth across sites' ${CONFIG_FILE} | sed 's/\t* *041\t* *custom\t* *bash\t* *//g' | sed 's/\t* *#.*//g' ) 
+		if [[ -z "$THRESHOLD" ]]; then THRESHOLD=0; fi
+		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
+		THRESHOLDb=$(grep -P '^\t* *041\t* *custom\t* *bash\t* *..*\t* *#Remove contigs with higher mean of mean depth across sites' ${CONFIG_FILE} | sed 's/\t* *041\t* *custom\t* *bash\t* *//g' | sed 's/\t* *#.*//g' ) 
+		if [[ -z "$THRESHOLDb" ]]; then THRESHOLDb=1000; fi
+		THRESHOLDb=$(PARSE_THRESHOLDS $THRESHOLDb) 
+
+		if [[ $PARALLEL == "FALSE" ]]; then
+			#calculate the mean depth by site with VCFtools
+			vcftools --vcf ${VCF_FILE} --site-mean-depth --out $VCF_OUT 2> /dev/null
+			tail -n+2 $VCF_OUT.ldepth.mean | cut -f1-3 | grep -v 'nan' | awk '{meancvg[$1] += $3; N[$1]++} END{for (i in meancvg) print i, N[i], meancvg[i]/N[i]}' | tr -s " " "\t" | sort -nk3 > $VCF_OUT.ldepth.mean.contigs
+			Rscript plotFltr041.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $THRESHOLDb $VCF_OUT.ldepth.mean.contigs.plots.pdf
+			THRESHOLD=$(cut -f3 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLD '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
+			THRESHOLDb=$(cut -f3 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLDb '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
+			awk -v CVGb=$THRESHOLDb -v CVG=$THRESHOLD '$3 <= CVGb && $3 >= CVG {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > fltr041_keep.contigs
+			cat <(grep -v '^dDocent_Contig' $VCF_FILE) <(grep -f fltr041_keep.contigs $VCF_FILE) > $VCF_OUT.vcf
+		else
+			#calculate the mean depth by site with VCFtools
+			vcftools --gzvcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
+			tail -n+2 $VCF_OUT.ldepth.mean | cut -f1-3 | grep -v 'nan' | awk '{meancvg[$1] += $3; N[$1]++} END{for (i in meancvg) print i, N[i], meancvg[i]/N[i]}' | tr -s " " "\t" | sort -nk3 > $VCF_OUT.ldepth.mean.contigs
+			Rscript plotFltr041.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $THRESHOLDb $VCF_OUT.ldepth.mean.contigs.plots.pdf
+			THRESHOLD=$(cut -f3 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLD '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
+			THRESHOLDb=$(cut -f3 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLDb '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
+			awk -v CVGb=$THRESHOLDb -v CVG=$THRESHOLD '$3 <= CVGb && $3 >= CVG {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > fltr041_keep.contigs
+			cat <(zgrep -v '^dDocent_Contig' $VCF_FILE) <(zgrep -f fltr041_keep.contigs $VCF_FILE) | bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
+			tabix -f -p vcf $VCF_OUT.vcf.gz
+		fi
+		echo " Plots output to $VCF_OUT.ldepth.mean.contigs.pdf"
+		
 	elif [[ $FILTER_ID == "01" ]]; then
 		echo; echo `date` "---------------------------FILTER01: Remove sites with Y < alleles < X -----------------------------"
 		COUNTER01=$((1+COUNTER01))
@@ -666,9 +763,12 @@ EOF
 		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
 		#need to remove individuals from header
 		if [[ $PARALLEL == "TRUE" ]]; then gunzip $VCF_OUT.recode.vcf.gz; fi
+		grep -P '^#CHROM\tPOS' $VCF_OUT.recode.vcf > $VCF_OUT.header.line
 		while read i; do
-			sed -i "s/\t$i//g" $VCF_OUT.recode.vcf
+			sed -i "s/\t$i//g" $VCF_OUT.header.line
 		done < $VCF_OUT.lowDP-2.indv
+		#replace header line in vcf
+		sed -i "s/^#CHROM\tPOS\t.*$/$(cat $VCF_OUT.header.line)/" $VCF_OUT.recode.vcf
 		if [[ $PARALLEL == "TRUE" ]]; then 
 			bgzip -@ $NumProc -c $VCF_OUT.recode.vcf > $VCF_OUT.recode.vcf.gz
 			tabix -p vcf $VCF_OUT.recode.vcf.gz
@@ -1548,6 +1648,9 @@ BLOCK
 ###################################################################################################################
 echo ""; echo $NAME; echo ""
 echo "Dependencies:"
+echo "	R"
+echo "		tidyverse"
+echo "		gridExtra"
 echo "	vcftools"
 echo "	vcflib"
 echo "	samtools"

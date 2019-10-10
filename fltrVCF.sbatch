@@ -17,6 +17,6 @@ module load rad_haplotyper/1.1.5
 module load parallel
 module load vcflib/1.0
 module load samtools
-
+module load R/gcc7/3.5.3
 
 bash fltrVCF.bash -s $1
