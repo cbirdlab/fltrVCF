@@ -23,7 +23,8 @@ fltrVCF Settings, run fltrVCF -h for description of settings
 Filters
 	30  custom bash				5		#Keep sites after this position (bp)
 	30  custom bash				150		#Keep sites before this position (bp)
-	31 custom bash				100		#Remove contigs with fewer BP
+	31	custom bash				100		#Remove contigs with fewer BP
+	32	custom bash				0.9		#Keep contigs with lesser porportion of heterozygotes
 
 	01  vcftools --min-alleles	2		#Remove sites with less alleles [2]
 	01  vcftools --max-alleles	2		#Remove sites with more alleles [2]

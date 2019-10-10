@@ -215,7 +215,33 @@ function FILTER(){
 			cat <(zgrep -v '^dDocent_Contig' $VCF_FILE) <(zgrep -f fltr31_keep.contigs $VCF_FILE) | bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
 			tabix -f -p vcf $VCF_OUT.vcf.gz
 		fi
-		echo " Plots output to $VCF_OUT.ldepth.mean.contigs.pdf"
+		echo " Plots output to $VCF_OUT.ldepth.mean.contigs.plots.pdf"
+
+	elif [[ $FILTER_ID == "32" ]]; then
+		echo; echo `date` "---------------------------FILTER31: Remove Contigs With Fewer BP -----------------------------"
+		COUNTER32=$((1+COUNTER32))
+		#get settings from config file
+		THRESHOLD=$(grep -P '^\t* *32\t* *custom\t* *bash\t* *..*\t* *#Keep contigs with lesser porportion of heterozygotes' ${CONFIG_FILE} | sed 's/\t* *32\t* *custom\t* *bash\t* *//g' | sed 's/\t* *#.*//g' ) 
+		if [[ -z "$THRESHOLD" ]]; then THRESHOLD=0; fi
+		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
+
+		if [[ $PARALLEL == "FALSE" ]]; then
+			#get heterozygosity counts, then get mean rate of heterozygosity per contig, accounting for missing data
+			grep '^dDocent' ${VCF_FILE} | awk 'BEGIN{print "Contig\tNumHet\tNumHomoRef\tNumHomoAlt\tNumMissing\tNumInd"}{print $1 "\t" gsub(/0\/1:/,"0/1:") "\t" gsub(/0\/0:/,"0/0:") "\t" gsub(/1\/1:/,"1/1:") "\t" gsub(/\.\/\.:/,"./.:") "\t" gsub(/.\/.:/,"") } ' | \
+				tail -n+2 | awk '{x[$1] += $2; y[$1] += $6 -=$5; N[$1]++} END{for (i in x) print i, N[i], x[i]/N[i], y[i]/N[i], x[i]/y[i] }' | tr -s " " "\t" | sort -nrk5 > $VCF_OUT.hetero.contigs
+			awk -v HET=$THRESHOLD '$5 < HET {print $1;}' $VCF_OUT.hetero.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > fltr32_keep.contigs
+			Rscript plotFltr32.R $VCF_OUT.hetero.contigs $THRESHOLD $VCF_OUT.hetero.contigs.plots.pdf
+			cat <(grep -v '^dDocent_Contig' $VCF_FILE) <(grep -f fltr32_keep.contigs $VCF_FILE) > $VCF_OUT.vcf
+		else
+			#get heterozygosity counts, then get mean rate of heterozygosity per contig, accounting for missing data
+			zgrep '^dDocent' ${VCF_FILE} | awk 'BEGIN{print "Contig\tNumHet\tNumHomoRef\tNumHomoAlt\tNumMissing\tNumInd"}{print $1 "\t" gsub(/0\/1:/,"0/1:") "\t" gsub(/0\/0:/,"0/0:") "\t" gsub(/1\/1:/,"1/1:") "\t" gsub(/\.\/\.:/,"./.:") "\t" gsub(/.\/.:/,"") } ' | \
+				tail -n+2 | awk '{x[$1] += $2; y[$1] += $6 -=$5; N[$1]++} END{for (i in x) print i, N[i], x[i]/N[i], y[i]/N[i], x[i]/y[i] }' | tr -s " " "\t" | sort -nrk5 > $VCF_OUT.hetero.contigs
+			awk -v HET=$THRESHOLD '$5 < HET {print $1;}' $VCF_OUT.hetero.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > fltr32_keep.contigs
+			Rscript plotFltr32.R $VCF_OUT.hetero.contigs $THRESHOLD $VCF_OUT.hetero.contigs.plots.pdf
+			cat <(zgrep -v '^dDocent_Contig' $VCF_FILE) <(zgrep -f fltr32_keep.contigs $VCF_FILE) | bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
+			tabix -f -p vcf $VCF_OUT.vcf.gz
+		fi
+		echo " Plots output to $VCF_OUT.hetero.contigs.plots.pdf"	
 		
 	elif [[ $FILTER_ID == "041" ]]; then
 		echo; echo `date` "---------------------------FILTER041: Remove Contigs With Extreme DP -----------------------------"
