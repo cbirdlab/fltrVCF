@@ -222,10 +222,10 @@ function FILTER(){
 		COUNTER041=$((1+COUNTER041))
 		#get settings from config file
 		THRESHOLD=$(grep -P '^\t* *041\t* *custom\t* *bash\t* *..*\t* *#Remove contigs with lower mean of mean depth across sites' ${CONFIG_FILE} | sed 's/\t* *041\t* *custom\t* *bash\t* *//g' | sed 's/\t* *#.*//g' ) 
-		if [[ -z "$THRESHOLD" ]]; then THRESHOLD=0; fi
+		if [[ -z "$THRESHOLD" ]]; then THRESHOLD=0.05; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		THRESHOLDb=$(grep -P '^\t* *041\t* *custom\t* *bash\t* *..*\t* *#Remove contigs with higher mean of mean depth across sites' ${CONFIG_FILE} | sed 's/\t* *041\t* *custom\t* *bash\t* *//g' | sed 's/\t* *#.*//g' ) 
-		if [[ -z "$THRESHOLDb" ]]; then THRESHOLDb=1000; fi
+		if [[ -z "$THRESHOLDb" ]]; then THRESHOLDb=0.95; fi
 		THRESHOLDb=$(PARSE_THRESHOLDS $THRESHOLDb) 
 
 		if [[ $PARALLEL == "FALSE" ]]; then
