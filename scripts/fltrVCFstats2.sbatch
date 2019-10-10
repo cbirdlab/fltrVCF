@@ -28,35 +28,35 @@ HEADER=$(echo -e "File	FilterID	FilterOrder	NumInd	NumContigs	NumSNPs	NumMissing
 #aggregate information for dat file
 if [[ $3 == "gz" ]]; then
 	Col01=$(ls -tr ${PREFIX}*vcf.gz )
-	Col02=$(ls -tr ${PREFIX}*vcf.gz | parallel -j $THREADS -k "echo -e -n {} | tr '.' '\t' | cut -f5-6 ")	#Filter Order
-	Col04=$(ls -tr ${PREFIX}*vcf.gz | parallel -j $THREADS -k "zcat {} | tail -n 1 | cut -f 10- | tr '\t' '\n' | wc -l | tr -d '\n' ")   #num individuals
-	Col05=$(ls -tr ${PREFIX}*vcf.gz | parallel -j $THREADS -k "zgrep '^dDocent' {} | cut -f1 | uniq | wc -l | tr -d '\n' ")   #num contigs
-	Col06=$(ls -tr ${PREFIX}*vcf.gz | parallel -j $THREADS -k "zgrep -c '^dDocent' {} | tr -d '\n' ")   #num snps
-	Col07=$(ls -tr ${PREFIX}*vcf.gz | parallel -j $THREADS -k "zgrep -oh '\./\.:' {} | wc -l | tr -d '\n' ")   #num missing genotypes
-	Col08=$(ls -tr ${PREFIX}*vcf.gz | parallel -j $THREADS -k "zgrep -oh '[01]/[01]:[1-9]:' {} | wc -l | tr -d '\n' ")   #num genotypes w less than 10x cvg
-	Col09=$(ls -tr ${PREFIX}*vcf.gz | parallel -j $THREADS -k "zgrep -oh '[01]/[01]:1[0-9]:' {} | wc -l | tr -d '\n' ")   #num genotypes w 10-19x cvg
-	Col10=$(ls -tr ${PREFIX}*vcf.gz | parallel -j $THREADS -k "zgrep -oh '[01]/[01]:[2-4][0-9]:' {} | wc -l | tr -d '\n' ")   #num genotypes w 20-49x cvg
-	Col11=$(ls -tr ${PREFIX}*vcf.gz | parallel -j $THREADS -k "zgrep -oh '[01]/[01]:[5-9][0-9]:' {} | wc -l | tr -d '\n' ")   #num genotypes w 50-99x cvg
-	Col12=$(ls -tr ${PREFIX}*vcf.gz | parallel -j $THREADS -k "zgrep -oh '[01]/[01]:[1-9][0-9][0-9]:' {} | wc -l ")   #num genotypes w 100-999x cvg
+	Col02=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "echo -e -n {} | tr '.' '\t' | cut -f5-6 ")	#Filter Order
+	Col04=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zcat {} | tail -n 1 | cut -f 10- | tr '\t' '\n' | wc -l ")   #num individuals
+	Col05=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep '^dDocent' {} | cut -f1 | uniq | wc -l ")   #num contigs
+	Col06=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -c '^dDocent' {} ")   #num snps
+	Col07=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -oh '\./\.:' {} | wc -l ")   #num missing genotypes
+	Col08=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -oh '[01]/[01]:[1-9]:' {} | wc -l ")   #num genotypes w less than 10x cvg
+	Col09=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -oh '[01]/[01]:1[0-9]:' {} | wc -l ")   #num genotypes w 10-19x cvg
+	Col10=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -oh '[01]/[01]:[2-4][0-9]:' {} | wc -l ")   #num genotypes w 20-49x cvg
+	Col11=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -oh '[01]/[01]:[5-9][0-9]:' {} | wc -l ")   #num genotypes w 50-99x cvg
+	Col12=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -oh '[01]/[01]:[1-9][0-9][0-9]:' {} | wc -l ")   #num genotypes w 100-999x cvg
 else
 	Col01=$(ls -tr ${PREFIX}*vcf )
-	Col02=$(ls -tr ${PREFIX}*vcf | parallel -j $THREADS -k "echo -e -n {} | tr '.' '\t' | cut -f5-6 ")	#Filter Order
-	Col04=$(ls -tr ${PREFIX}*vcf | parallel -j $THREADS -k "cat {} | tail -n 1 | cut -f 10- | tr '\t' '\n' | wc -l | tr -d '\n' ")   #num individuals
-	Col05=$(ls -tr ${PREFIX}*vcf | parallel -j $THREADS -k "grep '^dDocent' {} | cut -f1 | uniq | wc -l | tr -d '\n' ")   #num contigs
-	Col06=$(ls -tr ${PREFIX}*vcf | parallel -j $THREADS -k "grep -c '^dDocent' {} | tr -d '\n' ")   #num snps
-	Col07=$(ls -tr ${PREFIX}*vcf | parallel -j $THREADS -k "grep -oh '\./\.:' {} | wc -l | tr -d '\n' ")   #num missing genotypes
-	Col08=$(ls -tr ${PREFIX}*vcf | parallel -j $THREADS -k "grep -oh '[01]/[01]:[1-9]:' {} | wc -l | tr -d '\n' ")   #num genotypes w less than 10x cvg
-	Col09=$(ls -tr ${PREFIX}*vcf | parallel -j $THREADS -k "grep -oh '[01]/[01]:1[0-9]:' {} | wc -l | tr -d '\n' ")   #num genotypes w 10-19x cvg
-	Col10=$(ls -tr ${PREFIX}*vcf | parallel -j $THREADS -k "grep -oh '[01]/[01]:[2-4][0-9]:' {} | wc -l | tr -d '\n' ")   #num genotypes w 20-49x cvg
-	Col11=$(ls -tr ${PREFIX}*vcf | parallel -j $THREADS -k "grep -oh '[01]/[01]:[5-9][0-9]:' {} | wc -l | tr -d '\n' ")   #num genotypes w 50-99x cvg
-	Col12=$(ls -tr ${PREFIX}*vcf | parallel -j $THREADS -k "grep -oh '[01]/[01]:[1-9][0-9][0-9]:' {} | wc -l ")   #num genotypes w 100-999x cvg
+	Col02=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "echo -e -n {} | tr '.' '\t' | cut -f5-6 ")	#Filter Order
+	Col04=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "cat {} | tail -n 1 | cut -f 10- | tr '\t' '\n' | wc -l ")   #num individuals
+	Col05=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep '^dDocent' {} | cut -f1 | uniq | wc -l ")   #num contigs
+	Col06=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -c '^dDocent' {} ")   #num snps
+	Col07=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -oh '\./\.:' {} | wc -l ")   #num missing genotypes
+	Col08=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -oh '[01]/[01]:[1-9]:' {} | wc -l ")   #num genotypes w less than 10x cvg
+	Col09=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -oh '[01]/[01]:1[0-9]:' {} | wc -l ")   #num genotypes w 10-19x cvg
+	Col10=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -oh '[01]/[01]:[2-4][0-9]:' {} | wc -l ")   #num genotypes w 20-49x cvg
+	Col11=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -oh '[01]/[01]:[5-9][0-9]:' {} | wc -l ")   #num genotypes w 50-99x cvg
+	Col12=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -oh '[01]/[01]:[1-9][0-9][0-9]:' {} | wc -l ")   #num genotypes w 100-999x cvg
 fi
 
 #output dat file
 cat <(echo $HEADER | tr ' ' '\t') \
 	<( \
 		paste <(echo $Col01 | tr ' ' '\n') \
-			<(echo $Col02 | tr ' ' '\n' | paste - -) \
+			<(echo $Col02 | tr ' ' '\n' | paste - - ) \
 			<(echo $Col04 | tr ' ' '\n') \
 			<(echo $Col05 | tr ' ' '\n') \
 			<(echo $Col06 | tr ' ' '\n') \

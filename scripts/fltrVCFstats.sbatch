@@ -26,7 +26,7 @@ echo -e "File	FilterID	FilterOrder	NumInd	NumContigs	NumSNPs	NumMissingGeno	NumG
 
 if [[ $3 == "gz" ]]; then
 	ls -tr ${PREFIX}*vcf.gz | parallel -j $THREADS -k "echo -e -n {}'\t' && \
-		echo -e -n {} | tr '.' '\t' | cut -f5-6 &&\	#Filter Order
+		echo -e -n {} | tr '.' '\t' | cut -f5-6 | tr -d '\n' &&\	#Filter Order
 		echo -e -n '\t' && \
 		zcat {} | tail -n 1 | cut -f 10- | tr '\t' '\n' | wc -l | tr -d '\n' &&\   #num individuals
 		echo -e -n '\t' && \
@@ -48,8 +48,8 @@ if [[ $3 == "gz" ]]; then
 		" >> $PREFIX.fltrStats.dat
 else
 	ls -tr ${PREFIX}*vcf | parallel -j $THREADS -k "echo -e -n {}'\t' && \  
-		echo -e -n {} | tr '.' '\t' | cut -f5-6 &&\     #Filter Order
-                echo -e -n '\t' && \
+		echo -e -n {} | tr '.' '\t' | cut -f5-6 | tr -d '\n' &&\     #Filter Order
+		echo -e -n '\t' && \
 		cat {} | tail -n 1 | cut -f 10- | tr '\t' '\n' | wc -l | tr -d '\n' &&\   #num individuals
 		echo -e -n '\t' && \
 		grep '^dDocent' {} | cut -f1 | uniq | wc -l | tr -d '\n' && \   #num contigs
