@@ -163,7 +163,6 @@ function FILTER(){
 			wait
 			tail -n+2 $VCF_OUT.postfltr.ldepth.mean | cut -f1-3 | grep -v 'nan' > $VCF_OUT.ldepth.mean.postfltr30
 			Rscript plotFltr30.R $VCF_OUT.ldepth.mean.postfltr30 $VCF_OUT.postfltr.snp $VCF_OUT.postfltr.ins $VCF_OUT.postfltr.del $THRESHOLD $THRESHOLDb $VCF_OUT.postfltr.plots.pdf
-			echo " Plots output to $VCF_OUT.postfltr.plots.pdf"
 			
 		else
 			zgrep '^dDocent' $VCF_FILE | grep -w "TYPE=snp" | cut -f1-4 > $VCF_OUT.prefltr.snp &
@@ -187,9 +186,9 @@ function FILTER(){
 			wait
 			tail -n+2 $VCF_OUT.postfltr.ldepth.mean | cut -f1-3 | grep -v 'nan' > $VCF_OUT.ldepth.mean.postfltr30
 			Rscript plotFltr30.R $VCF_OUT.ldepth.mean.postfltr30 $VCF_OUT.postfltr.snp $VCF_OUT.postfltr.ins $VCF_OUT.postfltr.del $THRESHOLD $THRESHOLDb $VCF_OUT.postfltr.plots.pdf
-			echo " Plots output to $VCF_OUT.postfltr.plots.pdf"
-
 		fi
+		echo " Plots output to $VCF_OUT.postfltr.plots.pdf"
+
 
 	elif [[ $FILTER_ID == "31" ]]; then
 		echo; echo `date` "---------------------------FILTER31: Remove Contigs With Fewer BP -----------------------------"
@@ -215,7 +214,9 @@ function FILTER(){
 			cat <(zgrep -v '^dDocent_Contig' $VCF_FILE) <(zgrep -f fltr31_keep.contigs $VCF_FILE) | bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
 			tabix -f -p vcf $VCF_OUT.vcf.gz
 		fi
-		echo " Plots output to $VCF_OUT.ldepth.mean.contigs.plots.pdf"
+		echo " The following contigs have been filtered:"
+		awk -v BP=$THRESHOLD '$2 <= BP {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/     /'
+		echo ""; echo " Plots output to $VCF_OUT.ldepth.mean.contigs.plots.pdf"
 
 	elif [[ $FILTER_ID == "32" ]]; then
 		echo; echo `date` "---------------------------FILTER32: Keep Contigs w Fewer Heterozygotes -----------------------------"
@@ -243,7 +244,9 @@ function FILTER(){
 			cat <(zgrep -v '^dDocent_Contig' $VCF_FILE) <(zgrep -f fltr32_keep.contigs $VCF_FILE) | bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
 			tabix -f -p vcf $VCF_OUT.vcf.gz
 		fi
-		echo " Plots output to $VCF_OUT.hetero.contigs.plots.pdf"	
+		echo " The following contigs have been filtered:"
+		awk -v HET=$THRESHOLD '$5 >= HET {print $1;}' $VCF_OUT.hetero.contigs | sed -e 's/^/     /'
+		echo ""; echo " Plots output to $VCF_OUT.hetero.contigs.plots.pdf"	
 		
 	elif [[ $FILTER_ID == "041" ]]; then
 		echo; echo `date` "---------------------------FILTER041: Remove Contigs With Extreme DP -----------------------------"
@@ -276,7 +279,10 @@ function FILTER(){
 			cat <(zgrep -v '^dDocent_Contig' $VCF_FILE) <(zgrep -f fltr041_keep.contigs $VCF_FILE) | bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
 			tabix -f -p vcf $VCF_OUT.vcf.gz
 		fi
-		echo " Plots output to $VCF_OUT.ldepth.mean.contigs.pdf"
+
+		echo " The following contigs have been filtered:"
+		awk -v CVGb=$THRESHOLDb -v CVG=$THRESHOLD '$3 > CVGb && $3 < CVG {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/     /'
+		echo ""; echo " Plots output to $VCF_OUT.ldepth.mean.contigs.pdf"
 		
 	elif [[ $FILTER_ID == "01" ]]; then
 		echo; echo `date` "---------------------------FILTER01: Remove sites with Y < alleles < X -----------------------------"
