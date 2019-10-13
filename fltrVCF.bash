@@ -203,19 +203,19 @@ function FILTER(){
 			vcftools --vcf ${VCF_FILE} --site-mean-depth --out $VCF_OUT 2> /dev/null
 			tail -n+2 $VCF_OUT.ldepth.mean | cut -f1-3 | grep -v 'nan' | awk '{x[$1] += $3; N[$1]++} END{for (i in x) print i, N[i], x[i]/N[i]}' | tr -s " " "\t" | sort -nk3 > $VCF_OUT.ldepth.mean.contigs
 			Rscript plotFltr31.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $VCF_OUT.ldepth.mean.contigs.plots.pdf
-			awk -v BP=$THRESHOLD '$2 > BP {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > fltr31_keep.contigs
-			cat <(grep -v '^dDocent_Contig' $VCF_FILE) <(grep -f fltr31_keep.contigs $VCF_FILE) > $VCF_OUT.vcf
+			awk -v BP=$THRESHOLD '$2 <= BP {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
+			cat <(grep -v '^dDocent_Contig' $VCF_FILE) <(grep -vf $VCF_OUT.remove.contigs $VCF_FILE) > $VCF_OUT.vcf
 		else
 			#calculate the mean depth by site with VCFtools
 			vcftools --gzvcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
 			tail -n+2 $VCF_OUT.ldepth.mean | cut -f1-3 | grep -v 'nan' | awk '{x[$1] += $3; N[$1]++} END{for (i in x) print i, N[i], x[i]/N[i]}' | tr -s " " "\t" | sort -nk3 > $VCF_OUT.ldepth.mean.contigs
 			Rscript plotFltr31.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $VCF_OUT.ldepth.mean.contigs.plots.pdf
-			awk -v BP=$THRESHOLD '$2 > BP {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > fltr31_keep.contigs
-			cat <(zgrep -v '^dDocent_Contig' $VCF_FILE) <(zgrep -f fltr31_keep.contigs $VCF_FILE) | bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
+			awk -v BP=$THRESHOLD '$2 <= BP {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
+			cat <(zgrep -v '^dDocent_Contig' $VCF_FILE) <(zgrep -vf $VCF_OUT.remove.contigs $VCF_FILE) | bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
 			tabix -f -p vcf $VCF_OUT.vcf.gz
 		fi
 		echo " The following contigs have been filtered:"
-		awk -v BP=$THRESHOLD '$2 <= BP {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/     /' | sort -g | paste - - - -
+		sed -e 's/^/     /' $VCF_OUT.remove.contigs | sort -g | paste - - - -
 		echo ""; echo " Plots output to $VCF_OUT.ldepth.mean.contigs.plots.pdf"
 
 	elif [[ $FILTER_ID == "32" ]]; then
@@ -223,7 +223,7 @@ function FILTER(){
 		COUNTER32=$((1+COUNTER32))
 		#get settings from config file
 		THRESHOLD=$(grep -P '^\t* *32\t* *custom\t* *bash\t* *..*\t* *#Keep contigs with lesser porportion of heterozygotes' ${CONFIG_FILE} | sed 's/\t* *32\t* *custom\t* *bash\t* *//g' | sed 's/\t* *#.*//g' ) 
-		if [[ -z "$THRESHOLD" ]]; then THRESHOLD=0; fi
+		if [[ -z "$THRESHOLD" ]]; then THRESHOLD=1; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 
 		if [[ $PARALLEL == "FALSE" ]]; then
@@ -231,21 +231,21 @@ function FILTER(){
 			grep '^dDocent' ${VCF_FILE} | awk 'BEGIN{print "Contig\tNumHet\tNumHomoRef\tNumHomoAlt\tNumMissing\tNumInd"}{print $1 "\t" gsub(/0\/1:/,"0/1:") "\t" gsub(/0\/0:/,"0/0:") "\t" gsub(/1\/1:/,"1/1:") "\t" gsub(/\.\/\.:/,"./.:") "\t" gsub(/.\/.:/,"") } ' | \
 				tail -n+2 | awk '$3 + $5 != $6 && $4 + $5 != $6 {print ;}' | \
 				awk '{x[$1] += $2; y[$1] += $6 -=$5; N[$1]++} END{for (i in x) print i, N[i], x[i]/N[i], y[i]/N[i], x[i]/y[i] }' | tr -s " " "\t" | sort -nrk5 > $VCF_OUT.hetero.contigs
-			awk -v HET=$THRESHOLD '$5 < HET {print $1;}' $VCF_OUT.hetero.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > fltr32_keep.contigs
+			awk -v HET=$THRESHOLD '$5 >= HET {print $1;}' $VCF_OUT.hetero.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
 			Rscript plotFltr32.R $VCF_OUT.hetero.contigs $THRESHOLD $VCF_OUT.hetero.contigs.plots.pdf
-			cat <(grep -v '^dDocent_Contig' $VCF_FILE) <(grep -f fltr32_keep.contigs $VCF_FILE) > $VCF_OUT.vcf
+			cat <(grep -v '^dDocent_Contig' $VCF_FILE) <(grep -vf $VCF_OUT.remove.contigs $VCF_FILE) > $VCF_OUT.vcf
 		else
 			#get heterozygosity counts, then get mean rate of heterozygosity per variable position per contig, accounting for missing data
 			zgrep '^dDocent' ${VCF_FILE} | awk 'BEGIN{print "Contig\tNumHet\tNumHomoRef\tNumHomoAlt\tNumMissing\tNumInd"}{print $1 "\t" gsub(/0\/1:/,"0/1:") "\t" gsub(/0\/0:/,"0/0:") "\t" gsub(/1\/1:/,"1/1:") "\t" gsub(/\.\/\.:/,"./.:") "\t" gsub(/.\/.:/,"") } ' | \
 				tail -n+2 | awk '$3 + $5 != $6 && $4 + $5 != $6 {print ;}' | \
 				awk '{x[$1] += $2; y[$1] += $6 -=$5; N[$1]++} END{for (i in x) print i, N[i], x[i]/N[i], y[i]/N[i], x[i]/y[i] }' | tr -s " " "\t" | sort -nrk5 > $VCF_OUT.hetero.contigs
-			awk -v HET=$THRESHOLD '$5 < HET {print $1;}' $VCF_OUT.hetero.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > fltr32_keep.contigs
+			awk -v HET=$THRESHOLD '$5 >= HET {print $1;}' $VCF_OUT.hetero.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
 			Rscript plotFltr32.R $VCF_OUT.hetero.contigs $THRESHOLD $VCF_OUT.hetero.contigs.plots.pdf
-			cat <(zgrep -v '^dDocent_Contig' $VCF_FILE) <(zgrep -f fltr32_keep.contigs $VCF_FILE) | bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
+			cat <(zgrep -v '^dDocent_Contig' $VCF_FILE) <(zgrep -vf $VCF_OUT.remove.contigs $VCF_FILE) | bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
 			tabix -f -p vcf $VCF_OUT.vcf.gz
 		fi
 		echo " The following contigs have been filtered:"
-		awk -v HET=$THRESHOLD '$5 >= HET {print $1;}' $VCF_OUT.hetero.contigs | sed -e 's/^/     /' | sort -g | paste - - - -
+		sed -e 's/^/     /' $VCF_OUT.remove.contigs | sort -n | paste - - - -
 		echo ""; echo " Plots output to $VCF_OUT.hetero.contigs.plots.pdf"	
 		
 	elif [[ $FILTER_ID == "041" ]]; then
@@ -266,8 +266,8 @@ function FILTER(){
 			Rscript plotFltr041.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $THRESHOLDb $VCF_OUT.ldepth.mean.contigs.plots.pdf
 			THRESHOLD=$(cut -f3 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLD '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
 			THRESHOLDb=$(cut -f3 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLDb '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
-			awk -v CVGb=$THRESHOLDb -v CVG=$THRESHOLD '$3 <= CVGb && $3 >= CVG {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > fltr041_keep.contigs
-			cat <(grep -v '^dDocent_Contig' $VCF_FILE) <(grep -f fltr041_keep.contigs $VCF_FILE) > $VCF_OUT.vcf
+			awk -v CVGb=$THRESHOLDb -v CVG=$THRESHOLD '$3 > CVGb || $3 < CVG {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
+			cat <(grep -v '^dDocent_Contig' $VCF_FILE) <(grep -vf $VCF_OUT.remove.contigs $VCF_FILE) > $VCF_OUT.vcf
 		else
 			#calculate the mean depth by site with VCFtools
 			vcftools --gzvcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
@@ -275,13 +275,13 @@ function FILTER(){
 			Rscript plotFltr041.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $THRESHOLDb $VCF_OUT.ldepth.mean.contigs.plots.pdf
 			THRESHOLD=$(cut -f3 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLD '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
 			THRESHOLDb=$(cut -f3 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLDb '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
-			awk -v CVGb=$THRESHOLDb -v CVG=$THRESHOLD '$3 <= CVGb && $3 >= CVG {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > fltr041_keep.contigs
-			cat <(zgrep -v '^dDocent_Contig' $VCF_FILE) <(zgrep -f fltr041_keep.contigs $VCF_FILE) | bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
+			awk -v CVGb=$THRESHOLDb -v CVG=$THRESHOLD '$3 > CVGb || $3 < CVG {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
+			cat <(zgrep -v '^dDocent_Contig' $VCF_FILE) <(zgrep -vf $VCF_OUT.remove.contigs $VCF_FILE) | bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
 			tabix -f -p vcf $VCF_OUT.vcf.gz
 		fi
 
 		echo " The following contigs have been filtered:"
-		awk -v CVGb=$THRESHOLDb -v CVG=$THRESHOLD '$3 > CVGb || $3 < CVG {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/     /' | sort -g | paste - - - -
+		sed -e 's/^/     /' $VCF_OUT.remove.contigs | sort -g | paste - - - -
 		echo ""; echo " Plots output to $VCF_OUT.ldepth.mean.contigs.pdf"
 		
 	elif [[ $FILTER_ID == "01" ]]; then
