@@ -27,7 +27,7 @@ p1 <- ggplot(df, aes(x=PropHet)) +
   ggtitle("Mean Proportion Hetero Per Contig") +
   scale_x_continuous(limits = c(0, 1))
 
-df1 <- df[df$PropHet <= hetCut,]
+df1 <- df[df$PropHet <= hetCut]
 
 p2 <- ggplot(df1, aes(x=PropHet)) +
   geom_histogram(color="black", fill="white", binwidth = 1) +
