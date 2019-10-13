@@ -215,7 +215,7 @@ function FILTER(){
 			tabix -f -p vcf $VCF_OUT.vcf.gz
 		fi
 		echo " The following contigs have been filtered:"
-		awk -v BP=$THRESHOLD '$2 <= BP {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/     /'
+		awk -v BP=$THRESHOLD '$2 <= BP {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/     /' | sort -g | paste - - - -
 		echo ""; echo " Plots output to $VCF_OUT.ldepth.mean.contigs.plots.pdf"
 
 	elif [[ $FILTER_ID == "32" ]]; then
@@ -245,7 +245,7 @@ function FILTER(){
 			tabix -f -p vcf $VCF_OUT.vcf.gz
 		fi
 		echo " The following contigs have been filtered:"
-		awk -v HET=$THRESHOLD '$5 >= HET {print $1;}' $VCF_OUT.hetero.contigs | sed -e 's/^/     /'
+		awk -v HET=$THRESHOLD '$5 >= HET {print $1;}' $VCF_OUT.hetero.contigs | sed -e 's/^/     /' | sort -g | paste - - - -
 		echo ""; echo " Plots output to $VCF_OUT.hetero.contigs.plots.pdf"	
 		
 	elif [[ $FILTER_ID == "041" ]]; then
@@ -281,7 +281,7 @@ function FILTER(){
 		fi
 
 		echo " The following contigs have been filtered:"
-		awk -v CVGb=$THRESHOLDb -v CVG=$THRESHOLD '$3 > CVGb && $3 < CVG {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/     /'
+		awk -v CVGb=$THRESHOLDb -v CVG=$THRESHOLD '$3 > CVGb || $3 < CVG {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/     /' | sort -g | paste - - - -
 		echo ""; echo " Plots output to $VCF_OUT.ldepth.mean.contigs.pdf"
 		
 	elif [[ $FILTER_ID == "01" ]]; then
