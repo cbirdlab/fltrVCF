@@ -253,29 +253,42 @@ function FILTER(){
 		COUNTER041=$((1+COUNTER041))
 		#get settings from config file
 		THRESHOLD=$(grep -P '^\t* *041\t* *custom\t* *bash\t* *..*\t* *#Remove contigs with lower mean of mean depth across sites' ${CONFIG_FILE} | sed 's/\t* *041\t* *custom\t* *bash\t* *//g' | sed 's/\t* *#.*//g' ) 
-		if [[ -z "$THRESHOLD" ]]; then THRESHOLD=0.05; fi
+		if [[ -z "$THRESHOLD" ]]; then THRESHOLD=0.01; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		THRESHOLDb=$(grep -P '^\t* *041\t* *custom\t* *bash\t* *..*\t* *#Remove contigs with higher mean of mean depth across sites' ${CONFIG_FILE} | sed 's/\t* *041\t* *custom\t* *bash\t* *//g' | sed 's/\t* *#.*//g' ) 
-		if [[ -z "$THRESHOLDb" ]]; then THRESHOLDb=0.95; fi
+		if [[ -z "$THRESHOLDb" ]]; then THRESHOLDb=0.99; fi
 		THRESHOLDb=$(PARSE_THRESHOLDS $THRESHOLDb) 
+		THRESHOLDc=$(grep -P '^\t* *041\t* *custom\t* *bash\t* *..*\t* *#Remove contigs with lower CV of mean depth across sites' ${CONFIG_FILE} | sed 's/\t* *041\t* *custom\t* *bash\t* *//g' | sed 's/\t* *#.*//g' ) 
+		if [[ -z "$THRESHOLDc" ]]; then THRESHOLDc=0; fi
+		THRESHOLDc=$(PARSE_THRESHOLDS $THRESHOLDb) 
+		THRESHOLDd=$(grep -P '^\t* *041\t* *custom\t* *bash\t* *..*\t* *#Remove contigs with higher CV of mean depth across sites' ${CONFIG_FILE} | sed 's/\t* *041\t* *custom\t* *bash\t* *//g' | sed 's/\t* *#.*//g' ) 
+		if [[ -z "$THRESHOLDd" ]]; then THRESHOLDd=0.99; fi
+		THRESHOLDd=$(PARSE_THRESHOLDS $THRESHOLDb) 
 
 		if [[ $PARALLEL == "FALSE" ]]; then
 			#calculate the mean depth by site with VCFtools
 			vcftools --vcf ${VCF_FILE} --site-mean-depth --out $VCF_OUT 2> /dev/null
-			tail -n+2 $VCF_OUT.ldepth.mean | cut -f1-3 | grep -v 'nan' | awk '{meancvg[$1] += $3; N[$1]++} END{for (i in meancvg) print i, N[i], meancvg[i]/N[i]}' | tr -s " " "\t" | sort -nk3 > $VCF_OUT.ldepth.mean.contigs
-			Rscript plotFltr041.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $THRESHOLDb $VCF_OUT.ldepth.mean.contigs.plots.pdf
+			#this awk command calculates the number of bp considered in the contig, the mean of mean cvg, the var or mean cvg, the mean of CV for the mean cvg, and the var of the CV for the mean cvg
+			tail -n+2 $VCF_OUT.ldepth.mean | grep -Pv '\t-nan' | awk '{sumAVG[$1] += $3; ssAVG[$1] += $3 ** 2; sumCV[$1] += $4 ** 0.5 / $3; ssCV[$1] += ($4 ** 0.5 / $3)**2; N[$1]++} END{for (i in sumAVG) print i, N[i], sumAVG[i]/N[i], (ssAVG[i]/N[i] - (sumAVG[i]/N[i])**2)**0.5 / sumAVG[i]/N[i], sumCV[i]/N[i], (ssCV[i]/N[i] - (sumCV[i]/N[i])**2)**0.5 / (sumCV[i]/N[i]) }' | tr -s " " "\t" | sort -nk3 > $VCF_OUT.ldepth.mean.contigs
+			Rscript plotFltr041.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $THRESHOLDb $THRESHOLDc $THRESHOLDd $VCF_OUT.ldepth.mean.contigs.plots.pdf
 			THRESHOLD=$(cut -f3 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLD '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
 			THRESHOLDb=$(cut -f3 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLDb '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
-			awk -v CVGb=$THRESHOLDb -v CVG=$THRESHOLD '$3 > CVGb || $3 < CVG {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
+			THRESHOLDc=$(cut -f5 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLDc '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
+			THRESHOLDd=$(cut -f5 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLDd '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
+			#this was line before adding cv filter, delete after confirmation of success
+			#awk -v CVGb=$THRESHOLDb -v CVG=$THRESHOLD '$3 > CVGb || $3 < CVG {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
+			awk -v CVGd=$THRESHOLDd -v CVGc=$THRESHOLDc CVGb=$THRESHOLDb -v CVG=$THRESHOLD '$3 > CVGb || $3 < CVG || $5 > CVGd || $5 < CVGc {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
 			grep -vf $VCF_OUT.remove.contigs $VCF_FILE > $VCF_OUT.vcf
 		else
 			#calculate the mean depth by site with VCFtools
 			vcftools --gzvcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
 			tail -n+2 $VCF_OUT.ldepth.mean | cut -f1-3 | grep -v 'nan' | awk '{meancvg[$1] += $3; N[$1]++} END{for (i in meancvg) print i, N[i], meancvg[i]/N[i]}' | tr -s " " "\t" | sort -nk3 > $VCF_OUT.ldepth.mean.contigs
-			Rscript plotFltr041.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $THRESHOLDb $VCF_OUT.ldepth.mean.contigs.plots.pdf
+			Rscript plotFltr041.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $THRESHOLDb $THRESHOLDc $THRESHOLDd $VCF_OUT.ldepth.mean.contigs.plots.pdf
 			THRESHOLD=$(cut -f3 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLD '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
 			THRESHOLDb=$(cut -f3 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLDb '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
-			awk -v CVGb=$THRESHOLDb -v CVG=$THRESHOLD '$3 > CVGb || $3 < CVG {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
+			THRESHOLDc=$(cut -f5 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLDc '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
+			THRESHOLDd=$(cut -f5 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLDd '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
+			awk -v CVGd=$THRESHOLDd -v CVGc=$THRESHOLDc CVGb=$THRESHOLDb -v CVG=$THRESHOLD '$3 > CVGb || $3 < CVG || $5 > CVGd || $5 < CVGc {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
 			zgrep -vf $VCF_OUT.remove.contigs $VCF_FILE | bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
 			tabix -f -p vcf $VCF_OUT.vcf.gz
 		fi
