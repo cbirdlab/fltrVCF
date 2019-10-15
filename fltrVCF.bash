@@ -271,10 +271,11 @@ THRESHOLD=$(grep -P '^\t* *041\t* *custom\t* *bash\t* *..*\t* *#Remove contigs w
 			#this awk command calculates the number of bp considered in the contig, the mean of mean cvg, the var or mean cvg, the mean of CV for the mean cvg, and the var of the CV for the mean cvg
 			tail -n+2 $VCF_OUT.ldepth.mean | grep -Pv '\t-nan' | awk '{sumAVG[$1] += $3; ssAVG[$1] += $3 ** 2; sumCV[$1] += $4 ** 0.5 / $3; ssCV[$1] += ($4 ** 0.5 / $3)**2; N[$1]++} END{for (i in sumAVG) print i, N[i], sumAVG[i]/N[i], (ssAVG[i]/N[i] - (sumAVG[i]/N[i])**2)**0.5 / sumAVG[i]/N[i], sumCV[i]/N[i], (ssCV[i]/N[i] - (sumCV[i]/N[i])**2)**0.5 / (sumCV[i]/N[i]) }' | tr -s " " "\t" | sort -nk3 > $VCF_OUT.ldepth.mean.contigs
 			Rscript plotFltr041.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $THRESHOLDb $THRESHOLDc $THRESHOLDd $VCF_OUT.ldepth.mean.contigs.plots.pdf
-			THRESHOLD=$(cut -f3 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLD '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
-			THRESHOLDb=$(cut -f3 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLDb '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
-			THRESHOLDc=$(cut -f5 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLDc '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
-			THRESHOLDd=$(cut -f5 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLDd '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
+THRESHOLD=$(cut -f3 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLD '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
+THRESHOLDb=$(cut -f3 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLDb '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
+THRESHOLDc=$(cut -f5 $VCF_OUT.ldepth.mean.contigs | sort -n | awk -v PCT=$THRESHOLDc '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
+if [[ -z "$THRESHOLDc" ]]; then THRESHOLDc=0; fi
+THRESHOLDd=$(cut -f5 $VCF_OUT.ldepth.mean.contigs | sort -n | awk -v PCT=$THRESHOLDd '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
 			#this was line before adding cv filter, delete after confirmation of success
 			#awk -v CVGb=$THRESHOLDb -v CVG=$THRESHOLD '$3 > CVGb || $3 < CVG {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
 			awk -v CVGd=$THRESHOLDd -v CVGc=$THRESHOLDc -v CVGb=$THRESHOLDb -v CVG=$THRESHOLD '$3 > CVGb || $3 < CVG || $5 > CVGd || $5 < CVGc {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
@@ -286,9 +287,9 @@ THRESHOLD=$(grep -P '^\t* *041\t* *custom\t* *bash\t* *..*\t* *#Remove contigs w
 			Rscript plotFltr041.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $THRESHOLDb $THRESHOLDc $THRESHOLDd $VCF_OUT.ldepth.mean.contigs.plots.pdf
 			THRESHOLD=$(cut -f3 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLD '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
 			THRESHOLDb=$(cut -f3 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLDb '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
-			THRESHOLDc=$(cut -f5 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLDc '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
-			THRESHOLDd=$(cut -f5 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLDd '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
-			awk -v CVGd=$THRESHOLDd -v CVGc=$THRESHOLDc CVGb=$THRESHOLDb -v CVG=$THRESHOLD '$3 > CVGb || $3 < CVG || $5 > CVGd || $5 < CVGc {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
+			THRESHOLDc=$(cut -f5 $VCF_OUT.ldepth.mean.contigs | sort -n | awk -v PCT=$THRESHOLDc '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
+			THRESHOLDd=$(cut -f5 $VCF_OUT.ldepth.mean.contigs | sort -n | awk -v PCT=$THRESHOLDd '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
+			awk -v CVGd=$THRESHOLDd -v CVGc=$THRESHOLDc -v CVGb=$THRESHOLDb -v CVG=$THRESHOLD '$3 > CVGb || $3 < CVG || $5 > CVGd || $5 < CVGc {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
 			zgrep -vf $VCF_OUT.remove.contigs $VCF_FILE | bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
 			tabix -f -p vcf $VCF_OUT.vcf.gz
 		fi
