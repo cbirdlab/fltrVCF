@@ -1,0 +1,55 @@
+This is a configuration file for fltrVCF to control filters, filter order, and filter thresholds.  Each row controls a setting and will be listed by command and argument.  Settings here will be overridden by arguments specified at the command line 
+
+For all fltrVCF options use the -h argument at the command line.
+
+Notes: These settings are designed to clean a raw VCF file made from individuals and retain as much biological variation as possible.
+
+fltrVCF Settings, run fltrVCF -h for description of settings
+	fltrVCF -f 01 02 03 04 14 07 05 16 17 15 06 11 09 08 10 04 13 05 16 07 18
+	
+	fltrVCF -c 5.5
+	fltrVCF -b ../mkVCF				#path to *.bam files
+	fltrVCF -d ../mkBAM/mapped.5.5.bed
+	fltrVCF -v ../mkVCF/TotalRawSNPs.5.5.vcf.gz
+	fltrVCF -g ../mkVCF/reference.5.5.fasta
+	fltrVCF -p ../mkVCF/popmap.5.5
+	fltrVCF -w filter_hwe_by_pop_HPC.pl
+	fltrVCF -r rad_haplotyper.pl
+	fltrVCF -o OpihiSK2017_EastMaui.C
+	fltrVCF -t 20						#number of threads [1]
+
+Filters
+	01 vcftools --min-alleles	2		#Remove sites with less alleles [2]
+	01 vcftools --max-alleles	2		#Remove sites with more alleles [2]
+	02 vcftools --remove-indels			#Remove sites with indels.  Not adjustable
+	03 vcftools --minQ		40		#Remove sites with lower QUAL [20]
+	04 vcftools --min-meanDP	10		#Remove sites with lower mean depth [15]
+	05 vcftools --max-missing	0.5:0.6		#Remove sites with lower proportion of genotypes present [0.5]
+	
+	06 vcffilter AB min		0.2		#Remove sites with equal or lower allele balance [0.2]
+	06 vcffilter AB max		0.8		#Remove sites with equal or lower allele balance [0.8]
+	06 vcffilter AB nohet		0		#Keep sites with AB=0. Not adjustable
+	07 vcffilter AC	min		0		#Remove sites with equal or lower MINOR allele count [3]
+	08 vcffilter SAF/SAR min	10		#Remove sites where both read1 and 2 overlap. Remove sites with equal or lower (SAF/SAR & SRF/SRR | SAR/SAF & SRR/SRF). These are the number of F and R reads supporting the REF or ALT alleles.  [10]
+	09 vcffilter MQM/MQMR min	0.25		#Remove sites where the difference in the ratio of mean mapping quality between REF and ALT alleles is greater than this proportion from 1. Ex: 0 means the mapping quality must be equal between REF and ALTERNATE. Smaller numbers are more stringent. Keep sites where the following is true: 1-X < MQM/MQMR < 1/(1-X) [0.1]
+	10 vcffilter PAIRED				#Remove sites where one of the alleles is only supported by reads that are not properly paired (see SAM format specification). Not adjustabe
+	11 vcffilter QUAL/DP min	0.2		#Remove sites where the ratio of QUAL to DP is deemed to be too low. [0.25]
+	
+	12 vcftools QUAL/DP max				#Remove sites where the ratio of QUAL to DP is deemed to be too high (2x). Not adjustable
+	13 vcftools --max-meanDP	150		#Remove sites with higher mean depth [250]
+	14 vcftools --minDP		5		#Code genotypes with lesser depth of coverage as NA [5]
+	15 vcftools --maf		0		#Remove sites with lesser minor allele frequency.  Adjust based upon sample size. [0.005] 
+	15 vcftools --max-maf		1		#Remove sites with greater minor allele frequency.  Adjust based upon sample size. [0.995]
+	16 vcftools --missing-indv	0.8:0.5		#Remove individuals with more missing data. [0.5]
+	17 vcftools --missing-sites	0.5		#Remove sites with more data missing in a pop sample. [0.5]
+	18 filter_hwe_by_pop_HPC	0.001		#Remove sites with <p in test for HWE by pop sample. Adjust based upon sample size [0.001]
+	19 rad_haplotyper	-d	50		#depth of sampling reads for building haplotypes. [50]
+	19 rad_haplotyper	-mp	10		#Remove sites with more paralogous indivduals. Adjust according to sample size. [10]
+	19 rad_haplotyper	-u	30		#Remove contigs with more SNPs. Adjust according to sequence length. [30]
+	19 rad_haplotyper	-ml	10			#Remove contigs with more individuals exhibiting low coverage or genotyping errors [10]
+	19 rad_haplotyper	-h	100		#Remove contigs with greater NumHaplotypes-NumSNPs. [100]
+	19 rad_haplotyper	-z	0.2		#Remove up to this proportion or number of reads when testing for paralogs.  The more real variation in your data set, the greater this number will be. (<1) or number (>=1) of reads. [0.1]
+	19 rad_haplotyper	-m	0.5		#Keep loci with a greater proportion of haplotyped individuals  [0.5]
+	20 OneRandSNP					#Keep 1 random SNP per contig. Not adjustable. Can't be run after filter 21.
+	21 MostInformativeSNPs				#Keep the most informative SNP per contig. Not adjustable.  Can't be run after filter 20.
+	86 rmContigs					#Remove contigs that have had SNPs removed by the previous filter.  Intended to be run after filters 05, 06, 13, 14, 17, 18 if desired. 
