@@ -18,3 +18,26 @@ grep '^dDocent_Contig' PIRE_SiganusSpinus.L.5.5.Fltr32.6.vcf | cut -f1 | uniq | 
 
 # Filter the reference genome for the contigs that passed filters
 grep -A1 -f PIRE_SiganusSpinus.L.5.5.Fltr19.keep.contigs ../mkVCF2/reference.5.5.fasta | grep -v '^--$' > PIRE_SiganusSpinus.L.5.5.probes4development.fasta
+
+# Filter reference for microsatellites
+
+# Filter reference for NNNNNNNNNNNNNNNNNNNN
+
+# Filter reference by contig length
+THRESHOLD=0.01
+THRESHOLDb=0.99
+
+paste <(grep '^>'  PIRE_SiganusSpinus.L.5.5.probes4development2.noMSATS.noNNNN.fasta) \
+	<(grep -v '^>' PIRE_SiganusSpinus.L.5.5.probes4development2.noMSATS.noNNNN.fasta | awk '{ print length }') | \
+	sort -nk2 > PIRE_SiganusSpinus.L.5.5.probes4development2.noMSATS.noNNNN.lengths.tsv
+THRESHOLD=$(cut -f2 PIRE_SiganusSpinus.L.5.5.probes4development2.noMSATS.noNNNN.lengths.tsv | awk -v PCT=$THRESHOLD '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
+THRESHOLDb=$(cut -f2 PIRE_SiganusSpinus.L.5.5.probes4development2.noMSATS.noNNNN.lengths.tsv | awk -v PCT=$THRESHOLDb '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
+awk -v LENb=$THRESHOLDb -v LEN=$THRESHOLD '$2 > LENb || $2 < LEN {print $1;}' PIRE_SiganusSpinus.L.5.5.probes4development2.noMSATS.noNNNN.lengths.tsv | sed -e 's/^/\^/' -e 's/$/\t/' > PIRE_SiganusSpinus.L.5.5.probes4development2.noMSATS.noNNNN.lengths.remove.contigs
+cat PIRE_SiganusSpinus.L.5.5.probes4development2.noMSATS.noNNNN.fasta | paste - - > PIRE_SiganusSpinus.L.5.5.probes4development2.noMSATS.noNNNN.tsv
+grep -vf PIRE_SiganusSpinus.L.5.5.probes4development2.noMSATS.noNNNN.lengths.remove.contigs PIRE_SiganusSpinus.L.5.5.probes4development2.noMSATS.noNNNN.tsv | tr "\t" "\n" > PIRE_SiganusSpinus.L.5.5.probes4development2.noMSATS.noNNNN.${THRESHOLD}-${THRESHOLDb}bp.fasta
+
+# Remove bp prior to restriction site motif in contigs from ref genome
+BAR=8
+
+grep  -B1 "^.\{0,$BAR\}TGCAGG" PIRE_SiganusSpinus.L.5.5.probes4development2.noMSATS.noNNNN.371-618bp.fasta | grep -v '^--' | sed "s/^.\{0,$BAR\}\(TGCAGG\)/N\1/" > PIRE_SiganusSpinus.L.5.5.probes4development2.noMSATS.noNNNN.371-618bp.0-${BAR}TGCAGG.fasta
+
