@@ -812,9 +812,12 @@ EOF
 		#need to remove individuals from header
 		if [[ $PARALLEL == "TRUE" ]]; then gunzip $VCF_OUT.recode.vcf.gz; fi
 		grep -P '^#CHROM\tPOS' $VCF_OUT.recode.vcf > $VCF_OUT.header.line
-		while read i; do
+		# while read i; do
+			# sed -i "s/\t$i//g" $VCF_OUT.header.line
+		# done < $VCF_OUT.lowDP-2.indv
+		for i in $VCF_OUT.lowDP-2.indv; do
 			sed -i "s/\t$i//g" $VCF_OUT.header.line
-		done < $VCF_OUT.lowDP-2.indv
+		done
 		#replace header line in vcf
 		sed -i "s/^#CHROM\tPOS\t.*$/$(cat $VCF_OUT.header.line)/" $VCF_OUT.recode.vcf
 		if [[ $PARALLEL == "TRUE" ]]; then 
