@@ -247,7 +247,48 @@ function FILTER(){
 		echo " The following contigs have been filtered:"
 		sed -e 's/^\^/\t/' -e 's/\t$//' $VCF_OUT.remove.contigs | sort -n | paste -d "" - - - - -
 		echo ""; echo " Plots output to $VCF_OUT.hetero.contigs.plots.pdf"	
+
+	elif [[ $FILTER_ID == "33" ]]; then
+		echo; echo `date` "---------------------------FILTER33: Remove Contigs With To Many Indels > X -----------------------------"
+		COUNTER33=$((1+COUNTER33))
+		#get settings from config file
+		THRESHOLD=$(grep -P '^\t* *31\t* *custom\t* *bash\t* *..*\t* *#Remove contigs with fewer BP' ${CONFIG_FILE} | sed 's/\t* *31\t* *custom\t* *bash\t* *//g' | sed 's/\t* *#.*//g' ) 
+		if [[ -z "$THRESHOLD" ]]; then THRESHOLD=0; fi
+		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		
+		#this will get a column of contig names and the differences in allele length from the ref
+		#NEEDS TO BE SOFTCODED
+		#grep 'TYPE=ins\|TYPE=del' PIRE_SiganusSpinus.L.5.5.Fltr30.1.vcf | cut -f1,8 | tr ";" "\t" | cut -f1,15 | less -S
+		#grep 'TYPE=ins\|TYPE=del' PIRE_SiganusSpinus.L.5.5.Fltr30.1.vcf | cut -f1,8 | tr ";" "\t" | cut -f1,15 | sed  -e 's/,[12],/,/g' -e 's/,[12],/,/g' -e 's/,[12]$//g' -e 's/,[12]$//g' -e 's/=[12],/=/g' -e 's/=[12],/=/g' -e 's/=[12]$/=/g' | less -S
+		
+		#this line creates a list of contigs with 2 or more indels of 3 bp or more
+		grep 'TYPE=ins\|TYPE=del' PIRE_SiganusSpinus.L.5.5.Fltr30.1.vcf | cut -f1,8 | tr ";" "\t" | cut -f1,15 | sed  -e 's/,[12],/,/g' -e 's/,[12],/,/g' -e 's/,[12]$//g' -e 's/,[12]$//g' -e 's/=[12],/=/g' -e 's/=[12],/=/g' -e 's/=[12]$/=/g' | grep -v 'LEN=$' | cut -f1 | uniq -c | tr -s " " "\t" | cut -f2-3 | grep -vP '^1\t' | cut -f2 |  sed -e 's/^/\^>/' -e 's/$/\t/' > PIRE_SiganusSpinus.L.5.5.Fltr33.remove.contigs 
+		
+		#this line filters the reference genome, but we will ultimately want to filter the vcf
+		cat reference.fasta | paste - - | grep -vf PIRE_SiganusSpinus.L.5.5.Fltr33.remove.contigs | tr "\t" "\n" > reference.fltr33.fasta
+		
+		#The following has not been updated
+
+		if [[ $PARALLEL == "FALSE" ]]; then
+			#calculate the mean depth by site with VCFtools
+			vcftools --vcf ${VCF_FILE} --site-mean-depth --out $VCF_OUT 2> /dev/null
+			tail -n+2 $VCF_OUT.ldepth.mean | cut -f1-3 | grep -v 'nan' | awk '{x[$1] += $3; N[$1]++} END{for (i in x) print i, N[i], x[i]/N[i]}' | tr -s " " "\t" | sort -nk3 > $VCF_OUT.ldepth.mean.contigs
+			Rscript plotFltr31.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $VCF_OUT.ldepth.mean.contigs.plots.pdf
+			awk -v BP=$THRESHOLD '$2 <= BP {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
+			grep -vf $VCF_OUT.remove.contigs $VCF_FILE > $VCF_OUT.vcf
+		else
+			#calculate the mean depth by site with VCFtools
+			vcftools --gzvcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
+			tail -n+2 $VCF_OUT.ldepth.mean | cut -f1-3 | grep -v 'nan' | awk '{x[$1] += $3; N[$1]++} END{for (i in x) print i, N[i], x[i]/N[i]}' | tr -s " " "\t" | sort -nk3 > $VCF_OUT.ldepth.mean.contigs
+			Rscript plotFltr31.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $VCF_OUT.ldepth.mean.contigs.plots.pdf
+			awk -v BP=$THRESHOLD '$2 <= BP {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
+			zgrep -vf $VCF_OUT.remove.contigs $VCF_FILE | bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
+			tabix -f -p vcf $VCF_OUT.vcf.gz
+		fi
+		echo " The following contigs have been filtered:"
+		sed -e 's/^\^/\t/' -e 's/\t$//' $VCF_OUT.remove.contigs | sort -g | paste -d "" - - - - -
+		echo ""; echo " Plots output to $VCF_OUT.ldepth.mean.contigs.plots.pdf"
+
 	elif [[ $FILTER_ID == "041" ]]; then
 		echo; echo `date` "---------------------------FILTER041: Remove Contigs With Extreme DP -----------------------------"
 		COUNTER041=$((1+COUNTER041))
@@ -577,7 +618,7 @@ EOF
 		FILTER_VCFFILTER "FALSE" #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc "FALSE"
 		
 	elif [[ $FILTER_ID == "11" ]]; then
-		echo; echo `date` "---------------------------FILTER11: Remove sites with Quality/DP ratio < 0.25 -----------------------------"
+		echo; echo `date` "---------------------------FILTER11: Remove sites with Quality/DP ratio < X -----------------------------"
 		# There is a positive relationship between depth of coverage and inflation of quality score. JPuritz controls for this in two ways.
 		# first, by removing any locus that has a quality score below 1/4 of the read depth.
 		THRESHOLD=($(grep -P '^\t* *11\t* *vcffilter\t* *QUAL\/DP\t* *min' ${CONFIG_FILE} | sed 's/\t* *11\t* *vcffilter\t* *QUAL\/DP\t* *min\t* *//g' | sed 's/\t* *#.*//g' )) 
@@ -815,9 +856,18 @@ EOF
 		# while read i; do
 			# sed -i "s/\t$i//g" $VCF_OUT.header.line
 		# done < $VCF_OUT.lowDP-2.indv
-		for i in $VCF_OUT.lowDP-2.indv; do
-			sed -i "s/\t$i//g" $VCF_OUT.header.line
-		done
+		
+		# for i in $VCF_OUT.lowDP-2.indv; do
+			# sed -i "s/\t$i//g" $VCF_OUT.header.line
+		# done
+		# CEB trying this instead of previous 3 lines to stop sed error
+		cat $VCF_OUT.header.line | tr "\t" "\n" | grep -v -f $VCF_OUT.lowDP-2.indv | tr "\n" "\t" > $VCF_OUT.header.line2
+		mv $VCF_OUT.header.line2 $VCF_OUT.header.line
+		
+		#report individuals per sample
+		echo ""; echo " Individuals Remaining Per Sample"
+		cut -f10- $VCF_OUT.header.line | tr "\t" "\n" | cut -d_ -f1 | uniq -c
+		
 		#replace header line in vcf
 		sed -i "s/^#CHROM\tPOS\t.*$/$(cat $VCF_OUT.header.line)/" $VCF_OUT.recode.vcf
 		if [[ $PARALLEL == "TRUE" ]]; then 
