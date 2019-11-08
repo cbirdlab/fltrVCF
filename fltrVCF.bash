@@ -460,7 +460,7 @@ plot 'meandepthVSvariance' pt "*"
 pause -1
 EOF
 		
-		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
+		FILTER_VCFTOOLS 
 
 	elif [[ $FILTER_ID == "05" ]]; then
 		echo; echo `date` "---------------------------FILTER05: Remove sites called in <X proportion of individuals -----------------------------"
@@ -504,7 +504,7 @@ pause -1
 EOF
 
 
-		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
+		FILTER_VCFTOOLS  
 
 	elif [[ $FILTER_ID == "06" ]]; then
 		echo; echo `date` "---------------------------FILTER06: Remove sites with Average Allele Balance deviating too far from 0.5 while keeping those with AB=0  -----------------------------"
@@ -782,8 +782,7 @@ EOF
 		# Remove sites with minor allele frequency: maf < x < max-maf
 		# inspect the AF values in the vcf.  This will affect the frequency of rare variants
 		Filter="--maf ${THRESHOLDa} --max-maf ${THRESHOLDb} --recode --recode-INFO-all"
-		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
-		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
+		FILTER_VCFTOOLS 
 
 	elif [[ $FILTER_ID == "16" ]]; then
 		echo; echo `date` "---------------------------FILTER16: Remove Individuals with Too Much Missing Data-----------------------------"
@@ -844,7 +843,7 @@ EOF
 		echo " Individuals with too much missing data:"
 		cat $VCF_OUT.lowDP-2.indv
 		#remove individuals with low reads
-		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
+		FILTER_VCFTOOLS 
 		#need to remove individuals from header
 		if [[ $PARALLEL == "TRUE" ]]; then gunzip $VCF_OUT.recode.vcf.gz; fi
 		grep -P '^#CHROM\tPOS' $VCF_OUT.recode.vcf > $VCF_OUT.header.line
@@ -929,7 +928,7 @@ EOF
 		cat $VCF_OUT.*.lmiss | mawk '!/CHR/' | mawk -v x=$THRESHOLD '$6 > x' | cut -f1,2 | sort | uniq > $VCF_OUT.badloci
 		
 		Filter="--exclude-positions $VCF_OUT.badloci --recode --recode-INFO-all"
-		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
+		FILTER_VCFTOOLS 
 		
 		cut -f1 $VCF_OUT.badloci | parallel "grep -v {} "
 
@@ -1535,12 +1534,7 @@ function FILTER_VCFTOOLS(){
 	if [[ $PARALLEL == "FALSE" ]]; then 
 		echo "     vcftools --vcf $VCF_FILE $Filter --out $VCF_OUT.recode.vcf 2> /dev/null"
 		#vcftools --vcf $VCF_FILE $Filter --out $VCF_OUT 2> /dev/null
-		#parallel --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k "vcftools --vcf {} $Filter --out $VCF_OUT 2> /dev/null" :::: $VCF_FILE
-		#cat $VCF_FILE | parallel --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k "vcftools --vcf - $Filter --out $VCF_OUT 2> /dev/null" 
-		# cat $VCF_FILE | parallel --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k "vcftools --vcf - $Filter --stdout > $VCF_OUT.recode.vcf 2> /dev/null" 
-		# cat $VCF_FILE | parallel --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k vcftools --vcf - $Filter --stdout > $VCF_OUT.recode.vcf 2> /dev/null 
-		cat $VCF_FILE | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k vcftools --vcf - $Filter --stdout | awk '!a[$0]++' > $VCF_OUT.recode.vcf 2> /dev/null 
-
+		cat $VCF_FILE | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k vcftools --vcf - $Filter --stdout 2> /dev/null | awk '!a[$0]++' > $VCF_OUT.recode.vcf 
 		echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.recode.vcf | wc -l
 		echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.recode.vcf | cut -f1 | uniq | wc -l
 	else
@@ -1591,7 +1585,7 @@ function FILTER_VCFFILTER(){
 		if [[  $VCFFIXUP == "TRUE" ]]; then 
 			echo "     vcffilter -s -f \"$Filter\" $VCF_FILE | vcffixup - > $VCF_OUT"
 			# vcffilter -s -f "$Filter" $VCF_FILE | vcffixup - > $VCF_OUT
-			cat $VCF_FILE | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k vcffilter -s -f \"$Filter\" | awk '!a[$0]++' | vcffixup - > $VCF_OUT 
+			cat $VCF_FILE | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k "vcffilter -s -f \"$Filter\" | vcffixup -" | awk '!a[$0]++' > $VCF_OUT 
 		else
 			echo "     vcffilter -s -f \"$Filter\" $VCF_FILE > $VCF_OUT"
 			# vcffilter -s -f "$Filter" $VCF_FILE > $VCF_OUT
