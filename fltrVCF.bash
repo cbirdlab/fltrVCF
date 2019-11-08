@@ -349,16 +349,13 @@ THRESHOLD=$(grep -P '^\t* *041\t* *custom\t* *bash\t* *..*\t* *#Remove contigs w
 		THRESHOLDb=$(grep -P '^\t* *01\t* *vcftools\t* *--max-alleles' ${CONFIG_FILE} | sed 's/\t* *01\t* *vcftools\t* *--max-alleles\t* *//g' | sed 's/\t* *#.*//g' ) 
 		if [[ -z "$THRESHOLDb" ]]; then THRESHOLDb=2; fi
 		THRESHOLDb=$(PARSE_THRESHOLDS $THRESHOLDb) 
-		#Filter="\"--min-alleles $THRESHOLD --max-alleles $THRESHOLDb --recode --recode-INFO-all\""
 		Filter="--min-alleles $THRESHOLD --max-alleles $THRESHOLDb --recode --recode-INFO-all"
-		#call function to filter vcf
-		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc
+		FILTER_VCFTOOLS 
 
 	elif [[ $FILTER_ID == "02" ]]; then
 		echo; echo `date` "---------------------------FILTER02: Remove Sites with Indels -----------------------------"
 		Filter="--remove-indels --recode --recode-INFO-all"
-		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
-		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
+		FILTER_VCFTOOLS 
 
 	elif [[ $FILTER_ID == "03" ]]; then
 		echo; echo `date` "---------------------------FILTER03: Remove Sites with QUAL < minQ -----------------------------"
@@ -366,7 +363,6 @@ THRESHOLD=$(grep -P '^\t* *041\t* *custom\t* *bash\t* *..*\t* *#Remove contigs w
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=30; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		Filter="--minQ ${THRESHOLD} --recode --recode-INFO-all"
-		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
 		if [[ $PARALLEL == "FALSE" ]]; then 
 			grep '^dDocent_Contig' ${VCF_FILE} | cut -f6 | sort -rg > ${VCF_OUT}.QUAL.before.dat
 		else
@@ -415,7 +411,6 @@ EOF
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		Filter2="--site-mean-depth"
 		Filter="--min-meanDP ${THRESHOLD} --recode --recode-INFO-all"
-		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
 		
 		#calculate the mean depth by site with VCFtools
 		if [[ $PARALLEL == "FALSE" ]]; then 
@@ -869,7 +864,9 @@ EOF
 		cut -f10- $VCF_OUT.header.line | tr "\t" "\n" | cut -d_ -f1 | uniq -c
 		
 		#replace header line in vcf
-		sed -i "s/^#CHROM\tPOS\t.*$/$(cat $VCF_OUT.header.line)/" $VCF_OUT.recode.vcf
+		# sed -i "s/^#CHROM\tPOS\t.*$/$(cat $VCF_OUT.header.line)/" $VCF_OUT.recode.vcf
+		sed -i "0,/^#CHROM\tPOS\t.*$/s//$(cat $VCF_OUT.header.line)/" $VCF_OUT.recode.vcf
+
 		if [[ $PARALLEL == "TRUE" ]]; then 
 			bgzip -@ $NumProc -c $VCF_OUT.recode.vcf > $VCF_OUT.recode.vcf.gz
 			tabix -p vcf $VCF_OUT.recode.vcf.gz
@@ -1537,7 +1534,13 @@ function FILTER_VCFTOOLS(){
 	
 	if [[ $PARALLEL == "FALSE" ]]; then 
 		echo "     vcftools --vcf $VCF_FILE $Filter --out $VCF_OUT.recode.vcf 2> /dev/null"
-		vcftools --vcf $VCF_FILE $Filter --out $VCF_OUT 2> /dev/null
+		#vcftools --vcf $VCF_FILE $Filter --out $VCF_OUT 2> /dev/null
+		#parallel --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k "vcftools --vcf {} $Filter --out $VCF_OUT 2> /dev/null" :::: $VCF_FILE
+		#cat $VCF_FILE | parallel --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k "vcftools --vcf - $Filter --out $VCF_OUT 2> /dev/null" 
+		# cat $VCF_FILE | parallel --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k "vcftools --vcf - $Filter --stdout > $VCF_OUT.recode.vcf 2> /dev/null" 
+		# cat $VCF_FILE | parallel --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k vcftools --vcf - $Filter --stdout > $VCF_OUT.recode.vcf 2> /dev/null 
+		cat $VCF_FILE | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k vcftools --vcf - $Filter --stdout | awk '!a[$0]++' > $VCF_OUT.recode.vcf 2> /dev/null 
+
 		echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.recode.vcf | wc -l
 		echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.recode.vcf | cut -f1 | uniq | wc -l
 	else
@@ -1585,10 +1588,15 @@ function FILTER_VCFFILTER(){
 	# echo "     $VCFFIXUP"
 	
 	if [[ $PARALLEL == "FALSE" ]]; then 
-		if [[  $VCFFIXUP == "TRUE" ]]; then echo "     vcffilter -s -f \"$Filter\" $VCF_FILE | vcffixup - > $VCF_OUT"; fi
-		if [[  $VCFFIXUP == "FALSE" ]]; then echo "     vcffilter -s -f \"$Filter\" $VCF_FILE > $VCF_OUT"; fi
-		if [[  $VCFFIXUP == "TRUE" ]]; then vcffilter -s -f "$Filter" $VCF_FILE | vcffixup - > $VCF_OUT ; fi
-		if [[  $VCFFIXUP == "FALSE" ]]; then vcffilter -s -f "$Filter" $VCF_FILE > $VCF_OUT; fi
+		if [[  $VCFFIXUP == "TRUE" ]]; then 
+			echo "     vcffilter -s -f \"$Filter\" $VCF_FILE | vcffixup - > $VCF_OUT"
+			# vcffilter -s -f "$Filter" $VCF_FILE | vcffixup - > $VCF_OUT
+			cat $VCF_FILE | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k vcffilter -s -f \"$Filter\" | awk '!a[$0]++' | vcffixup - > $VCF_OUT 
+		else
+			echo "     vcffilter -s -f \"$Filter\" $VCF_FILE > $VCF_OUT"
+			# vcffilter -s -f "$Filter" $VCF_FILE > $VCF_OUT
+			cat $VCF_FILE | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k vcffilter -s -f \"$Filter\" | awk '!a[$0]++' > $VCF_OUT 
+		fi
 		echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT | wc -l
 		echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT | cut -f1 | uniq | wc -l
 	else
