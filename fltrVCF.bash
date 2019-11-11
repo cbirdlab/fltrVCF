@@ -573,8 +573,7 @@ EOF
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=1; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		Filter="AC > $THRESHOLD & AN - AC > $THRESHOLD"
-		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
-		FILTER_VCFFILTER "FALSE" #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc "FALSE"
+		FILTER_VCFFILTER "TRUE"
 
 	elif [[ $FILTER_ID == "08" ]]; then
 		echo; echo `date` "---------------------------FILTER08: Remove sites covered by both F and R reads-----------------------------"
@@ -583,8 +582,7 @@ EOF
 		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=1; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		Filter="SAF / SAR > ${THRESHOLD} & SRF / SRR > ${THRESHOLD} | SAR / SAF > ${THRESHOLD} & SRR / SRF > ${THRESHOLD}"
-		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
-		FILTER_VCFFILTER "FALSE" #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc "FALSE"
+		FILTER_VCFFILTER "FALSE"
 
 	elif [[ $FILTER_ID == "09" ]]; then
 		echo; echo `date` "---------------------------FILTER09: Remove sites with low/high ratio of mean mapping quality of alt to ref -----------------------------"
@@ -769,7 +767,7 @@ EOF
 
 
 		
-		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
+		FILTER_VCFTOOLS "TRUE"
 
 	elif [[ $FILTER_ID == "15" ]]; then
 		echo; echo `date` "---------------------------FILTER15: Remove sites with maf > minor allele frequency > max-maf -----------------------------"
@@ -843,7 +841,10 @@ EOF
 		echo " Individuals with too much missing data:"
 		cat $VCF_OUT.lowDP-2.indv
 		#remove individuals with low reads
-		FILTER_VCFTOOLS 
+		FILTER_VCFTOOLS "TRUE"
+		
+		## Probably do not need to do the removing individuals from the header, but it works so I'm leaving it
+		
 		#need to remove individuals from header
 		if [[ $PARALLEL == "TRUE" ]]; then gunzip $VCF_OUT.recode.vcf.gz; fi
 		grep -P '^#CHROM\tPOS' $VCF_OUT.recode.vcf > $VCF_OUT.header.line
@@ -855,7 +856,7 @@ EOF
 			# sed -i "s/\t$i//g" $VCF_OUT.header.line
 		# done
 		# CEB trying this instead of previous 3 lines to stop sed error
-		cat $VCF_OUT.header.line | tr "\t" "\n" | grep -v -f $VCF_OUT.lowDP-2.indv | tr "\n" "\t" > $VCF_OUT.header.line2
+		cat $VCF_OUT.header.line | tr "\t" "\n" | grep -v -f $VCF_OUT.lowDP-2.indv | tr "\n" "\t" | sed 's/\t$//g' > $VCF_OUT.header.line2
 		mv $VCF_OUT.header.line2 $VCF_OUT.header.line
 		
 		#report individuals per sample
@@ -1507,6 +1508,7 @@ EOF
 ###################################################################################################################
 
 function FILTER_VCFTOOLS(){
+	VCFFIXUP=$1
 	# PARALLEL=$1
 	# VCF_FILE=$2
 	# Filter=$(echo "$3")
@@ -1532,9 +1534,14 @@ function FILTER_VCFTOOLS(){
 	# echo "     $VCF_OUT"
 	
 	if [[ $PARALLEL == "FALSE" ]]; then 
-		echo "     vcftools --vcf $VCF_FILE $Filter --out $VCF_OUT.recode.vcf 2> /dev/null"
-		#vcftools --vcf $VCF_FILE $Filter --out $VCF_OUT 2> /dev/null
-		cat $VCF_FILE | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k vcftools --vcf - $Filter --stdout 2> /dev/null | awk '!a[$0]++' > $VCF_OUT.recode.vcf 
+		if [[ $VCFFIXUP == "TRUE" ]]; then
+			echo "     vcftools --vcf $VCF_FILE $Filter --out $VCF_OUT.recode.vcf 2> /dev/null | vcffixup -"
+			cat $VCF_FILE | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k "vcftools --vcf - $Filter --stdout 2> /dev/null | vcffixup - " | awk '!a[$0]++' > $VCF_OUT.recode.vcf 
+		else
+			echo "     vcftools --vcf $VCF_FILE $Filter --out $VCF_OUT.recode.vcf 2> /dev/null"
+			#vcftools --vcf $VCF_FILE $Filter --out $VCF_OUT 2> /dev/null
+			cat $VCF_FILE | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k vcftools --vcf - $Filter --stdout 2> /dev/null | awk '!a[$0]++' > $VCF_OUT.recode.vcf 
+		fi
 		echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.recode.vcf | wc -l
 		echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.recode.vcf | cut -f1 | uniq | wc -l
 	else
@@ -1582,13 +1589,13 @@ function FILTER_VCFFILTER(){
 	# echo "     $VCFFIXUP"
 	
 	if [[ $PARALLEL == "FALSE" ]]; then 
-		if [[  $VCFFIXUP == "TRUE" ]]; then 
-			echo "     vcffilter -s -f \"$Filter\" $VCF_FILE | vcffixup - > $VCF_OUT"
-			# vcffilter -s -f "$Filter" $VCF_FILE | vcffixup - > $VCF_OUT
-			cat $VCF_FILE | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k "vcffilter -s -f \"$Filter\" | vcffixup -" | awk '!a[$0]++' > $VCF_OUT 
+		if [[ $VCFFIXUP == "TRUE" ]]; then 
+			echo "     vcffixup $VCF_FILE | vcffilter -s -f \"$Filter\"  > $VCF_OUT"
+			#vcffilter -s -f "$Filter" $VCF_FILE | vcffixup - > $VCF_OUT
+			cat $VCF_FILE | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k "vcffixup - | vcffilter -s -f \"$Filter\" " | awk '!a[$0]++' > $VCF_OUT 
 		else
 			echo "     vcffilter -s -f \"$Filter\" $VCF_FILE > $VCF_OUT"
-			# vcffilter -s -f "$Filter" $VCF_FILE > $VCF_OUT
+			#vcffilter -s -f "$Filter" $VCF_FILE > $VCF_OUT
 			cat $VCF_FILE | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k vcffilter -s -f \"$Filter\" | awk '!a[$0]++' > $VCF_OUT 
 		fi
 		echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT | wc -l
