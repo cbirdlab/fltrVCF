@@ -1155,7 +1155,7 @@ gnuplot << \EOF
 set terminal dumb size 120, 30
 set autoscale 
 unset label
-set title "Histogram of number of sites per contig."
+set title "Histogram of number of sites per contig. Use to set: rad_haplotyper -u"
 set ylabel "Number of Contigs"
 set xlabel "Number of Sites"
 set yrange [0:*]
@@ -1183,7 +1183,7 @@ gnuplot << \EOF
 set terminal dumb size 120, 30
 set autoscale 
 unset label
-set title "Histogram of number of haplotypes per contig."
+set title "Histogram of number of haplotypes per contig. Use to set: rad_haplotyper -u"
 set ylabel "Number of Contigs"
 set xlabel "Number of Haplotypes"
 set yrange [0:*]
@@ -1198,7 +1198,7 @@ gnuplot << \EOF
 set terminal dumb size 120, 30
 set autoscale 
 unset label
-set title "Scatter plot of # Haplotypes per Contig."
+set title "Scatter plot of # Haplotypes per Contig. Use to set: rad_haplotyper -h"
 set ylabel "# Haplotypes"
 set xlabel "Contigs"
 plot 'haplotypes.dat' pt "*" 
@@ -1211,7 +1211,7 @@ gnuplot << \EOF
 set terminal dumb size 120, 30
 set autoscale 
 unset label
-set title "Scatter plot of Sites vs Haplotypes per Contig"
+set title "Scatter plot of Sites vs Haplotypes per Contig. Use to set: rad_haplotyper -h"
 set ylabel "# Sites"
 set xlabel "# Haplotypes"
 plot 'haplo_sites.dat' pt "*" 
@@ -1224,7 +1224,7 @@ gnuplot << \EOF
 set terminal dumb size 120, 30
 set autoscale 
 unset label
-set title "Histogram of the proportion of individuals haplotyped per contig"
+set title "Histogram of the proportion of individuals haplotyped per contig. Use to set: rad_haplotyper -m"
 set ylabel "Number of Contigs"
 set xlabel "Proportion Haplotyped"
 set yrange [0:*]
@@ -1238,7 +1238,7 @@ gnuplot << \EOF
 set terminal dumb size 120, 30
 set autoscale 
 unset label
-set title "Scatter plot of the proportion of individuals haplotyped per contig"
+set title "Scatter plot of the proportion of individuals haplotyped per contig. Use to set: rad_haplotyper -m"
 set ylabel "Proportion Haplotyped"
 set xlabel "Contigs"
 plot 'propindhaplotyped.dat' pt "*" 
@@ -1251,7 +1251,7 @@ gnuplot << \EOF
 set terminal dumb size 120, 30
 set autoscale 
 unset label
-set title "Histogram of Number of Paralogous Individuals per Contig"
+set title "Histogram of Number of Paralogous Individuals per Contig. Use to set: rad_haplotyper -mp"
 set ylabel "Number of Contigs"
 set xlabel "Number of Paralogous Individuals per Contig (0-20)"
 set yrange [0:*]
@@ -1265,7 +1265,7 @@ gnuplot << \EOF
 set terminal dumb size 120, 30
 set autoscale 
 unset label
-set title "Scatter plot of # Paralogous Individuals per Contig"
+set title "Scatter plot of # Paralogous Individuals per Contig. Use to set: rad_haplotyper -mp"
 set ylabel "# Paralogs"
 set xlabel "Contigs"
 plot 'paralogs.dat' pt "*"
@@ -1278,7 +1278,7 @@ gnuplot << \EOF
 set terminal dumb size 120, 30
 set autoscale 
 unset label
-set title "Histogram of Number of Individuals With Low Cov/ Geno Errs per Contig"
+set title "Histogram of Number of Individuals With Low Cov/ Geno Errs per Contig. Use to set: rad_haplotyper -ml"
 set ylabel "Number of Contigs"
 set xlabel "Number of Individuals per Contig"
 set yrange [0:*]
@@ -1293,7 +1293,7 @@ gnuplot << \EOF
 set terminal dumb size 120, 30
 set autoscale 
 unset label
-set title "Scatter plot of Number of Individuals With Low Cov/ Geno Errs per Contig"
+set title "Scatter plot of Number of Individuals With Low Cov/ Geno Errs per Contig. Use to set: rad_haplotyper -ml"
 set ylabel "Number of Individuals per Contig"
 set xlabel "Contigs"
 plot 'lowcovgenoerr.dat' pt "*"
@@ -1306,7 +1306,7 @@ gnuplot << \EOF
 set terminal dumb size 120, 30
 set autoscale 
 unset label
-set title "Histogram of Number of Individuals With Missing Genotypes per Contig"
+set title "Histogram of Number of Individuals With Missing Genotypes per Contig."
 set ylabel "Number of Contigs"
 set xlabel "Number of Individuals per Contig"
 set yrange [0:*]
