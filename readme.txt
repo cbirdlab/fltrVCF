@@ -1,4 +1,4 @@
-fltrVCF.bash v4.2 -- a program to filter vcf files with RAD data
+fltrVCF.bash v4.3 -- a program to filter vcf files with RAD data
 
 Dependencies:
         vcftools
@@ -65,24 +65,28 @@ OPTIONS
                 -o <arg>        optional, all output files will be prefixed with this argument []
 
         [parallelization]
-                -P              run every filter in parallel using GNU parallel. Requires *.bed files.
+                -P              (depricated a new method of parallelizaiton is applied by default) 
+				 run every filter in parallel using GNU parallel. Requires *.bed files.
                                  If not set, then only natively-parallel filters will use multiple
                                  threads if -t > 1. Requires -d. [not set]
                 -t <arg>        number of threads available for parallel processing [1]
 
 EXAMPLES
-        The following command is recommended for most users
+        The following command is recommended for most users and requires the config file to have the 
+	 correct paths.
                 
-		fltrVCF.bash -s config.fltr.ind
+		`fltrVCF.bash -s config.fltr.ind`
 
         The following two commands are the same, the first takes advantage of the defaults,
         the second does not.
 
-                fltrVCF.bash -f "01 02 03" -c 25.10 -o ProjectX.A -t 40
-
+                `fltrVCF.bash -f "01 02 03" -c 25.10 -o ProjectX.A -t 40`
+		
+		```bash
                 fltrVCF.bash -f "01 02 03" -c 25.10 -m ../mapping -v ../mapping/TotalRawSNPs.3.6.vcf
                         -p ../mapping/popmap.25.10 -s config.fltr.clean -w filter_hwe_by_pop.pl
                         -r rad_haplotyperHPC116.pl -o ProjectX.A -t 40
+		```
 SCRIPTS
 	Additional scripts for filtering are provided in the scripts subdirectory
 	
