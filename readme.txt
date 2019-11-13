@@ -29,10 +29,15 @@ DESCRIPTION
         fltrVCF is parallelized where possible, but only runs on one node or computer. MPI is not
         supported.
 
-        fltrVCF requires minor modification to work with dDocent output (nonHPC).  To do so, remove
-        ".$CutoffCode" "$CutoffCode." and "$CutoffCode" in order from the script). Forks of both
-        filter_hwe_by_pop_HPC.pl and rad_haplotyper.pl can be obtained from cbirdlab on github and
-        are tested with fltrVCF and work.
+        fltrVCF requires minor modification to work with non dDocentHPC output.  To do so, remove
+        ".$CutoffCode" "$CutoffCode." and "$CutoffCode" in order from the script). 
+	
+	Forks of both filter_hwe_by_pop_HPC.pl and rad_haplotyper.pl can be obtained from cbirdlab on 
+	github, are tested with fltrVCF and work. 
+	
+	Newer filters (identified by the "custom bash" label in the config file) employ R to output plots 
+	as *.pdf.  For this to work properly, the R scripts in the fltrVCF/scripts dir need to be copied
+	to the working directory.
 
 OPTIONS
         [filter settings]
@@ -71,6 +76,11 @@ OPTIONS
                                  If not set, then only natively-parallel filters will use multiple
                                  threads if -t > 1. Requires -d. [not set]
                 -t <arg>        number of threads available for parallel processing [1]
+
+DOWNLOADING
+	Clone this repo to your computer
+		git clone 
+	Copy the fltrVCF.bash and fltrVCF.sbatch files to your working directory
 
 EXAMPLES
         The following command is recommended for most users and requires the config file to have the 
