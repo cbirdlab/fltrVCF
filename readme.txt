@@ -78,9 +78,16 @@ OPTIONS
                 -t <arg>        number of threads available for parallel processing [1]
 
 DOWNLOADING
-	Clone this repo to your computer
+	Clone this repo and my fork of rad_haplotyper to your computer
+		
+		git clone https://github.com/cbirdlab/fltrVCF.git
 		git clone 
+		
 	Copy the fltrVCF.bash and fltrVCF.sbatch files to your working directory
+	
+	For filters with R plotting, copy scripts/*R to your working directory
+	
+	For the defaul
 
 EXAMPLES
         The following command is recommended for most users and requires the config file to have the 
