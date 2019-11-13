@@ -76,7 +76,7 @@ OPTIONS
                 -t <arg>        number of threads available for parallel processing [1]
 
 
-DOWNLOADING & INSTALLING
+DOWNLOADING & PREPARING TO RUN
 	
 	I will assume that you can find and install the dependencies listed at the top of this doc.  What follows
 	is a description of how to get fltrVCF up and running, assuming that the other dependencies are in place.
