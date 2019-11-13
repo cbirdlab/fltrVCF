@@ -101,7 +101,7 @@ DOWNLOADING & INSTALLING
 		fltrVCF/filter_hwe_by_pop_HPC.pl
 		
 		
-	Modify the config file to match your directory structure
+	Copy the config file to your working dir and modify it match your directory structure
 		
 
 EXAMPLES
