@@ -82,7 +82,7 @@ DOWNLOADING & INSTALLING
 	is a description of how to get fltrVCF up and running, assuming that the other dependencies are in place.
 	
 	Assumed directory structure:
-		home
+		home				either your home dir, or where you keep your ProjectDir
 			fltrVCF			cloned repo
 			rad_haplotyper		cloned repo
 			ProjectDir		directory for your RAD project
