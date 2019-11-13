@@ -7,8 +7,6 @@ Dependencies:
         perl
         mawk
         parallel
-        rad_haplotyper.pl https://github.com/cbirdlab/rad_haplotyper.git 
-        filter_hwe_by_pop_HPC
 	R (tidyverse, gridextra)
 
 Reading options from command line:
@@ -79,47 +77,105 @@ OPTIONS
 
 
 DOWNLOADING & INSTALLING
+	
+	I will assume that you can find and install the dependencies listed at the top of this doc.  What follows
+	is a description of how to get fltrVCF up and running, assuming that the other dependencies are in place.
+	
+	Assumed directory structure:
+		home
+			fltrVCF			cloned repo
+			rad_haplotyper		cloned repo
+			ProjectDir		directory for your RAD project
+				mkBAM		directory where BAM files were made
+				mkVCF		directory where VCF file was made (could be mkBAM)
+				filterVCF		directory where VCF file is filtered
+	
+	Goto home (or where you keep your ProjectDir.  (The `$` indicates the `bash` cmd prompt, don't type it.)
+	
+		```bash
+		$ cd ~
+		```
+		
 	Clone this repo and my fork of rad_haplotyper to your computer
 		
-		git clone https://github.com/cbirdlab/fltrVCF.git
-		git clone https://github.com/cbirdlab/rad_haplotyper.git
-	
+		```bash
+		$ git clone https://github.com/cbirdlab/fltrVCF.git
+		$ git clone https://github.com/cbirdlab/rad_haplotyper.git
+		```	
 	
 	Copy the fltrVCF/fltrVCF.bash and fltrVCF/fltrVCF.sbatch files to your working directory
 	
+		```bash
+		$ cp fltrVCF/fltrVCF* ProjectDir/filterVCF
+		```
+		
+	For filters with R plotting, copy fltrVCF/scripts/*R to your working directory, 
 	
-	For filters with R plotting, copy fltrVCF/scripts/*R to your working directory, then run R and 
+		```bash
+		$ cp fltrVCF/scripts/*R ProjectDir/filterVCF
+		```
 	
-		install.packages("tidyverse")
-		install.packages("gridextra")
-
-	and exit R.  
+	then run R and install required packages  (The `>` indicates the `R` cmd prompt, don't type it.)
 	
+		```bash
+		$ R
+		```
+		
+		```R
+		> install.packages("tidyverse")
+		> install.packages("gridextra")
+		```
+		
+	and exit R (hit ctrl+d)   
+	
+		```R
+		>
+		Save workspace image? [y/n/c]: y
+		```
 	
 	For the default config to work with minimal editing, copy the following to your working dir
-		rad_haplotyper/rad_haplotyper.pl
-		fltrVCF/filter_hwe_by_pop_HPC.pl
+	
+		```bash
+		$ cp rad_haplotyper/rad_haplotyper.pl ProjectDir/filterVCF
+		$ fltrVCF/filter_hwe_by_pop_HPC.pl ProjectDir/filterVCF
+		```
 		
 		
 	Copy the config file to your working dir and modify it match your directory structure
-		
+	
+		```bash
+		$ cp fltrVCF/config* ProjectDir/filterVCF
+		nano ProjectDir/filterVCF
+		```
+	
+	Move to your filterVCF dir
+
+		```bash
+		$ cp fltrVCF/config* ProjectDir/filterVCF
+		```
 
 EXAMPLES
         The following command is recommended for most users and requires the config file to have the 
 	 correct paths.
                 
-		`fltrVCF.bash -s config.fltr.ind`
+		```bash
+		$ fltrVCF.bash -s config.fltr.ind
+		```
 
         The following two commands are the same, the first takes advantage of the defaults,
         the second does not.
 
-                `fltrVCF.bash -f "01 02 03" -c 25.10 -o ProjectX.A -t 40`
+                ```bash
+		fltrVCF.bash -f "01 02 03" -c 25.10 -o ProjectX.A -t 40
+		```
 		
 		```bash
-                fltrVCF.bash -f "01 02 03" -c 25.10 -m ../mapping -v ../mapping/TotalRawSNPs.3.6.vcf
-                        -p ../mapping/popmap.25.10 -s config.fltr.clean -w filter_hwe_by_pop.pl
+		# Note that the escape character `\` continues the present line on the next line
+                $ fltrVCF.bash -f "01 02 03" -c 25.10 -m ../mapping -v ../mapping/TotalRawSNPs.3.6.vcf \
+                        -p ../mapping/popmap.25.10 -s config.fltr.clean -w filter_hwe_by_pop.pl \
                         -r rad_haplotyperHPC116.pl -o ProjectX.A -t 40
 		```
+		
 SCRIPTS
 	Additional scripts for filtering and viewing output are provided in the scripts subdirectory
 	
