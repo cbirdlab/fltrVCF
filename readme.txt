@@ -9,6 +9,7 @@ Dependencies:
         parallel
         rad_haplotyper.pl https://github.com/cbirdlab/rad_haplotyper.git 
         filter_hwe_by_pop_HPC
+	R (tidyverse, gridextra)
 
 Reading options from command line:
 
