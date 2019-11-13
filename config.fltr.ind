@@ -13,7 +13,7 @@ fltrVCF Settings, run fltrVCF -h for description of settings
 	fltrVCF -b ../mkBAM			#path to *.bam files
 	fltrVCF -R ../../fltrVCF/scripts	#path to R scripts and other scripts used by fltrVCF
 	fltrVCF -d ../mkBAM/mapped.2.2.bed	#location of bed file
-	fltrVCF -v ../mkBAM/TotalRawSNPs.vcf	#location of vcf file to filter
+	fltrVCF -v ../mkBAM/TotalRawSNPs.2.2.vcf	#location of vcf file to filter
 	fltrVCF -g ../mkBAM/reference.2.2.fasta	#location of reference genome
 	fltrVCF -p ../mkBAM/popmap.2.2		#location of popmap file
 	fltrVCF -w filter_hwe_by_pop_HPC.pl	#location of HWE filter script
