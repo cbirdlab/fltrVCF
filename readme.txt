@@ -151,7 +151,7 @@ DOWNLOADING & INSTALLING
 	Move to your filterVCF dir
 
 		```bash
-		$ cp fltrVCF/config* ProjectDir/filterVCF
+		$ cd ProjectDir/filterVCF
 		```
 
 EXAMPLES
