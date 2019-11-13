@@ -41,7 +41,7 @@ DESCRIPTION
 
 OPTIONS
         [filter settings]
-                -f <arg>        if set, controls filters to be run, in order. Argument should be 2
+                -f <arg>        if set, controls filters to be run, in order. Argument should be 2-3
                                  digit numbers separated by spaces. 
 				 -f "01 04 02 rmContig"  or  -f 01\ 04\ 02\ 86 
                                  will specify that filters 01, 04, and 02 will be run in succession.
