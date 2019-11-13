@@ -2,9 +2,7 @@
 
 #Improvements yet to be made
 #	Shuffle the bed file to improve performance
-#	Finish parallel option for rad_haplotyper
 #	Enable option to make haplotype files with radhaplotyper
-#	figure out how to combine haplotype files made by radhaplotyper in parallel mode
 
 VERSION=4.3
 # Files needed:
@@ -149,7 +147,7 @@ function FILTER(){
 			vcftools --vcf ${VCF_FILE} --site-mean-depth --out $VCF_OUT.prefltr 2> /dev/null &
 			wait
 			tail -n+2 $VCF_OUT.prefltr.ldepth.mean | cut -f1-3 | grep -v 'nan' > $VCF_OUT.ldepth.mean.prefltr30
-			Rscript plotFltr30.R $VCF_OUT.ldepth.mean.prefltr30 $VCF_OUT.prefltr.snp $VCF_OUT.prefltr.ins $VCF_OUT.prefltr.del $THRESHOLD $THRESHOLDb $VCF_OUT.prefltr.plots.pdf
+			Rscript $SCRIPT_PATH/plotFltr30.R $VCF_OUT.ldepth.mean.prefltr30 $VCF_OUT.prefltr.snp $VCF_OUT.prefltr.ins $VCF_OUT.prefltr.del $THRESHOLD $THRESHOLDb $VCF_OUT.prefltr.plots.pdf
 			echo " Plots output to $VCF_OUT.prefltr.plots.pdf"
 
 			cat <(grep -Pv '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE}) \
@@ -162,7 +160,7 @@ function FILTER(){
 			vcftools --vcf $VCF_OUT.vcf --site-mean-depth --out $VCF_OUT.postfltr 2> /dev/null &
 			wait
 			tail -n+2 $VCF_OUT.postfltr.ldepth.mean | cut -f1-3 | grep -v 'nan' > $VCF_OUT.ldepth.mean.postfltr30
-			Rscript plotFltr30.R $VCF_OUT.ldepth.mean.postfltr30 $VCF_OUT.postfltr.snp $VCF_OUT.postfltr.ins $VCF_OUT.postfltr.del $THRESHOLD $THRESHOLDb $VCF_OUT.postfltr.plots.pdf
+			Rscript $SCRIPT_PATH/plotFltr30.R $VCF_OUT.ldepth.mean.postfltr30 $VCF_OUT.postfltr.snp $VCF_OUT.postfltr.ins $VCF_OUT.postfltr.del $THRESHOLD $THRESHOLDb $VCF_OUT.postfltr.plots.pdf
 			
 		else
 			zgrep '^dDocent' $VCF_FILE | grep -w "TYPE=snp" | cut -f1-4 > $VCF_OUT.prefltr.snp &
@@ -172,7 +170,7 @@ function FILTER(){
 			#ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -h -R {} $VCF_FILE | vcftools --vcf - $Filter --stdout 2> /dev/null | tail -n +$NumHeaderLines" 2> /dev/null | cat $VCF_OUT.header.vcf - | bgzip -@ $NumProc -c > $VCF_OUT.recode.vcf.gz
 			wait
 			tail -n+2 $VCF_OUT.prefltr.ldepth.mean | cut -f1-3 | grep -v 'nan' > $VCF_OUT.ldepth.mean.prefltr.fltr30
-			Rscript plotFltr30.R $VCF_OUT.ldepth.mean.prefltr.fltr30 $VCF_OUT.prefltr.snp $VCF_OUT.prefltr.ins $VCF_OUT.prefltr.del $THRESHOLD $THRESHOLDb $VCF_OUT.prefltr.plots.pdf
+			Rscript $SCRIPT_PATH/plotFltr30.R $VCF_OUT.ldepth.mean.prefltr.fltr30 $VCF_OUT.prefltr.snp $VCF_OUT.prefltr.ins $VCF_OUT.prefltr.del $THRESHOLD $THRESHOLDb $VCF_OUT.prefltr.plots.pdf
 			echo " Plots output to $VCF_OUT.prefltr.plots.pdf"
 			cat <(zgrep -Pv '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE}) \
 				<(zgrep -P '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE} | awk -v bp=$THRESHOLD '$2 > bp {print ;}' | awk -v bp=$THRESHOLDb '$2 < bp {print ;}' ) \
@@ -185,7 +183,7 @@ function FILTER(){
 			vcftools --vcf $VCF_OUT.vcf.gz --site-mean-depth --out $VCF_OUT.postfltr 2> /dev/null &
 			wait
 			tail -n+2 $VCF_OUT.postfltr.ldepth.mean | cut -f1-3 | grep -v 'nan' > $VCF_OUT.ldepth.mean.postfltr30
-			Rscript plotFltr30.R $VCF_OUT.ldepth.mean.postfltr30 $VCF_OUT.postfltr.snp $VCF_OUT.postfltr.ins $VCF_OUT.postfltr.del $THRESHOLD $THRESHOLDb $VCF_OUT.postfltr.plots.pdf
+			Rscript $SCRIPT_PATH/plotFltr30.R $VCF_OUT.ldepth.mean.postfltr30 $VCF_OUT.postfltr.snp $VCF_OUT.postfltr.ins $VCF_OUT.postfltr.del $THRESHOLD $THRESHOLDb $VCF_OUT.postfltr.plots.pdf
 		fi
 		echo " Plots output to $VCF_OUT.postfltr.plots.pdf"
 
@@ -202,14 +200,14 @@ function FILTER(){
 			#calculate the mean depth by site with VCFtools
 			vcftools --vcf ${VCF_FILE} --site-mean-depth --out $VCF_OUT 2> /dev/null
 			tail -n+2 $VCF_OUT.ldepth.mean | cut -f1-3 | grep -v 'nan' | awk '{x[$1] += $3; N[$1]++} END{for (i in x) print i, N[i], x[i]/N[i]}' | tr -s " " "\t" | sort -nk3 > $VCF_OUT.ldepth.mean.contigs
-			Rscript plotFltr31.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $VCF_OUT.ldepth.mean.contigs.plots.pdf
+			Rscript $SCRIPT_PATH/plotFltr31.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $VCF_OUT.ldepth.mean.contigs.plots.pdf
 			awk -v BP=$THRESHOLD '$2 <= BP {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
 			grep -vf $VCF_OUT.remove.contigs $VCF_FILE > $VCF_OUT.vcf
 		else
 			#calculate the mean depth by site with VCFtools
 			vcftools --gzvcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
 			tail -n+2 $VCF_OUT.ldepth.mean | cut -f1-3 | grep -v 'nan' | awk '{x[$1] += $3; N[$1]++} END{for (i in x) print i, N[i], x[i]/N[i]}' | tr -s " " "\t" | sort -nk3 > $VCF_OUT.ldepth.mean.contigs
-			Rscript plotFltr31.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $VCF_OUT.ldepth.mean.contigs.plots.pdf
+			Rscript $SCRIPT_PATH/plotFltr31.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $VCF_OUT.ldepth.mean.contigs.plots.pdf
 			awk -v BP=$THRESHOLD '$2 <= BP {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
 			zgrep -vf $VCF_OUT.remove.contigs $VCF_FILE | bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
 			tabix -f -p vcf $VCF_OUT.vcf.gz
@@ -232,7 +230,7 @@ function FILTER(){
 				tail -n+2 | awk '$3 + $5 != $6 && $4 + $5 != $6 {print ;}' | \
 				awk '{x[$1] += $2; y[$1] += $6 -=$5; N[$1]++} END{for (i in x) print i, N[i], x[i]/N[i], y[i]/N[i], x[i]/y[i] }' | tr -s " " "\t" | sort -nrk5 > $VCF_OUT.hetero.contigs
 			awk -v HET=$THRESHOLD '$5 >= HET {print $1;}' $VCF_OUT.hetero.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
-			Rscript plotFltr32.R $VCF_OUT.hetero.contigs $THRESHOLD $VCF_OUT.hetero.contigs.plots.pdf
+			Rscript $SCRIPT_PATH/plotFltr32.R $VCF_OUT.hetero.contigs $THRESHOLD $VCF_OUT.hetero.contigs.plots.pdf
 			grep -vf $VCF_OUT.remove.contigs $VCF_FILE > $VCF_OUT.vcf
 		else
 			#get heterozygosity counts, then get mean rate of heterozygosity per variable position per contig, accounting for missing data
@@ -240,7 +238,7 @@ function FILTER(){
 				tail -n+2 | awk '$3 + $5 != $6 && $4 + $5 != $6 {print ;}' | \
 				awk '{x[$1] += $2; y[$1] += $6 -=$5; N[$1]++} END{for (i in x) print i, N[i], x[i]/N[i], y[i]/N[i], x[i]/y[i] }' | tr -s " " "\t" | sort -nrk5 > $VCF_OUT.hetero.contigs
 			awk -v HET=$THRESHOLD '$5 >= HET {print $1;}' $VCF_OUT.hetero.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
-			Rscript plotFltr32.R $VCF_OUT.hetero.contigs $THRESHOLD $VCF_OUT.hetero.contigs.plots.pdf
+			Rscript $SCRIPT_PATH/plotFltr32.R $VCF_OUT.hetero.contigs $THRESHOLD $VCF_OUT.hetero.contigs.plots.pdf
 			zgrep -vf $VCF_OUT.remove.contigs $VCF_FILE | bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
 			tabix -f -p vcf $VCF_OUT.vcf.gz
 		fi
@@ -273,14 +271,14 @@ function FILTER(){
 			#calculate the mean depth by site with VCFtools
 			vcftools --vcf ${VCF_FILE} --site-mean-depth --out $VCF_OUT 2> /dev/null
 			tail -n+2 $VCF_OUT.ldepth.mean | cut -f1-3 | grep -v 'nan' | awk '{x[$1] += $3; N[$1]++} END{for (i in x) print i, N[i], x[i]/N[i]}' | tr -s " " "\t" | sort -nk3 > $VCF_OUT.ldepth.mean.contigs
-			Rscript plotFltr31.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $VCF_OUT.ldepth.mean.contigs.plots.pdf
+			Rscript $SCRIPT_PATH/plotFltr31.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $VCF_OUT.ldepth.mean.contigs.plots.pdf
 			awk -v BP=$THRESHOLD '$2 <= BP {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
 			grep -vf $VCF_OUT.remove.contigs $VCF_FILE > $VCF_OUT.vcf
 		else
 			#calculate the mean depth by site with VCFtools
 			vcftools --gzvcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
 			tail -n+2 $VCF_OUT.ldepth.mean | cut -f1-3 | grep -v 'nan' | awk '{x[$1] += $3; N[$1]++} END{for (i in x) print i, N[i], x[i]/N[i]}' | tr -s " " "\t" | sort -nk3 > $VCF_OUT.ldepth.mean.contigs
-			Rscript plotFltr31.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $VCF_OUT.ldepth.mean.contigs.plots.pdf
+			Rscript $SCRIPT_PATH/plotFltr31.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $VCF_OUT.ldepth.mean.contigs.plots.pdf
 			awk -v BP=$THRESHOLD '$2 <= BP {print $1;}' $VCF_OUT.ldepth.mean.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
 			zgrep -vf $VCF_OUT.remove.contigs $VCF_FILE | bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
 			tabix -f -p vcf $VCF_OUT.vcf.gz
@@ -311,7 +309,7 @@ THRESHOLD=$(grep -P '^\t* *041\t* *custom\t* *bash\t* *..*\t* *#Remove contigs w
 			vcftools --vcf ${VCF_FILE} --site-mean-depth --out $VCF_OUT 2> /dev/null
 			#this awk command calculates the number of bp considered in the contig, the mean of mean cvg, the var or mean cvg, the mean of CV for the mean cvg, and the var of the CV for the mean cvg
 			tail -n+2 $VCF_OUT.ldepth.mean | grep -Pv '\t-nan' | awk '{sumAVG[$1] += $3; ssAVG[$1] += $3 ** 2; sumCV[$1] += $4 ** 0.5 / $3; ssCV[$1] += ($4 ** 0.5 / $3)**2; N[$1]++} END{for (i in sumAVG) print i, N[i], sumAVG[i]/N[i], (ssAVG[i]/N[i] - (sumAVG[i]/N[i])**2)**0.5 / sumAVG[i]/N[i], sumCV[i]/N[i], (ssCV[i]/N[i] - (sumCV[i]/N[i])**2)**0.5 / (sumCV[i]/N[i]) }' | tr -s " " "\t" | sort -nk3 > $VCF_OUT.ldepth.mean.contigs
-			Rscript plotFltr041.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $THRESHOLDb $THRESHOLDc $THRESHOLDd $VCF_OUT.ldepth.mean.contigs.plots.pdf
+			Rscript $SCRIPT_PATH/plotFltr041.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $THRESHOLDb $THRESHOLDc $THRESHOLDd $VCF_OUT.ldepth.mean.contigs.plots.pdf
 			THRESHOLD=$(cut -f3 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLD '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
 			THRESHOLDb=$(cut -f3 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLDb '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
 			THRESHOLDc=$(cut -f5 $VCF_OUT.ldepth.mean.contigs | sort -n | awk -v PCT=$THRESHOLDc '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
@@ -325,7 +323,7 @@ THRESHOLD=$(grep -P '^\t* *041\t* *custom\t* *bash\t* *..*\t* *#Remove contigs w
 			#calculate the mean depth by site with VCFtools
 			vcftools --gzvcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
 			tail -n+2 $VCF_OUT.ldepth.mean | cut -f1-3 | grep -v 'nan' | awk '{meancvg[$1] += $3; N[$1]++} END{for (i in meancvg) print i, N[i], meancvg[i]/N[i]}' | tr -s " " "\t" | sort -nk3 > $VCF_OUT.ldepth.mean.contigs
-			Rscript plotFltr041.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $THRESHOLDb $THRESHOLDc $THRESHOLDd $VCF_OUT.ldepth.mean.contigs.plots.pdf
+			Rscript $SCRIPT_PATH/plotFltr041.R $VCF_OUT.ldepth.mean.contigs $THRESHOLD $THRESHOLDb $THRESHOLDc $THRESHOLDd $VCF_OUT.ldepth.mean.contigs.plots.pdf
 			THRESHOLD=$(cut -f3 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLD '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
 			THRESHOLDb=$(cut -f3 $VCF_OUT.ldepth.mean.contigs | awk -v PCT=$THRESHOLDb '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
 			THRESHOLDc=$(cut -f5 $VCF_OUT.ldepth.mean.contigs | sort -n | awk -v PCT=$THRESHOLDc '{all[NR] = $0 } END{print all[int(NR*PCT - 0.5)]}')
@@ -1772,7 +1770,7 @@ echo "	filter_hwe_by_pop_HPC"
 echo ""
 
 echo "Reading options from command line:"
-while getopts ":f:c:b:d:v:g:p:s:w:r:o:t:PSh" opt; do
+while getopts ":f:c:b:d:v:g:p:s:w:r:o:t:R:PSh" opt; do
   case $opt in
     h)
         echo ""
@@ -1834,6 +1832,16 @@ while getopts ":f:c:b:d:v:g:p:s:w:r:o:t:PSh" opt; do
 	b)
         echo "	Path to BAM files:        $OPTARG"
         BAM_PATH=$OPTARG
+        ;;
+    \?)
+        echo "	ERROR :-/                 Invalid option: -$OPTARG" >&2
+        ;;
+    :)
+        echo "	ERROR :-/                 Option -$OPTARG requires an argument." >&2
+        ;;
+	R)
+        echo "	Path to R scripts and other scripts:        $OPTARG"
+        SCRIPT_PATH=$OPTARG
         ;;
     \?)
         echo "	ERROR :-/                 Invalid option: -$OPTARG" >&2
@@ -1916,7 +1924,7 @@ while getopts ":f:c:b:d:v:g:p:s:w:r:o:t:PSh" opt; do
 		PARALLEL=TRUE
 		;;
 	S)
-        echo "	Forcing all filters to run in parallel:	$OPTARG"
+        echo "	Run stats after filters:	$OPTARG"
 		STATS=TRUE
 		;;
   esac
@@ -1964,12 +1972,20 @@ fi
 echo "	CutoffCode is set to '${CutoffCode}'"
 
 if [[ -z ${BAM_PATH+x} ]]; then 
-	BAM_PATH=($(grep -P '^\t* *fltrVCF\t* *-b\t* *' ${CONFIG_FILE} | sed 's/\t* *fltrVCF\t* *-.\t* *//g' | sed 's/\t* *#.*//g')) 
+	BAM_PATH=($(grep -P '^\t* *fltrVCF\t* *-b\t* *' ${CONFIG_FILE} | sed -e 's/\t* *fltrVCF\t* *-.\t* *//g' -e 's/\t* *#.*//g' -e 's/\/$//g')) 
 	if [[ $BAM_PATH == "" ]]; then
-		BAM_PATH="../mapping" 
+		BAM_PATH="../mkBAM" 
 	fi
 fi
 echo "	BAM_PATH is set to '${BAM_PATH}'"
+
+if [[ -z ${SCRIPT_PATH+x} ]]; then 
+	SCRIPT_PATH=($(grep -P '^\t* *fltrVCF\t* *-R\t* *' ${CONFIG_FILE} | sed -e 's/\t* *fltrVCF\t* *-.\t* *//g' -e 's/\t* *#.*//g' -e 's/\/$//g')) 
+	if [[ $SCRIPT_PATH == "" ]]; then
+		SCRIPT_PATH="../../fltrVCF/scripts" 
+	fi
+fi
+echo "	SCRIPT_PATH is set to '${SCRIPT_PATH}'"
 
 if [[ -z ${VCF_FILE+x} ]]; then 
 	VCF_FILE=($(grep -P '^\t* *fltrVCF\t* *-v\t* *' ${CONFIG_FILE} | sed 's/\t* *fltrVCF\t* *-.\t* *//g' | sed 's/\t* *#.*//g')) 
