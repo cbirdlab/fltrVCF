@@ -9,7 +9,7 @@ Notes: These settings are designed to clean a raw VCF file made from individuals
 
 fltrVCF Settings, run fltrVCF -h for description of settings
 	fltrVCF -f 01 02 03 04 14 07 05 16 17 15 06 11 09 08 10 04 13 05 16 07 18
-	fltrVCF -c 10.10
+	fltrVCF -c 25.10
 	fltrVCF -b ../mkBAM				#path to *.bam files
 	fltrVCF -d ../mkBAM/mapped.25.10.bed
 	fltrVCF -v ../mkBAM/TotalRawSNPs.vcf
