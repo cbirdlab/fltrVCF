@@ -100,6 +100,9 @@ DOWNLOADING & INSTALLING
 		rad_haplotyper/rad_haplotyper.pl
 		fltrVCF/filter_hwe_by_pop_HPC.pl
 		
+		
+	Modify the config file to match your directory structure
+		
 
 EXAMPLES
         The following command is recommended for most users and requires the config file to have the 
