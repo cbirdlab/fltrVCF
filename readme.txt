@@ -77,17 +77,29 @@ OPTIONS
                                  threads if -t > 1. Requires -d. [not set]
                 -t <arg>        number of threads available for parallel processing [1]
 
-DOWNLOADING
+
+DOWNLOADING & INSTALLING
 	Clone this repo and my fork of rad_haplotyper to your computer
 		
 		git clone https://github.com/cbirdlab/fltrVCF.git
-		git clone 
+		git clone https://github.com/cbirdlab/rad_haplotyper.git
+	
+	
+	Copy the fltrVCF/fltrVCF.bash and fltrVCF/fltrVCF.sbatch files to your working directory
+	
+	
+	For filters with R plotting, copy fltrVCF/scripts/*R to your working directory, then run R and 
+	
+		install.packages("tidyverse")
+		install.packages("gridextra")
+
+	and exit R.  
+	
+	
+	For the default config to work with minimal editing, copy the following to your working dir
+		rad_haplotyper/rad_haplotyper.pl
+		fltrVCF/filter_hwe_by_pop_HPC.pl
 		
-	Copy the fltrVCF.bash and fltrVCF.sbatch files to your working directory
-	
-	For filters with R plotting, copy scripts/*R to your working directory
-	
-	For the defaul
 
 EXAMPLES
         The following command is recommended for most users and requires the config file to have the 
@@ -106,9 +118,9 @@ EXAMPLES
                         -r rad_haplotyperHPC116.pl -o ProjectX.A -t 40
 		```
 SCRIPTS
-	Additional scripts for filtering are provided in the scripts subdirectory
+	Additional scripts for filtering and viewing output are provided in the scripts subdirectory
 	
-	fltrVCFstats
+	fltrVCFstats2.sbatch
 		Collects summary statisics from all vcf files in a directory with a matching prefix and
 		returns a tidy table where each row is a vcf file and columns are: vcf file name, 
 		number of individuals, number of contigs, number of snps, and number of genotype calls 
