@@ -348,12 +348,12 @@ THRESHOLD=$(grep -P '^\t* *041\t* *custom\t* *bash\t* *..*\t* *#Remove contigs w
 		if [[ -z "$THRESHOLDb" ]]; then THRESHOLDb=2; fi
 		THRESHOLDb=$(PARSE_THRESHOLDS $THRESHOLDb) 
 		Filter="--min-alleles $THRESHOLD --max-alleles $THRESHOLDb --recode --recode-INFO-all"
-		FILTER_VCFTOOLS 
+		FILTER_VCFTOOLS "FALSE"
 
 	elif [[ $FILTER_ID == "02" ]]; then
 		echo; echo `date` "---------------------------FILTER02: Remove Sites with Indels -----------------------------"
 		Filter="--remove-indels --recode --recode-INFO-all"
-		FILTER_VCFTOOLS 
+		FILTER_VCFTOOLS "FALSE" 
 
 	elif [[ $FILTER_ID == "03" ]]; then
 		echo; echo `date` "---------------------------FILTER03: Remove Sites with QUAL < minQ -----------------------------"
@@ -400,7 +400,7 @@ gnuplot << \EOF
 	plot 'QUALbefore' pt "*" 
 	pause -1
 EOF
-		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
+		FILTER_VCFTOOLS "FALSE" 
 
 	elif [[ $FILTER_ID == "04" ]]; then
 		echo; echo `date` "---------------------------FILTER04: Remove Sites With Mean Depth of Coverage < min-meanDP -----------------------------"
@@ -458,7 +458,7 @@ plot 'meandepthVSvariance' pt "*"
 pause -1
 EOF
 		
-		FILTER_VCFTOOLS 
+		FILTER_VCFTOOLS "FALSE" 
 
 	elif [[ $FILTER_ID == "05" ]]; then
 		echo; echo `date` "---------------------------FILTER05: Remove sites called in <X proportion of individuals -----------------------------"
@@ -502,7 +502,7 @@ pause -1
 EOF
 
 
-		FILTER_VCFTOOLS  
+		FILTER_VCFTOOLS "FALSE"  
 
 	elif [[ $FILTER_ID == "06" ]]; then
 		echo; echo `date` "---------------------------FILTER06: Remove sites with Average Allele Balance deviating too far from 0.5 while keeping those with AB=0  -----------------------------"
@@ -641,7 +641,7 @@ EOF
 		#Next we paste the depth and quality files together and find the loci above the cutoff that do not have quality scores 2 times the depth
 		paste $VCF_OUT.loci.qual $VCF_OUT.DEPTH | mawk -v x=$MeanDepth2 '$4 > x' | mawk '$3 < 2 * $4' > $VCF_OUT.lowQDloci
 		#cat $VCF_OUT.lowQDloci
-		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
+		FILTER_VCFTOOLS "FALSE" 
 
 	elif [[ $FILTER_ID == "13" ]]; then
 		echo; echo `date` "---------------------------FILTER13: Remove sites with mean DP greater than X  -----------------------------"
@@ -684,7 +684,7 @@ pause -1
 EOF
 
    
-		FILTER_VCFTOOLS #$PARALLEL $VCF_FILE "${Filter}" $VCF_OUT $DataName $CutoffCode $NumProc 
+		FILTER_VCFTOOLS "FALSE" 
 
 		# if [[ $PARALLEL == "FALSE" ]]; then 
 			# vcftools --vcf ${VCF_FILE} $Filter2 --out $VCF_OUT 2> /dev/null
@@ -778,7 +778,7 @@ EOF
 		# Remove sites with minor allele frequency: maf < x < max-maf
 		# inspect the AF values in the vcf.  This will affect the frequency of rare variants
 		Filter="--maf ${THRESHOLDa} --max-maf ${THRESHOLDb} --recode --recode-INFO-all"
-		FILTER_VCFTOOLS 
+		FILTER_VCFTOOLS "FALSE" 
 
 	elif [[ $FILTER_ID == "16" ]]; then
 		echo; echo `date` "---------------------------FILTER16: Remove Individuals with Too Much Missing Data-----------------------------"
@@ -927,7 +927,7 @@ EOF
 		cat $VCF_OUT.*.lmiss | mawk '!/CHR/' | mawk -v x=$THRESHOLD '$6 > x' | cut -f1,2 | sort | uniq > $VCF_OUT.badloci
 		
 		Filter="--exclude-positions $VCF_OUT.badloci --recode --recode-INFO-all"
-		FILTER_VCFTOOLS 
+		FILTER_VCFTOOLS "FALSE" 
 		
 		cut -f1 $VCF_OUT.badloci | parallel "grep -v {} "
 
