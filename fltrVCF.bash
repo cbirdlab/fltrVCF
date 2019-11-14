@@ -242,9 +242,19 @@ function FILTER(){
 			zgrep -vf $VCF_OUT.remove.contigs $VCF_FILE | bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
 			tabix -f -p vcf $VCF_OUT.vcf.gz
 		fi
-		echo " The following contigs have been filtered:"
+		echo ""; echo " The following contigs have been filtered:"
 		sed -e 's/^\^/\t/' -e 's/\t$//' $VCF_OUT.remove.contigs | sort -n | paste -d "" - - - - -
 		echo ""; echo " Plots output to $VCF_OUT.hetero.contigs.plots.pdf"	
+
+		if [[ PARALLEL == "FALSE" ]]; then
+			echo ""
+			echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.vcf | wc -l
+			echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.vcf | cut -f1 | uniq | wc -l
+		else
+			echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.vcf.gz | wc -l " | awk -F: '{a+=$1} END{print a}' 
+			echo -n "	Contigs remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.vcf.gz | cut -f1 | uniq | wc -l " | awk -F: '{a+=$1} END{print a}'
+		fi
+
 
 	elif [[ $FILTER_ID == "33" ]]; then
 		echo; echo `date` "---------------------------FILTER33: Remove Contigs With To Many Indels > X -----------------------------"
@@ -836,7 +846,7 @@ EOF
 		##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		Filter="--remove $VCF_OUT.lowDP-2.indv --recode --recode-INFO-all"
 		#list of individuals to remove
-		echo " Individuals with too much missing data:"
+		echo " $(wc -l $VCF_OUT.lowDP-2.indv) individuals with too much missing data:"
 		cat $VCF_OUT.lowDP-2.indv
 		#remove individuals with low reads
 		FILTER_VCFTOOLS "TRUE"
@@ -941,13 +951,22 @@ EOF
 		if [[ $PARALLEL == "TRUE" ]]; then 
 			gunzip -c $VCF_FILE > ${VCF_FILE%.*}
 			perl $HWE_SCRIPT -v ${VCF_FILE%.*} -p $PopMap -h ${THRESHOLD} -d $DataName -co $CutoffCode -o $VCF_OUT.HWE
-			mawk '!/#/' $VCF_OUT.HWE.recode.vcf | wc -l
+			# mawk '!/#/' $VCF_OUT.HWE.recode.vcf | wc -l
 			bgzip -@ $NumProc -c $VCF_OUT.HWE.recode.vcf > $VCF_OUT.HWE.recode.vcf.gz
 			tabix -p vcf $VCF_OUT.HWE.recode.vcf.gz
 		else
 			# Typically, errors would have a low p-value (h setting) and would be present in many populations.
 			perl $HWE_SCRIPT -v $VCF_FILE -p $PopMap -h ${THRESHOLD} -d $DataName -co $CutoffCode -o $VCF_OUT.HWE
-			mawk '!/#/' $VCF_OUT.HWE.recode.vcf | wc -l
+			# mawk '!/#/' $VCF_OUT.HWE.recode.vcf | wc -l
+		fi
+
+		if [[ PARALLEL == "FALSE" ]]; then
+			echo ""
+			echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.HWE.recode.vcf | wc -l
+			echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.HWE.recode.vcf | cut -f1 | uniq | wc -l
+		else
+			echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.HWE.recode.vcf.gz | wc -l " | awk -F: '{a+=$1} END{print a}' 
+			echo -n "	Contigs remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.HWE.recode.vcf.gz | cut -f1 | uniq | wc -l " | awk -F: '{a+=$1} END{print a}'
 		fi
 		
 		
@@ -963,17 +982,27 @@ EOF
 		fi
 		perl $HWE_SCRIPT -v $VCF_FILE -p $PopMap -h ${THRESHOLD} -d $DataName -co $CutoffCode -o $VCF_OUT.HWE
 		cat <(grep -v '^dDocent_Contig' ${VCF_FILE}) <(comm -23 <(grep '^dDocent_Contig' ${VCF_FILE} | sort -g) <(grep '^dDocent_Contig' $VCF_OUT.HWE.recode.vcf | sort -g) | sort -V ) > $VCF_OUT.SITES.NOT.IN.HWE.vcf
-		cat $VCF_OUT.SITES.NOT.IN.HWE.vcf | grep '^dDocent_Contig' | cut -f1 | uniq > contigs_failing_HWE.txt
-		grep -f "contigs_failing_HWE.txt" ${VCF_FILE} > $VCF_OUT.CONTIGS.NOT.IN.HWE.vcf
-		grep -v -f "contigs_failing_HWE.txt" ${VCF_FILE} > $VCF_OUT.CONTIGS.IN.HWE.vcf
-		mawk '!/#/' $VCF_OUT.CONTIGS.IN.HWE.vcf | wc -l
+		cat $VCF_OUT.SITES.NOT.IN.HWE.vcf | grep '^dDocent_Contig' | cut -f1 | uniq > $VCF_OUT.contigs_failing_HWE.txt
+		grep -f "$VCF_OUT.contigs_failing_HWE.txt" ${VCF_FILE} > $VCF_OUT.CONTIGS.NOT.IN.HWE.vcf
+		grep -v -f "$VCF_OUT.contigs_failing_HWE.txt" ${VCF_FILE} > $VCF_OUT.CONTIGS.IN.HWE.vcf
+		# mawk '!/#/' $VCF_OUT.CONTIGS.IN.HWE.vcf | wc -l
+		echo ""; echo "Contigs in HWE:"
+		echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.CONTIGS.IN.HWE.vcf | wc -l
+		echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.CONTIGS.IN.HWE.vcf | cut -f1 | uniq | wc -l
+		echo ""; echo "Contigs not in HWE:"
+		echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.CONTIGS.NOT.IN.HWE.vcf | wc -l
+		echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.CONTIGS.NOT.IN.HWE.vcf | cut -f1 | uniq | wc -l
 		if [[ $PARALLEL == "TRUE" ]]; then 
-			bgzip -@ $NumProc -c $VCF_OUT.CONTIGS.IN.HWE.vcf > $VCF_OUT.SITES.NOT.IN.HWE.vcf.gz
+			# bgzip -@ $NumProc -c $VCF_OUT.CONTIGS.IN.HWE.vcf > $VCF_OUT.SITES.NOT.IN.HWE.vcf.gz
+			bgzip -@ $NumProc -c $VCF_OUT.CONTIGS.IN.HWE.vcf > $VCF_OUT.CONTIGS.IN.HWE.vcf.gz
+			bgzip -@ $NumProc -c $VCF_OUT.CONTIGS.IN.HWE.vcf > $VCF_OUT.CONTIGS.NOT.IN.HWE.vcf.gz
 			tabix -p vcf $VCF_OUT.CONTIGS.IN.HWE.vcf.gz
+			tabix -p vcf $VCF_OUT.CONTIGS.NOT.IN.HWE.vcf.gz
 		fi
 		
+
 		
-		elif [[ $FILTER_ID == "19" ]]; then
+	elif [[ $FILTER_ID == "19" ]]; then
 		echo; echo `date` "---------------------------FILTER19: Run rad_haplotyper to id paralogs,create haplotypes, etc -----------------------------"
 		THRESHOLDa=($(grep -P '^\t* *19\t* *rad_haplotyper\t* *-d\t* *\d' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyper\t* *-d\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLDa}" ]]; then ${THRESHOLDa}=50; fi
@@ -1377,9 +1406,9 @@ pause -1
 EOF
 		
 		if [[ PARALLEL == "FALSE" ]]; then
-			echo ""; echo -n file $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf has 
-			mawk '!/#/' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | wc -l
-			echo SNPs
+			# echo ""; echo -n file $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf has 
+			# mawk '!/#/' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | wc -l
+			# echo SNPs
 			echo ""
 			echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | wc -l
 			echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | cut -f1 | uniq | wc -l
