@@ -846,7 +846,7 @@ EOF
 		##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		Filter="--remove $VCF_OUT.lowDP-2.indv --recode --recode-INFO-all"
 		#list of individuals to remove
-		echo " $(wc -l $VCF_OUT.lowDP-2.indv) individuals with too much missing data:"
+		echo " $(wc -l $VCF_OUT.lowDP-2.indv | tr -s " " "\t" | cut -f2) individuals with too much missing data:"
 		cat $VCF_OUT.lowDP-2.indv
 		#remove individuals with low reads
 		FILTER_VCFTOOLS "TRUE"
