@@ -874,7 +874,7 @@ EOF
 		#replace header line in vcf
 		# sed -i is throwing an error, sed: couldn't close ./sedcHXA2x: Permission denied, so doing this instead
 		sed "0,/^#CHROM\tPOS\t.*$/s//$(cat $VCF_OUT.header.line)/" $VCF_OUT.recode.vcf > $VCF_OUT.recode.vcf2
-		mv $VCF_OUT.recode.vcf2 > $VCF_OUT.recode.vcf
+		mv $VCF_OUT.recode.vcf2 $VCF_OUT.recode.vcf
 
 		if [[ $PARALLEL == "TRUE" ]]; then 
 			bgzip -@ $NumProc -c $VCF_OUT.recode.vcf > $VCF_OUT.recode.vcf.gz
