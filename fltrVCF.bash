@@ -1536,7 +1536,7 @@ function FILTER_VCFTOOLS(){
 	if [[ $PARALLEL == "FALSE" ]]; then 
 		if [[ $VCFFIXUP == "TRUE" ]]; then
 			echo "     vcftools --vcf $VCF_FILE $Filter --out $VCF_OUT.recode.vcf 2> /dev/null | vcffixup -"
-			cat $VCF_FILE | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k "vcftools --vcf - $Filter --stdout 2> /dev/null | vcffixup - " | awk '!a[$0]++' > $VCF_OUT.recode.vcf 
+			cat $VCF_FILE | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k "vcftools --vcf - $Filter --stdout 2> /dev/null | vcffixup - " | awk '!a[$0]++' | sed '/^#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO$/d' > $VCF_OUT.recode.vcf 
 		else
 			echo "     vcftools --vcf $VCF_FILE $Filter --out $VCF_OUT.recode.vcf 2> /dev/null"
 			#vcftools --vcf $VCF_FILE $Filter --out $VCF_OUT 2> /dev/null
@@ -1592,11 +1592,11 @@ function FILTER_VCFFILTER(){
 		if [[ $VCFFIXUP == "TRUE" ]]; then 
 			echo "     vcffixup $VCF_FILE | vcffilter -s -f \"$Filter\"  > $VCF_OUT"
 			#vcffilter -s -f "$Filter" $VCF_FILE | vcffixup - > $VCF_OUT
-			cat $VCF_FILE | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k "vcffixup - | vcffilter -s -f \"$Filter\" " | awk '!a[$0]++' > $VCF_OUT 
+			cat $VCF_FILE | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k "vcffixup - | vcffilter -s -f \"$Filter\" " | awk '!a[$0]++' | sed '/^#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO$/d' > $VCF_OUT 
 		else
 			echo "     vcffilter -s -f \"$Filter\" $VCF_FILE > $VCF_OUT"
 			#vcffilter -s -f "$Filter" $VCF_FILE > $VCF_OUT
-			cat $VCF_FILE | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k vcffilter -s -f \"$Filter\" | awk '!a[$0]++' > $VCF_OUT 
+			cat $VCF_FILE | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k vcffilter -s -f \"$Filter\" | awk '!a[$0]++' | sed '/^#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO$/d' > $VCF_OUT 
 		fi
 		echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT | wc -l
 		echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT | cut -f1 | uniq | wc -l
