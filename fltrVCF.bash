@@ -246,7 +246,7 @@ function FILTER(){
 		sed -e 's/^\^/\t/' -e 's/\t$//' $VCF_OUT.remove.contigs | sort -n | paste -d "" - - - - -
 		echo ""; echo " Plots output to $VCF_OUT.hetero.contigs.plots.pdf"	
 
-		if [[ PARALLEL == "FALSE" ]]; then
+		if [[ $PARALLEL == "FALSE" ]]; then
 			echo ""
 			echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.vcf | wc -l
 			echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.vcf | cut -f1 | uniq | wc -l
@@ -960,7 +960,7 @@ EOF
 			# mawk '!/#/' $VCF_OUT.HWE.recode.vcf | wc -l
 		fi
 
-		if [[ PARALLEL == "FALSE" ]]; then
+		if [[ $PARALLEL == "FALSE" ]]; then
 			echo ""
 			echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.HWE.recode.vcf | wc -l
 			echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.HWE.recode.vcf | cut -f1 | uniq | wc -l
@@ -1405,7 +1405,7 @@ plot 'haplo_sites_prophap_paralogs.dat' using 3:6 with points pt "*"
 pause -1
 EOF
 		
-		if [[ PARALLEL == "FALSE" ]]; then
+		if [[ $PARALLEL == "FALSE" ]]; then
 			# echo ""; echo -n file $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf has 
 			# mawk '!/#/' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | wc -l
 			# echo SNPs
