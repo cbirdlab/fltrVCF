@@ -862,8 +862,9 @@ EOF
 		cut -f10- $VCF_OUT.header.line | tr "\t" "\n" | cut -d_ -f1 | uniq -c
 		
 		#replace header line in vcf
-		# sed -i "s/^#CHROM\tPOS\t.*$/$(cat $VCF_OUT.header.line)/" $VCF_OUT.recode.vcf
-		sed -i "0,/^#CHROM\tPOS\t.*$/s//$(cat $VCF_OUT.header.line)/" $VCF_OUT.recode.vcf
+		# sed -i is throwing an error, sed: couldn't close ./sedcHXA2x: Permission denied, so doing this instead
+		sed "0,/^#CHROM\tPOS\t.*$/s//$(cat $VCF_OUT.header.line)/" $VCF_OUT.recode.vcf > $VCF_OUT.recode.vcf2
+		mv $VCF_OUT.recode.vcf2 > $VCF_OUT.recode.vcf
 
 		if [[ $PARALLEL == "TRUE" ]]; then 
 			bgzip -@ $NumProc -c $VCF_OUT.recode.vcf > $VCF_OUT.recode.vcf.gz
@@ -1515,7 +1516,7 @@ function FILTER_VCFTOOLS(){
 	# CutoffCode=$6
 	# NumProc=$7
 	
-	echo "     $VCFFIXUP"
+	# echo "     $VCFFIXUP"
 
 	# echo "     $Filter"
 	# echo "     $FILTER_ID"
