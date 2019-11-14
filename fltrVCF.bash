@@ -1515,6 +1515,8 @@ function FILTER_VCFTOOLS(){
 	# CutoffCode=$6
 	# NumProc=$7
 	
+	echo "     $VCFFIXUP"
+
 	# echo "     $Filter"
 	# echo "     $FILTER_ID"
 	# echo "     $CutoffCode"
@@ -1538,7 +1540,7 @@ function FILTER_VCFTOOLS(){
 		else
 			echo "     vcftools --vcf $VCF_FILE $Filter --out $VCF_OUT.recode.vcf 2> /dev/null"
 			#vcftools --vcf $VCF_FILE $Filter --out $VCF_OUT 2> /dev/null
-			cat $VCF_FILE | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k vcftools --vcf - $Filter --stdout 2> /dev/null | awk '!a[$0]++' > $VCF_OUT.recode.vcf 
+			cat $VCF_FILE | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k vcftools --vcf - $Filter --stdout 2> /dev/null | awk '!a[$0]++' | sed '/^#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO$/d' > $VCF_OUT.recode.vcf 
 		fi
 		echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.recode.vcf | wc -l
 		echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.recode.vcf | cut -f1 | uniq | wc -l
