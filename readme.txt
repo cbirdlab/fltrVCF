@@ -7,7 +7,7 @@ Dependencies:
         perl
         mawk
         parallel
-	R (tidyverse, gridextra)
+	R (tidyverse, gridExtra)
 
 Reading options from command line:
 
@@ -123,7 +123,7 @@ DOWNLOADING & PREPARING TO RUN
 		
 		```R
 		> install.packages("tidyverse")
-		> install.packages("gridextra")
+		> install.packages("gridExtra")
 		```
 		
 	and exit R (hit ctrl+d)   
