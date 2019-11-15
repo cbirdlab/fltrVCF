@@ -368,7 +368,7 @@ THRESHOLD=$(grep -P '^\t* *041\t* *custom\t* *bash\t* *..*\t* *#Remove contigs w
 	elif [[ $FILTER_ID == "03" ]]; then
 		echo; echo `date` "---------------------------FILTER03: Remove Sites with QUAL < minQ -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *03\t* *vcftools\t* *--minQ' ${CONFIG_FILE} | sed 's/\t* *03\t* *vcftools\t* *--minQ\t* *//g' | sed 's/\t* *#.*//g' )) 
-		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=30; fi
+		if [[ -z "${THRESHOLD}" ]]; then THRESHOLD=30; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		Filter="--minQ ${THRESHOLD} --recode --recode-INFO-all"
 		if [[ $PARALLEL == "FALSE" ]]; then 
@@ -415,7 +415,7 @@ EOF
 	elif [[ $FILTER_ID == "04" ]]; then
 		echo; echo `date` "---------------------------FILTER04: Remove Sites With Mean Depth of Coverage < min-meanDP -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *04\t* *vcftools\t* *--min-meanDP' ${CONFIG_FILE} | sed 's/\t* *04\t* *vcftools\t* *--min-meanDP\t* *//g' | sed 's/\t* *#.*//g' )) 
-		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=2; fi
+		if [[ -z "${THRESHOLD}" ]]; then THRESHOLD=2; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		Filter2="--site-mean-depth"
 		Filter="--min-meanDP ${THRESHOLD} --recode --recode-INFO-all"
@@ -473,7 +473,7 @@ EOF
 	elif [[ $FILTER_ID == "05" ]]; then
 		echo; echo `date` "---------------------------FILTER05: Remove sites called in <X proportion of individuals -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *05\t* *vcftools\t* *--max-missing' ${CONFIG_FILE} | sed 's/\t* *05\t* *vcftools\t* *--max-missing\t* *//g' | sed 's/\t* *#.*//g' )) 
-		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=0.5; fi
+		if [[ -z "${THRESHOLD}" ]]; then THRESHOLD=0.5; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		Filter2="--missing-site"
 		Filter="--max-missing ${THRESHOLD} --recode --recode-INFO-all"
@@ -517,7 +517,7 @@ EOF
 	elif [[ $FILTER_ID == "06" ]]; then
 		echo; echo `date` "---------------------------FILTER06: Remove sites with Average Allele Balance deviating too far from 0.5 while keeping those with AB=0  -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *06\t* *vcffilter\t* *AB\t* *min' ${CONFIG_FILE} | sed 's/\t* *06\t* *vcffilter\t* *AB\t* *min\t* *//g' | sed 's/\t* *#.*//g' )) 
-		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=0.375; fi
+		if [[ -z "${THRESHOLD}" ]]; then THRESHOLD=0.375; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		THRESHOLDb=($(grep -P '^\t* *06\t* *vcffilter\t* *AB\t* *max' ${CONFIG_FILE} | sed 's/\t* *06\t* *vcffilter\t* *AB\t* *max\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLDb}" ]]; then ${THRESHOLDb}=0.625; fi
@@ -560,7 +560,7 @@ EOF
 #	elif [[ $FILTER_ID == "96" ]]; then
 #		echo; echo `date` "---------------------------FILTER06: Remove contigs with Average Allele Balance deviating too far from 0.5 while keeping those with AB=0  -----------------------------"
 #		THRESHOLD=($(grep -P '^\t* *06\t* *vcffilter\t* *AB\t* *min' ${CONFIG_FILE} | sed 's/\t* *06\t* *vcffilter\t* *AB\t* *min\t* *//g' | sed 's/\t* *#.*//g' )) 
-#		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=0.375; fi
+#		if [[ -z "${THRESHOLD}" ]]; then THRESHOLD=0.375; fi
 #		THRESHOLDb=($(grep -P '^\t* *06\t* *vcffilter\t* *AB\t* *max' ${CONFIG_FILE} | sed 's/\t* *06\t* *vcffilter\t* *AB\t* *max\t* *//g' | sed 's/\t* *#.*//g' )) 
 #		if [[ -z "${THRESHOLDb}" ]]; then ${THRESHOLDb}=0.625; fi
 #		Filter="\"AB > $THRESHOLD & AB < $THRESHOLDb | AB = 0\""
@@ -578,7 +578,7 @@ EOF
 	elif [[ $FILTER_ID == "07" ]]; then
 		echo; echo `date` "---------------------------FILTER07: Remove sites with Alternate Allele Count <=X -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *07\t* *vcffilter\t* *AC\t* *min' ${CONFIG_FILE} | sed 's/\t* *07\t* *vcffilter\t* *AC\t* *min\t* *//g' | sed 's/\t* *#.*//g' )) 
-		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=1; fi
+		if [[ -z "${THRESHOLD}" ]]; then THRESHOLD=1; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		Filter="AC > $THRESHOLD & AN - AC > $THRESHOLD"
 		FILTER_VCFFILTER "TRUE"
@@ -587,7 +587,7 @@ EOF
 		echo; echo `date` "---------------------------FILTER08: Remove sites covered by both F and R reads-----------------------------"
 		# This should not be run if you expect to have a lot of overlap between forward and rev reads (Miseq 2 x 300bp)
 		THRESHOLD=($(grep -P '^\t* *08\t* *vcffilter\t* *SAF\/SAR\t* *min' ${CONFIG_FILE} | sed 's/\t* *08\t* *vcffilter\t* *SAF\/SAR\t* *min\t* *//g' | sed 's/\t* *#.*//g' )) 
-		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=1; fi
+		if [[ -z "${THRESHOLD}" ]]; then THRESHOLD=1; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		Filter="SAF / SAR > ${THRESHOLD} & SRF / SRR > ${THRESHOLD} | SAR / SAF > ${THRESHOLD} & SRR / SRF > ${THRESHOLD}"
 		FILTER_VCFFILTER "FALSE"
@@ -597,7 +597,7 @@ EOF
 		# The next filter looks at the ratio of mapping qualities between reference and alternate alleles.  The rationale here is that, again, because RADseq 
 		# loci and alleles all should start from the same genomic location there should not be large discrepancy between the mapping qualities of two alleles.
 		THRESHOLD=($(grep -P '^\t* *09\t* *vcffilter\t* *MQM\/MQMR\t* *min' ${CONFIG_FILE} | sed 's/\t* *09\t* *vcffilter\t* *MQM\/MQMR\t* *min\t* *//g' | sed 's/\t* *#.*//g' )) 
-		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=0.1; fi
+		if [[ -z "${THRESHOLD}" ]]; then THRESHOLD=0.1; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		calc(){ awk "BEGIN { print "$*" }"; }
 		THRESHOLDmin=$(calc 1-${THRESHOLD})
@@ -623,7 +623,7 @@ EOF
 		# There is a positive relationship between depth of coverage and inflation of quality score. JPuritz controls for this in two ways.
 		# first, by removing any locus that has a quality score below 1/4 of the read depth.
 		THRESHOLD=($(grep -P '^\t* *11\t* *vcffilter\t* *QUAL\/DP\t* *min' ${CONFIG_FILE} | sed 's/\t* *11\t* *vcffilter\t* *QUAL\/DP\t* *min\t* *//g' | sed 's/\t* *#.*//g' )) 
-		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=0.25; fi
+		if [[ -z "${THRESHOLD}" ]]; then THRESHOLD=0.25; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		Filter="QUAL / DP > ${THRESHOLD}"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
@@ -656,7 +656,7 @@ EOF
 	elif [[ $FILTER_ID == "13" ]]; then
 		echo; echo `date` "---------------------------FILTER13: Remove sites with mean DP greater than X  -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *13\t* *vcftools\t* *--max-meanDP' ${CONFIG_FILE} | sed 's/\t* *13\t* *vcftools\t* *--max-meanDP\t* *//g' | sed 's/\t* *#.*//g' )) 
-		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=250; fi
+		if [[ -z "${THRESHOLD}" ]]; then THRESHOLD=250; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		Filter2="--site-depth"
 		Filter="--max-meanDP $THRESHOLD --recode --recode-INFO-all"
@@ -730,7 +730,7 @@ EOF
 	elif [[ $FILTER_ID == "14" ]]; then
 		echo; echo `date` "---------------------------FILTER14: If individual's genotype has DP < X, convert to missing data -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *14\t* *vcftools\t* *--minDP' ${CONFIG_FILE} | sed 's/\t* *14\t* *vcftools\t* *--minDP\t* *//g' | sed 's/\t* *#.*//g' )) 
-		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=3; fi
+		if [[ -z "${THRESHOLD}" ]]; then THRESHOLD=3; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		Filter2="--geno-depth"
 		Filter="--minDP ${THRESHOLD} --recode --recode-INFO-all"
@@ -780,11 +780,11 @@ EOF
 	elif [[ $FILTER_ID == "15" ]]; then
 		echo; echo `date` "---------------------------FILTER15: Remove sites with maf > minor allele frequency > max-maf -----------------------------"
 		THRESHOLDa=($(grep -P '^\t* *15\t* *vcftools\t* *--maf' ${CONFIG_FILE} | sed 's/\t* *15\t* *vcftools\t* *--maf\t* *//g' | sed 's/\t* *#.*//g' )) 
-		if [[ -z "${THRESHOLDa}" ]]; then ${THRESHOLDa}=0.005; fi
+		if [[ -z "${THRESHOLDa}" ]]; then THRESHOLDa=0.005; fi
 		THRESHOLDa=$(PARSE_THRESHOLDS $THRESHOLDa) 
 		THRESHOLDb=($(grep -P '^\t* *15\t* *vcftools\t* *--max-maf' ${CONFIG_FILE} | sed 's/\t* *15\t* *vcftools\t* *--max-maf\t* *//g' | sed 's/\t* *#.*//g' )) 
 		THRESHOLDb=$(PARSE_THRESHOLDS $THRESHOLDb) 
-		if [[ -z "${THRESHOLDb}" ]]; then ${THRESHOLDb}=0.995; fi
+		if [[ -z "${THRESHOLDb}" ]]; then THRESHOLDb=0.995; fi
 		# Remove sites with minor allele frequency: maf < x < max-maf
 		# inspect the AF values in the vcf.  This will affect the frequency of rare variants
 		Filter="--maf ${THRESHOLDa} --max-maf ${THRESHOLDb} --recode --recode-INFO-all"
@@ -793,7 +793,7 @@ EOF
 	elif [[ $FILTER_ID == "16" ]]; then
 		echo; echo `date` "---------------------------FILTER16: Remove Individuals with Too Much Missing Data-----------------------------"
 		THRESHOLD=($(grep -P '^\t* *16\t* *vcftools\t* *--missing-indv' ${CONFIG_FILE} | sed 's/\t* *16\t* *vcftools\t* *--missing-indv\t* *//g' | sed 's/\t* *#.*//g' )) 
-		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=0.5; fi
+		if [[ -z "${THRESHOLD}" ]]; then THRESHOLD=0.5; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		Filter="--missing-indv"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
@@ -887,7 +887,7 @@ EOF
 	elif [[ $FILTER_ID == "161" ]]; then
 		echo; echo `date` "---------------------------FILTER161: Remove Individuals Listed in File-----------------------------"
 		THRESHOLD=($(grep -P '^\t* *161\t* *vcftools\t* *--missing-sites' ${CONFIG_FILE} | sed 's/\t* *16\t* *vcftools\t* *--missing-sites\t* *//g' | sed 's/\t* *#.*//g' )) 
-		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}="rmInd.txt"; fi
+		if [[ -z "${THRESHOLD}" ]]; then THRESHOLD=rmInd.txt; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		Filter="--remove $THRESHOLD --recode --recode-INFO-all"
 		FILTER_VCFTOOLS "TRUE"
@@ -895,7 +895,7 @@ EOF
 	elif [[ $FILTER_ID == "17" ]]; then
 		echo; echo `date` "---------------------------FILTER17: Remove sites with data missing for too many individuals in a population -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *17\t* *vcftools\t* *--missing-sites' ${CONFIG_FILE} | sed 's/\t* *17\t* *vcftools\t* *--missing-sites\t* *//g' | sed 's/\t* *#.*//g' )) 
-		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=0.5; fi
+		if [[ -z "${THRESHOLD}" ]]; then THRESHOLD=0.5; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
 		# restrict the data to loci with a high percentage of individuals that geneotyped
@@ -954,7 +954,7 @@ EOF
 		echo; echo `date` "---------------------------FILTER18: Remove sites not in HWE p<X) -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *18\t* *filter_hwe_by_pop_HPC' ${CONFIG_FILE} | sed 's/\t* *18\t* *filter_hwe_by_pop_HPC\t* *//g' | sed 's/\t* *#.*//g' )) 
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
-		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=0.001; fi
+		if [[ -z "${THRESHOLD}" ]]; then THRESHOLD=0.001; fi
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
 		if [[ $PARALLEL == "TRUE" ]]; then 
 			gunzip -c $VCF_FILE > ${VCF_FILE%.*}
@@ -982,7 +982,7 @@ EOF
 		echo; echo `date` "---------------------------FILTER181: Remove sites & contigs in & not in HWE p<X) -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *18\t* *filter_hwe_by_pop_HPC' ${CONFIG_FILE} | sed 's/\t* *18\t* *filter_hwe_by_pop_HPC\t* *//g' | sed 's/\t* *#.*//g' )) 
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
-		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=0.001; fi
+		if [[ -z "${THRESHOLD}" ]]; then THRESHOLD=0.001; fi
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID
 		if [[ $PARALLEL == "TRUE" ]]; then 
 			gunzip -c $VCF_FILE > ${VCF_FILE%.*}
@@ -1013,25 +1013,25 @@ EOF
 	elif [[ $FILTER_ID == "19" ]]; then
 		echo; echo `date` "---------------------------FILTER19: Run rad_haplotyper to id paralogs,create haplotypes, etc -----------------------------"
 		THRESHOLDa=($(grep -P '^\t* *19\t* *rad_haplotyper\t* *-d\t* *\d' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyper\t* *-d\t* *//g' | sed 's/\t* *#.*//g' )) 
-		if [[ -z "${THRESHOLDa}" ]]; then ${THRESHOLDa}=50; fi
+		if [[ -z "${THRESHOLDa}" ]]; then THRESHOLDa=50; fi
 		THRESHOLDa=$(PARSE_THRESHOLDS $THRESHOLDa) 
 		THRESHOLDb=($(grep -P '^\t* *19\t* *rad_haplotyper\t* *-mp\t* *\d' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyper\t* *-mp\t* *//g' | sed 's/\t* *#.*//g' )) 
-		if [[ -z "${THRESHOLDb}" ]]; then ${THRESHOLDb}=10; fi
+		if [[ -z "${THRESHOLDb}" ]]; then THRESHOLDb=10; fi
 		THRESHOLDb=$(PARSE_THRESHOLDS $THRESHOLDb) 
 		THRESHOLDc=($(grep -P '^\t* *19\t* *rad_haplotyper\t* *-u\t* *\d' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyper\t* *-u\t* *//g' | sed 's/\t* *#.*//g' )) 
-		if [[ -z "${THRESHOLDc}" ]]; then ${THRESHOLDd}=30; fi
+		if [[ -z "${THRESHOLDc}" ]]; then THRESHOLDd=30; fi
 		THRESHOLDc=$(PARSE_THRESHOLDS $THRESHOLDc) 
 		THRESHOLDd=($(grep -P '^\t* *19\t* *rad_haplotyper\t* *-ml\t* *' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyper\t* *-ml\t* *//g' | sed 's/\t* *#.*//g' )) 
-		if [[ -z "${THRESHOLDd}" ]]; then ${THRESHOLDd}=10; fi
+		if [[ -z "${THRESHOLDd}" ]]; then THRESHOLDd=10; fi
 		THRESHOLDd=$(PARSE_THRESHOLDS $THRESHOLDd) 
 		THRESHOLDe=($(grep -P '^\t* *19\t* *rad_haplotyper\t* *-h\t* *\d' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyper\t* *-h\t* *//g' | sed 's/\t* *#.*//g' )) 
-		if [[ -z "${THRESHOLDe}" ]]; then ${THRESHOLDe}=100; fi
+		if [[ -z "${THRESHOLDe}" ]]; then THRESHOLDe=100; fi
 		THRESHOLDe=$(PARSE_THRESHOLDS $THRESHOLDe) 
 		THRESHOLDf=($(grep -P '^\t* *19\t* *rad_haplotyper\t* *-z\t* *\d' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyper\t* *-z\t* *//g' | sed 's/\t* *#.*//g' )) 
-		if [[ -z "${THRESHOLDf}" ]]; then ${THRESHOLDf}=0.1; fi
+		if [[ -z "${THRESHOLDf}" ]]; then THRESHOLDf=0.1; fi
 		THRESHOLDf=$(PARSE_THRESHOLDS $THRESHOLDf) 
 		THRESHOLDg=($(grep -P '^\t* *19\t* *rad_haplotyper\t* *-m\t* *\d' ${CONFIG_FILE} | sed 's/\t* *19\t* *rad_haplotyper\t* *-m\t* *//g' | sed 's/\t* *#.*//g' )) 
-		if [[ -z "${THRESHOLDg}" ]]; then ${THRESHOLDg}=0.5; fi
+		if [[ -z "${THRESHOLDg}" ]]; then THRESHOLDg=0.5; fi
 		THRESHOLDg=$(PARSE_THRESHOLDS $THRESHOLDg) 
 		VCF_OUT=$DataName$CutoffCode
 		echo "     Read Sampling Depth:					$THRESHOLDa"
