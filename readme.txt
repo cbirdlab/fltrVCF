@@ -1,13 +1,13 @@
 fltrVCF.bash v4.3 -- a program to filter vcf files with RAD data
 
 Dependencies:
-        vcftools
-        vcflib
-        samtools
-        perl
-        mawk
-        parallel
-	R (tidyverse, gridExtra)
+	* vcftools
+	* vcflib
+	* samtools
+	* perl
+	* mawk
+	* GNU parallel
+	* R (tidyverse, gridExtra)
 
 Reading options from command line:
 
