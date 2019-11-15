@@ -5,7 +5,7 @@ THRESHOLDb=2
 
 # list contigs with >= X paralogs and Y rescued paralogs, then save them into a variable, note you may have to change the column identifiers ($10, $7) because of changes I've made to the `prlgStats.sbatch` script since creating my `*paralog_test_results.tsv`
 PrlgCntgFltr1=$(tail -n+2 PIRE_SiganusSpinus.L.5.5.paralog_test_results.tsv | awk -v X=$THRESHOLD '$10 > X {print $1;}' )
-PrlgCntgFltr2=$(tail -n+2 PIRE_SiganusSpinus.L.5.5.paralog_test_results.tsv | awk -v Y=$THRESHOLDb '$7> Y {print $1;}' )
+PrlgCntgFltr2=$(tail -n+2 PIRE_SiganusSpinus.L.5.5.paralog_test_results.tsv | awk -v Y=$THRESHOLDb '$7 > Y {print $1;}' )
 
 # Make a third variable with the list of haps with extreme amounts of missing data
 PrlgCntgFltr3=$(tail -n+3 PIRE_SiganusSpinus.L.5.5.Fltr19.stats.out | grep 'Missing data$' | cut -f1 )
