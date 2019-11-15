@@ -10,7 +10,9 @@
 	* R (tidyverse, gridExtra)
 
 ### NAME
+```
 fltrVCF.bash v4.2  -- a program to filter vcf files with RAD data
+```
 
 ### SYNOPSIS
 fltrVCF.bash [filter settings] [input files] [output file prefix] [parallelization]
