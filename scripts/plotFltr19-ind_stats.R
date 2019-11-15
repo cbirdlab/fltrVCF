@@ -20,14 +20,12 @@ outputFile <- args[2]
 
 df <- read.table(inputFile, header=TRUE)
 
-#text to columns by delimiter
-df2 <- data.frame(do.call('rbind',strsplit(as.character(df$Ind), '_', fixed=TRUE)))
-colnames(df2) <- c("Location", "IndividualID")
-# df3 <- data.frame(do.call('rbind',strsplit(as.character(df2$Location), '-', fixed=TRUE)))
+colnames(df2) <- c("SampleGroup", "IndividualID")
+# df3 <- data.frame(do.call('rbind',strsplit(as.character(df2$SampleGroup), '-', fixed=TRUE)))
 # colnames(df3) <- c("Proj", "Region", "Site", "LifeStage")
 df4 <- data.frame(do.call('rbind',strsplit(as.character(df2$IndividualID), '-', fixed=TRUE)))
-#colnames(df4) <- c("IndID", "PlatePoolSeq", "Lanes")
-colnames(df4) <- c("IndID", "PlatePoolSeq")
+#colnames(df4) <- c("IndID", "NGS_Library", "Lanes")
+colnames(df4) <- c("IndID", "NGS_Library")
 
 df5 <- cbind(df, df2, df4)
 
