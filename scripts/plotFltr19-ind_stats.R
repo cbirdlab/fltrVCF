@@ -192,7 +192,7 @@ print(bp3); print(bl3); print(bm3)
 #grid.arrange(bp3,bl3,bm3, ncol=1, nrow=3)
 #grid.arrange(bp4,bl4,bm4, ncol=1, nrow=3)
 
-ggplot(data=df5, aes(x=Low_Coverage.Errors, y=Poss_Paralogs, color=SampleGroup)) +
+ggplot(data=df5, aes(x=Low_Coverage.Errors, y=Poss_Paralogs)) +
   geom_point(size=5) +
   geom_smooth(aes(group=1), color="black") +
   theme_classic() +
@@ -202,7 +202,7 @@ ggplot(data=df5, aes(x=Low_Coverage.Errors, y=Poss_Paralogs, color=SampleGroup))
   ylab("Number of Poss_Paralogs per Individual") 
 
 
-ggplot(data=df5, aes(x=Miss_Genotype, y=Poss_Paralogs, color=SampleGroup)) +
+ggplot(data=df5, aes(x=Miss_Genotype, y=Poss_Paralogs)) +
   geom_point(size=5) +
   geom_smooth(aes(group=1), color="black") +
   theme_classic() +
