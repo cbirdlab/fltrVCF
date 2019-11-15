@@ -80,9 +80,13 @@ hm2 <- ggplot(data=df5, aes(x=Miss_Genotype, fill=NGS_Library)) +
   xlab("Number of Contigs With Missing Genotypes Per Individual") +
   ylab("Number of Individuals")
 
-grid.arrange(hp1, hp2, ncol=1, nrow=2)
-grid.arrange(hl1, hl2, ncol=1, nrow=2)
-grid.arrange(hm1, hm2, ncol=1, nrow=2)
+print(hp1); print(hp2)
+print(hl1); print(hl2)
+print(hm1); print(hm2)
+
+#grid.arrange(hp1, hp2, ncol=1, nrow=2)
+#grid.arrange(hl1, hl2, ncol=1, nrow=2)
+#grid.arrange(hm1, hm2, ncol=1, nrow=2)
 #grid.arrange(hp1, hp2, hl1, hl2, hm1, hm2, ncol=2, nrow=3)
 
 # plot Paralogs by SampleGroup
@@ -131,10 +135,11 @@ bm2 <- ggplot(data=df5, aes(x=SampleGroup, y=Miss_Genotype, color=NGS_Library)) 
   xlab("Sample Group") +
   ylab("Number of Contigs With Missing Genotypes per Individual")
 
+print(bp1); print(bl1); print(bm1)
 #grid.arrange(bp1, bp2, ncol=1, nrow=2)
 #grid.arrange(bl1, bl2, ncol=1, nrow=2)
 #grid.arrange(bm1, bm2, ncol=1, nrow=2)
-grid.arrange(bp1,bl1,bm1, ncol=1, nrow=3)
+#grid.arrange(bp1,bl1,bm1, ncol=1, nrow=3)
 #grid.arrange(bp2,bl2,bm2, ncol=1, nrow=3)
 
 # plot Paralogs by PlatePool identity (lab effect)
@@ -183,7 +188,8 @@ bm4 <- ggplot(data=df5, aes(x=NGS_Library, y=Miss_Genotype, color=SampleGroup)) 
   xlab("NGS Library") +
   ylab("Number of  Contigs With Missing Genotypes per Individual")
 
-grid.arrange(bp3,bl3,bm3, ncol=1, nrow=3)
+print(bp3); print(bl3); print(bm3)
+#grid.arrange(bp3,bl3,bm3, ncol=1, nrow=3)
 #grid.arrange(bp4,bl4,bm4, ncol=1, nrow=3)
 
 ggplot(data=df5, aes(x=Low_Coverage.Errors, y=Poss_Paralogs, color=SampleGroup)) +
