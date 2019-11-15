@@ -23,16 +23,20 @@ fltrVCF.bash [filter settings] [input files] [output file prefix] [parallelizati
 ```
 fltrVCF is a tool to filter VCF files created by dDocentHPC. The filters can be run in any order.
 
-Arguments can be controlled from either the command line or a configuration file.  Filter thresholds can only be altered in the config.fltr file. Filters are described and defined in the config.fltr file.
+Arguments can be controlled from either the command line or a configuration file.  Filter thresholds 
+can only be altered in the config.fltr file. Filters are described and defined in the config.fltr file.
 
-fltrVCF is parallelized where possible, but only runs on one node or computer. MPI is not
-supported.
+fltrVCF is parallelized where possible, but only runs on one node or computer. MPI is not supported.
 
-fltrVCF requires minor modification to work with non dDocentHPC output.  To do so, remove ".$CutoffCode" "$CutoffCode." and "$CutoffCode" in order from the script). 
+fltrVCF requires minor modification to work with non dDocentHPC output.  To do so, remove ".$CutoffCode" 
+"$CutoffCode." and "$CutoffCode" in order from the script). 
 	
-Forks of both filter_hwe_by_pop_HPC.pl and rad_haplotyper.pl can be obtained from cbirdlab on github, are tested with fltrVCF and work. 
+Forks of both filter_hwe_by_pop_HPC.pl and rad_haplotyper.pl can be obtained from cbirdlab on github, 
+are tested with fltrVCF and work. 
 	
-Newer filters (identified by the "custom bash" label in the config file) employ R to output plots as *.pdf.  For this to work properly, the R scripts in the fltrVCF/scripts dir need to be copied to the working directory.
+Newer filters (identified by the "custom bash" label in the config file) employ R to output plots as 
+*.pdf.  For this to work properly, the R scripts in the fltrVCF/scripts dir need to be copied to the 
+working directory.
 ```
 
 ### OPTIONS
@@ -75,29 +79,30 @@ Newer filters (identified by the "custom bash" label in the config file) employ 
 
 
 ### DOWNLOADING & PREPARING TO RUN
-	
-	I will assume that you can find and install the dependencies listed at the top of this doc.  What follows
-	is a description of how to get fltrVCF up and running, assuming that the other dependencies are in place.
 
+I will assume that you can find and install the dependencies listed at the top of this doc. What 
+follows is a description of how to get fltrVCF up and running, assuming that the other dependencies are 
+in place.
 
-	Assumed directory structure:
-		home				either your home dir, or where you keep your ProjectDir
-			fltrVCF			cloned repo
-			rad_haplotyper		cloned repo
-			ProjectDir		directory for your RAD project
-				mkBAM		directory where BAM files were made
-				mkVCF		directory where VCF file was made (could be mkBAM)
-				filterVCF		directory where VCF file is filtered
+Assumed directory structure:
+```
+	home				either your home dir, or where you keep your ProjectDir
+		fltrVCF			cloned repo
+		rad_haplotyper		cloned repo
+		ProjectDir		directory for your RAD project
+			mkBAM		directory where BAM files were made
+			mkVCF		directory where VCF file was made (could be mkBAM)
+			filterVCF	directory where VCF file is filtered
+```
 
-	Goto home (or where you keep your ProjectDir.  (The `$` indicates the `bash` cmd prompt, don't type it.)
+Goto home (or where you keep your ProjectDir.  (The `$` indicates the `bash` cmd prompt, don't type it.)
+```
 
+```bash
+$ cd ~
+```
 
-	```bash
-	$ cd ~
-	```
-
-
-	Clone this repo and my fork of rad_haplotyper to your computer
+Clone this repo and my fork of rad_haplotyper to your computer
 		
 		```bash
 		$ git clone https://github.com/cbirdlab/fltrVCF.git
