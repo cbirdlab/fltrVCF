@@ -79,6 +79,7 @@
 	I will assume that you can find and install the dependencies listed at the top of this doc.  What follows
 	is a description of how to get fltrVCF up and running, assuming that the other dependencies are in place.
 
+
 	Assumed directory structure:
 		home				either your home dir, or where you keep your ProjectDir
 			fltrVCF			cloned repo
@@ -90,10 +91,12 @@
 
 	Goto home (or where you keep your ProjectDir.  (The `$` indicates the `bash` cmd prompt, don't type it.)
 
+
 	```bash
 	$ cd ~
 	```
-		
+
+
 	Clone this repo and my fork of rad_haplotyper to your computer
 		
 		```bash
