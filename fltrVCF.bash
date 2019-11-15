@@ -886,7 +886,7 @@ EOF
 		
 	elif [[ $FILTER_ID == "161" ]]; then
 		echo; echo `date` "---------------------------FILTER161: Remove Individuals Listed in File-----------------------------"
-		THRESHOLD=($(grep -P '^\t* *161\t* *vcftools\t* *--missing-sites' ${CONFIG_FILE} | sed 's/\t* *16\t* *vcftools\t* *--missing-sites\t* *//g' | sed 's/\t* *#.*//g' )) 
+		THRESHOLD=($(grep -P '^\t* *161\t* *vcftools\t* *--missing-sites' ${CONFIG_FILE} | sed 's/\t* *161\t* *vcftools\t* *--missing-sites\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then THRESHOLD=rmInd.txt; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		Filter="--remove $THRESHOLD --recode --recode-INFO-all"
