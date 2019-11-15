@@ -32,7 +32,7 @@ colnames(df4) <- c("IndID", "NGS_Library")
 df5 <- cbind(df, df2, df4)
 
 
-pdf(outputFile)
+pdf(outputFile, width=8.5, height=11 )
 
 # histogram of possible paralogs
 hp1 <- ggplot(data=df5, aes(x=Poss_Paralogs, fill=SampleGroup)) +
