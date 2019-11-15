@@ -1,6 +1,6 @@
-fltrVCF.bash v4.3 -- a program to filter vcf files with RAD data
+## fltrVCF.bash v4.3 -- a program to filter vcf files with RAD data
 
-Dependencies:
+*Dependencies*
 	* vcftools
 	* vcflib
 	* samtools
@@ -9,15 +9,13 @@ Dependencies:
 	* GNU parallel
 	* R (tidyverse, gridExtra)
 
-Reading options from command line:
-
-NAME
+### NAME
         fltrVCF.bash v4.2  -- a program to filter vcf files with RAD data
 
-SYNOPSIS
+### SYNOPSIS
         fltrVCF.bash [filter settings] [input files] [output file prefix] [parallelization]
 
-DESCRIPTION
+### DESCRIPTION
         fltrVCF is a tool to filter VCF files created by dDocentHPC. The filters can be run in any order.
 
         Arguments can be controlled from either the command line or a configuration file.  Filter
@@ -37,7 +35,7 @@ DESCRIPTION
 	as *.pdf.  For this to work properly, the R scripts in the fltrVCF/scripts dir need to be copied
 	to the working directory.
 
-OPTIONS
+### OPTIONS
         [filter settings]
                 -f <arg>        if set, controls filters to be run, in order. Argument should be 2-3
                                  digit numbers separated by spaces. 
@@ -76,7 +74,7 @@ OPTIONS
                 -t <arg>        number of threads available for parallel processing [1]
 
 
-DOWNLOADING & PREPARING TO RUN
+### DOWNLOADING & PREPARING TO RUN
 	
 	I will assume that you can find and install the dependencies listed at the top of this doc.  What follows
 	is a description of how to get fltrVCF up and running, assuming that the other dependencies are in place.
@@ -154,7 +152,7 @@ DOWNLOADING & PREPARING TO RUN
 		$ cd ProjectDir/filterVCF
 		```
 
-EXAMPLES
+### EXAMPLES
         The following command is recommended for most users and requires the config file to have the 
 	 correct paths.
                 
@@ -176,10 +174,10 @@ EXAMPLES
                         -r rad_haplotyperHPC116.pl -o ProjectX.A -t 40
 		```
 		
-SCRIPTS
+### SCRIPTS
 	Additional scripts for filtering and viewing output are provided in the scripts subdirectory
 	
-	fltrVCFstats2.sbatch
+	* fltrVCFstats2.sbatch
 		Collects summary statisics from all vcf files in a directory with a matching prefix and
 		returns a tidy table where each row is a vcf file and columns are: vcf file name, 
 		number of individuals, number of contigs, number of snps, and number of genotype calls 
