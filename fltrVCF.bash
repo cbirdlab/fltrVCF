@@ -520,7 +520,7 @@ EOF
 		if [[ -z "${THRESHOLD}" ]]; then THRESHOLD=0.375; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		THRESHOLDb=($(grep -P '^\t* *06\t* *vcffilter\t* *AB\t* *max' ${CONFIG_FILE} | sed 's/\t* *06\t* *vcffilter\t* *AB\t* *max\t* *//g' | sed 's/\t* *#.*//g' )) 
-		if [[ -z "${THRESHOLDb}" ]]; then ${THRESHOLDb}=0.625; fi
+		if [[ -z "${THRESHOLDb}" ]]; then THRESHOLDb=0.625; fi
 		THRESHOLDb=$(PARSE_THRESHOLDS $THRESHOLDb) 
 		Filter="AB > $THRESHOLD & AB < $THRESHOLDb | AB = 0"
 		#VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
@@ -562,7 +562,7 @@ EOF
 #		THRESHOLD=($(grep -P '^\t* *06\t* *vcffilter\t* *AB\t* *min' ${CONFIG_FILE} | sed 's/\t* *06\t* *vcffilter\t* *AB\t* *min\t* *//g' | sed 's/\t* *#.*//g' )) 
 #		if [[ -z "${THRESHOLD}" ]]; then THRESHOLD=0.375; fi
 #		THRESHOLDb=($(grep -P '^\t* *06\t* *vcffilter\t* *AB\t* *max' ${CONFIG_FILE} | sed 's/\t* *06\t* *vcffilter\t* *AB\t* *max\t* *//g' | sed 's/\t* *#.*//g' )) 
-#		if [[ -z "${THRESHOLDb}" ]]; then ${THRESHOLDb}=0.625; fi
+#		if [[ -z "${THRESHOLDb}" ]]; then THRESHOLDb=0.625; fi
 #		Filter="\"AB > $THRESHOLD & AB < $THRESHOLDb | AB = 0\""
 #		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
 #		#get the AB data
