@@ -185,7 +185,7 @@ $ fltrVCF.bash -f "01 02 03" -c 25.10 -m ../mapping -v ../mapping/TotalRawSNPs.3
 
 Additional scripts for filtering and viewing output are provided in the scripts subdirectory
 
-* fltrVCFstats2.sbatch
+* `fltrVCFstats2.sbatch`
 	Collects summary statisics from all vcf files in a directory with a matching prefix and
 	returns a tidy table where each row is a vcf file and columns are: vcf file name, 
 	number of individuals, number of contigs, number of snps, and number of genotype calls 
