@@ -846,7 +846,7 @@ EOF
 		##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		Filter="--remove $VCF_OUT.lowDP-2.indv --recode --recode-INFO-all"
 		#list of individuals to remove
-		echo " $(wc -l $VCF_OUT.lowDP-2.indv | tr -s " " "\t" | cut -f2) individuals with too much missing data:"
+		echo " $(grep -c '^' $VCF_OUT.lowDP-2.indv) individuals with too much missing data:"
 		cat $VCF_OUT.lowDP-2.indv
 		#remove individuals with low reads
 		FILTER_VCFTOOLS "TRUE"
@@ -884,6 +884,14 @@ EOF
 		rm totalmissing ind.txt imiss.dat
 		
 		
+	elif [[ $FILTER_ID == "161" ]]; then
+		echo; echo `date` "---------------------------FILTER161: Remove Individuals Listed in File-----------------------------"
+		THRESHOLD=($(grep -P '^\t* *161\t* *vcftools\t* *--missing-sites' ${CONFIG_FILE} | sed 's/\t* *16\t* *vcftools\t* *--missing-sites\t* *//g' | sed 's/\t* *#.*//g' )) 
+		if [[ -z "${THRESHOLD}" ]]; then ${THRESHOLD}=rmInd.txt; fi
+		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
+		Filter="--remove $THRESHOLD --recode --recode-INFO-all"
+		FILTER_VCFTOOLS "TRUE"
+
 	elif [[ $FILTER_ID == "17" ]]; then
 		echo; echo `date` "---------------------------FILTER17: Remove sites with data missing for too many individuals in a population -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *17\t* *vcftools\t* *--missing-sites' ${CONFIG_FILE} | sed 's/\t* *17\t* *vcftools\t* *--missing-sites\t* *//g' | sed 's/\t* *#.*//g' )) 

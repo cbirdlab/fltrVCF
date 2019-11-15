@@ -54,6 +54,7 @@ Filters
 	15  vcftools --maf		0	#Remove sites with lesser minor allele frequency.  Adjust based upon sample size. [0.005] 
 	15  vcftools --max-maf		1	#Remove sites with greater minor allele frequency.  Adjust based upon sample size. [0.995]
 	16  vcftools --missing-indv	0.8:0.4	#Remove individuals with more missing data. [0.5]
+	161 vcftools --remove		rmInd.txt		#Remove individuals listed in file
 	17  vcftools --missing-sites	0.5	#Remove sites with more data missing in a pop sample. [0.5]
 
 	18  filter_hwe_by_pop_HPC	0.001	#Remove sites with <p in test for HWE by pop sample. Adjust based upon sample size [0.001]
