@@ -87,12 +87,12 @@ in place.
 Assumed directory structure:
 ```
 home				either your home dir, or where you keep your ProjectDir
-+---fltrVCF			cloned repo
-|   \---rad_haplotyper		cloned repo
-	ProjectDir		directory for your RAD project
-		mkBAM		directory where BAM files were made
-		mkVCF		directory where VCF file was made (could be mkBAM)
-		filterVCF	directory where VCF file is filtered
++--fltrVCF			cloned repo
++--rad_haplotyper		cloned repo
++--ProjectDir		directory for your RAD project
+|  +--mkBAM		directory where BAM files were made
+|  +--mkVCF		directory where VCF file was made (could be mkBAM)
+|  +--filterVCF	directory where VCF file is filtered
 ```
 
 Goto home (or where you keep your ProjectDir.  (The `$` indicates the `bash` cmd prompt, don't type it.)
