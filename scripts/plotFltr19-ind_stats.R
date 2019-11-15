@@ -1,6 +1,7 @@
 rm(list=ls())
 
-library(tidyverse)
+library(ggplot2)
+library(gridExtra)
 
 #setwd("C:/Users/cbird/Downloads")
 
@@ -25,7 +26,7 @@ colnames(df2) <- c("Location", "IndividualID")
 # df3 <- data.frame(do.call('rbind',strsplit(as.character(df2$Location), '-', fixed=TRUE)))
 # colnames(df3) <- c("Proj", "Region", "Site", "LifeStage")
 df4 <- data.frame(do.call('rbind',strsplit(as.character(df2$IndividualID), '-', fixed=TRUE)))
-colnames(df4) <- c("IndID", "PlatePoolSeq", "Lanes")
+#colnames(df4) <- c("IndID", "PlatePoolSeq", "Lanes")
 colnames(df4) <- c("IndID", "PlatePoolSeq")
 
 df5 <- cbind(df, df2, df4)
