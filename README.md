@@ -29,11 +29,11 @@
         ".$CutoffCode" "$CutoffCode." and "$CutoffCode" in order from the script). 
 	
         Forks of both filter_hwe_by_pop_HPC.pl and rad_haplotyper.pl can be obtained from cbirdlab on 
-	github, are tested with fltrVCF and work. 
+        github, are tested with fltrVCF and work. 
 	
         Newer filters (identified by the "custom bash" label in the config file) employ R to output plots 
-	as *.pdf.  For this to work properly, the R scripts in the fltrVCF/scripts dir need to be copied
-	to the working directory.
+        as *.pdf.  For this to work properly, the R scripts in the fltrVCF/scripts dir need to be copied
+        to the working directory.
 
 ### OPTIONS
         [filter settings]
