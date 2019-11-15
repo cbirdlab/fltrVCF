@@ -10,10 +10,10 @@
 	* R (tidyverse, gridExtra)
 
 ### NAME
-        fltrVCF.bash v4.2  -- a program to filter vcf files with RAD data
+fltrVCF.bash v4.2  -- a program to filter vcf files with RAD data
 
 ### SYNOPSIS
-        fltrVCF.bash [filter settings] [input files] [output file prefix] [parallelization]
+fltrVCF.bash [filter settings] [input files] [output file prefix] [parallelization]
 
 ### DESCRIPTION
         fltrVCF is a tool to filter VCF files created by dDocentHPC. The filters can be run in any order.
