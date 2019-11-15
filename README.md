@@ -1,4 +1,4 @@
-## fltrVCF.bash v4.3 -- a program to filter vcf files with RAD data
+## fltrVCF v4.3 -- a program to filter vcf files with RAD data
 
 *Dependencies*
 	* vcftools
