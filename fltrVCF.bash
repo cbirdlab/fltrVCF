@@ -248,8 +248,10 @@ function FILTER(){
 
 		if [[ $PARALLEL == "FALSE" ]]; then
 			echo ""
-			echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.vcf | wc -l
-			echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.vcf | cut -f1 | uniq | wc -l
+			# echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.vcf | wc -l
+			# echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.vcf | cut -f1 | uniq | wc -l
+			echo -n "	Sites remaining:	" && grep '^dDocent' $VCF_OUT.vcf | awk 'END { print NR }'
+			echo -n "	Contigs remaining:	" && grep '^dDocent' $VCF_OUT.vcf | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
 		else
 			echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.vcf.gz | wc -l " | awk -F: '{a+=$1} END{print a}' 
 			echo -n "	Contigs remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.vcf.gz | cut -f1 | uniq | wc -l " | awk -F: '{a+=$1} END{print a}'
@@ -972,6 +974,8 @@ EOF
 			echo ""
 			echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.HWE.recode.vcf | wc -l
 			echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.HWE.recode.vcf | cut -f1 | uniq | wc -l
+			echo -n "	Sites remaining:	" && grep '^dDocent' $VCF_OUT.HWE.recode.vcf | awk 'END { print NR }'
+			echo -n "	Contigs remaining:	" && grep '^dDocent' $VCF_OUT.HWE.recode.vcf | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
 		else
 			echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.HWE.recode.vcf.gz | wc -l " | awk -F: '{a+=$1} END{print a}' 
 			echo -n "	Contigs remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.HWE.recode.vcf.gz | cut -f1 | uniq | wc -l " | awk -F: '{a+=$1} END{print a}'
@@ -995,11 +999,15 @@ EOF
 		grep -v -f "$VCF_OUT.contigs_failing_HWE.txt" ${VCF_FILE} > $VCF_OUT.CONTIGS.IN.HWE.vcf
 		# mawk '!/#/' $VCF_OUT.CONTIGS.IN.HWE.vcf | wc -l
 		echo ""; echo "Contigs in HWE:"
-		echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.CONTIGS.IN.HWE.vcf | wc -l
-		echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.CONTIGS.IN.HWE.vcf | cut -f1 | uniq | wc -l
+		# echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.CONTIGS.IN.HWE.vcf | wc -l
+		# echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.CONTIGS.IN.HWE.vcf | cut -f1 | uniq | wc -l
+		echo -n "	Sites remaining:	" && grep '^dDocent' $VCF_OUT.CONTIGS.IN.HWE.vcf | awk 'END { print NR }'
+		echo -n "	Contigs remaining:	" && grep '^dDocent' $VCF_OUT.CONTIGS.IN.HWE.vcf | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
 		echo ""; echo "Contigs not in HWE:"
-		echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.CONTIGS.NOT.IN.HWE.vcf | wc -l
-		echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.CONTIGS.NOT.IN.HWE.vcf | cut -f1 | uniq | wc -l
+		# echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.CONTIGS.NOT.IN.HWE.vcf | wc -l
+		# echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.CONTIGS.NOT.IN.HWE.vcf | cut -f1 | uniq | wc -l
+		echo -n "	Sites remaining:	" && grep '^dDocent' $VCF_OUT.CONTIGS.NOT.IN.HWE.vcf | awk 'END { print NR }'
+		echo -n "	Contigs remaining:	" && grep '^dDocent' $VCF_OUT.CONTIGS.NOT.IN.HWE.vcf | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
 		if [[ $PARALLEL == "TRUE" ]]; then 
 			# bgzip -@ $NumProc -c $VCF_OUT.CONTIGS.IN.HWE.vcf > $VCF_OUT.SITES.NOT.IN.HWE.vcf.gz
 			bgzip -@ $NumProc -c $VCF_OUT.CONTIGS.IN.HWE.vcf > $VCF_OUT.CONTIGS.IN.HWE.vcf.gz
@@ -1060,6 +1068,9 @@ EOF
 		#runs official rad haplotyper with minor addition of a bam path -bp
 		sed "s/\t/$CutoffCode\t/g" $PopMap > $PopMap$CutoffCode
 		
+		#Force Parallelization
+		#PARALLEL=TRUE
+		
 		if [[ $PARALLEL == "TRUE" ]]; then 
 			############## Works, but runs out of memory#######################
 				# gunzip -c $VCF_FILE > ${VCF_FILE%.*}
@@ -1079,8 +1090,89 @@ EOF
 			################ End ##################################################
 			
 			############# Alternative that splits up vcf using bed files, parallelized radhaplotyper, and compartmentalizes rad haplotyper file output in sub directories#########
+			
+			
+			
+				#I copied this from old parallel handling at beginning (bottom) of script, can make it a function later after it works
+				if [[ ! -f ${BED_FILE} ]]; then
+					echo "	ERROR :-\						Could not find *.bed file. Check the following settings -c -b -d -P."
+					echo "									For help, try $(basename "$0") -h"
+					exit
+				fi
 				
-				ForceParallelRadHap() {
+				#get contigs with non-overlapping reads into 1 bed file and those with overlapping reads into another
+				# cut -f1 ${BED_FILE} | uniq -d > $DataName$CutoffCode.nonoverlapping.contigs
+				# cat $DataName$CutoffCode.nonoverlapping.contigs | parallel --no-notice -k -j $NumProc grep {} ${BED_FILE} > $DataName$CutoffCode.nonoverlapping.contigs.bed
+				# cut -f1 ${BED_FILE} | uniq -u > $DataName$CutoffCode.overlapping.contigs
+				# cat $DataName$CutoffCode.overlapping.contigs | parallel --no-notice -k -j $NumProc grep {} ${BED_FILE} > $DataName$CutoffCode.overlapping.contigs.bed
+				
+				#shuffle the lines of the bed file
+				#cat $(head -n 2 ${BED_FILE) $(tail -n +3 ${BED_FILE} | shuf) 
+				
+				#split the bed file by the number of processors, making sure that no contig is split between the files
+				NumBedLines=$(($(wc -l ${BED_FILE} | sed 's/ .*//g')/$((${NumProc}-1))))
+				# RemainderBedLines=$((${NumBedLines}%2))
+				# if [[ ${RemainderBedLines} != 0 ]]; then NumBedLines=$((NumBedLines+1)); fi
+				split --lines=${NumBedLines} --numeric-suffixes --suffix-length=4 ${BED_FILE} $DataName$CutoffCode.
+				ls $DataName$CutoffCode.[0-9][0-9][0-9][0-9] | parallel --no-notice -j $NumProc mv {} {}.bed
+				NumBedFiles=$(ls $DataName$CutoffCode.*.bed | wc -l)
+				#ensure that no contigs are split between files 
+				Indexes=($(seq -f "%04g" 0 $(($NumBedFiles-1))))
+				FirstLinePos=($(ls *bed | parallel --no-notice -k head -n 1 {} | cut -f2 )) #takes 2nd col of first lines of each file, except first file
+				for i in $(seq 0 $(($NumBedFiles-1)))
+				do
+					if [[ ${FirstLinePos[$i]} -ge 20 ]]; then   #ceb this interrogates the position; >20 indicates that the pos is not the beginning of the contig
+						j=$(($i-1))
+						head -n 1 $DataName$CutoffCode.${Indexes[$i]}.bed >> $DataName$CutoffCode.${Indexes[$j]}.bed #copies first line of bed.index to last line of bed.index-1
+						sed -i '1d' $DataName$CutoffCode.${Indexes[$i]}.bed #removes first line of bed.index
+					fi
+				done
+				
+				echo "	rad_haplotyper will be coerced to run in parallel"
+				if [[ "${VCF_FILE##*.}" == "vcf" ]]; then
+					if [[ ! -f "${VCF_FILE}.gz" ]]; then
+						echo ""; echo "	" `date` " Using bgzip and tabix to compress and index VCF for parallelization"
+						bgzip -@ $NumProc -c ${VCF_FILE} > ${VCF_FILE}.gz
+						VCF_FILE=${VCF_FILE}.gz 
+						tabix -p vcf ${VCF_FILE}
+					else
+						echo "	Changing VCF input to existing file ${VCF_FILE}.gz for parallelization.  "
+						VCF_FILE=${VCF_FILE}.gz
+					fi
+				elif [[ "${VCF_FILE##*.}" == "gz" ]]; then
+					if [[ ! -f "${VCF_FILE}" ]]; then
+						echo "	ERROR:-(   this should be impossible to trigger"
+					else
+						echo "	${VCF_FILE} will be used for parallelization."
+					fi
+					if [[ ! -f "${VCF_FILE}.tbi" ]]; then
+						echo "	${VCF_FILE}.tbi not found. Using tabix to index the *vcf.gz file"
+						tabix -p vcf ${VCF_FILE}
+					else
+						echo "	${VCF_FILE}.tbi was successfully located."
+					fi
+				fi
+
+			
+			
+			
+			
+			
+			
+			
+			
+				# # If vcf is unzipped, then either get zipped and indexed version or zip and index
+				# if [[ ${VCF_FILE##*.} == "vcf" ]]; then
+					# if [[ -f $VCF_FILE.gz && -f $VCF_FILE.gz.tbi ]]; then 
+						# VCF_FILE=$VCF_FILE.gz
+					# else
+						# bgzip -@ $NumProc -c $VCF_FILE > $VCF_FILE.gz
+						# tabix -p vcf $VCF_FILE.gz
+						# VCF_FILE=$VCF_FILE.gz
+					# fi
+				# fi
+			
+				ParallelRadHap() {
 					RADHAP_SCRIPT=$1
 					VCF_FILE=$2
 					NumProc=$3
@@ -1091,7 +1183,7 @@ EOF
 					THRESHOLDe=$8
 					THRESHOLDf=$9
 					THRESHOLDg=${10}
-				    REF_FILE=${11}
+					REF_FILE=${11}
 					BAM_PATH=${12}
 					PopMap=${13}
 					CutoffCode=${14}
@@ -1118,12 +1210,11 @@ EOF
 					echo $FILTER_ID
 					echo $DataName
 					echo $Indexing
- 
-					
-					mkdir radhap${Indexing}
-					cp $DataName$CutoffCode.${Indexing}.bed radhap${Indexing}
-					cp $RADHAP_SCRIPT radhap${Indexing}
-					cd radhap${Indexing}
+
+					mkdir radhap${Indexing}_$DataName
+					cp $DataName$CutoffCode.${Indexing}.bed radhap${Indexing}_$DataName
+					cp $RADHAP_SCRIPT radhap${Indexing}_$DataName
+					cd radhap${Indexing}_$DataName
 
 					# tabix -H ../$VCF_FILE > $VCF_OUT.header.vcf
 					# NumHeaderLines=$(tabix -H ../$VCF_FILE | wc -l)
@@ -1138,21 +1229,25 @@ EOF
 					sed -i "${LineNum}s/.*/$(echo $NewLine | sed "s/ /\t/g")/" ${Indexing}.vcf 
 					
 					#-x is the number of threads
-					perl $RADHAP_SCRIPT -v ${Indexing}.vcf -x 1 -e -d ${THRESHOLDa} -mp ${THRESHOLDb} -u ${THRESHOLDc} -ml ${THRESHOLDd} -h ${THRESHOLDe} -z ${THRESHOLDf} -m ${THRESHOLDg} -r ${REF_FILE} -bp ${BAM_PATH} -p ${PopMap}$CutoffCode -o ${VCF_OUT}.Fltr${FILTER_ID}.Haplotyped.vcf -g ${VCF_OUT}.Fltr${FILTER_ID}.${PopMap##*/}.haps.genepop -a ${VCF_OUT}.Fltr${FILTER_ID}.${PopMap##*/}.haps.ima
+					perl $RADHAP_SCRIPT -v ${Indexing}.vcf -x 1 -e -d ${THRESHOLDa} -mp ${THRESHOLDb} -u ${THRESHOLDc} -ml ${THRESHOLDd} -h ${THRESHOLDe} -z ${THRESHOLDf} -m ${THRESHOLDg} -r ../${REF_FILE} -bp ../${BAM_PATH} -p ../${PopMap}$CutoffCode -o ${VCF_OUT}.Fltr${FILTER_ID}.${Indexing}.Haplotyped.vcf -g ${VCF_OUT}.Fltr${FILTER_ID}.${Indexing}.${PopMap##*/}.haps.genepop -a ${VCF_OUT}.Fltr${FILTER_ID}.${Indexing}.${PopMap##*/}.haps.ima
 
-					if [[ ! -f ../$VCF_OUT.Fltr$FILTER_ID.stats.out ]]; then head -n 2 stats.out > ../$VCF_OUT.Fltr$FILTER_ID.stats.out; fi
-					tail -n +3 stats.out >> ../$VCF_OUT.Fltr$FILTER_ID.stats.out
+					# if [[ ! -s ../$VCF_OUT.Fltr$FILTER_ID.stats.out ]]; then head -n 2 stats.out > ../$VCF_OUT.Fltr$FILTER_ID.stats.out; fi
+					# tail -n +3 stats.out >> ../$VCF_OUT.Fltr$FILTER_ID.stats.out
 					
 					cd ..
 
 				}
-				export -f ForceParallelRadHap
+				export -f ParallelRadHap
 				
 				#make files to receive output from radhap instances
-				touch $VCF_OUT.Fltr$FILTER_ID.stats.out
+				# touch $VCF_OUT.Fltr$FILTER_ID.stats.out
 				
-				seq -f "%04g" 0 $((NumProc-1)) | parallel --no-notice -k -j $NumProc "ForceParallelRadHap $RADHAP_SCRIPT $VCF_FILE $NumProc $THRESHOLDa $THRESHOLDb $THRESHOLDc $THRESHOLDd $THRESHOLDe $THRESHOLDf $THRESHOLDg $REF_FILE $BAM_PATH $PopMap $CutoffCode $VCF_OUT $FILTER_ID $DataName {} "
+				seq -f "%04g" 0 $(($NumProc-1)) | parallel --no-notice -k -j $NumProc "ParallelRadHap $RADHAP_SCRIPT $VCF_FILE $NumProc $THRESHOLDa $THRESHOLDb $THRESHOLDc $THRESHOLDd $THRESHOLDe $THRESHOLDf $THRESHOLDg $REF_FILE $BAM_PATH $PopMap $CutoffCode $VCF_OUT $FILTER_ID $DataName {} "
 				
+				#assemble output files
+				cat <(head -n 2 radhap0000_$DataName/stats.out) <(cat radhap*_$DataName/stats.out | sort -Vk1,1 | grep -v '^rad' | grep -v '^Locus') > $VCF_OUT.Fltr$FILTER_ID.stats.out
+				cat <(head -n 1 radhap0000_$DataName/ind_stats.out) <(cat radhap*_$DataName/ind_stats.out | sort -Vk1,1 | grep -v '^Ind' | awk '{a[$1]+=$2;b[$1]+=$3;c[$1]+=$4;d[$1]+=$5;e[$1]+=$6} BEGIN {OFS="\t"} END {for (i in a) print i, a[i], b[i], c[i], d[i], e[i], (e[i]-d[i])/e[i] }' | sort -Vk1,1 ) > $VCF_OUT.Fltr$FILTER_ID.ind_stats.out
+				vcfcombine ./radhap*_$DataName/$VCF_OUT.Fltr${FILTER_ID}.*.Haplotyped.vcf | sed -e 's/\.\:/\.\/\.\:/g' > $VCF_OUT.Fltr${FILTER_ID}.Haplotyped.vcf
 			#################END#######################################################
 		else
 			#modify individual names in vcf to include cutoffcode
@@ -1163,7 +1258,13 @@ EOF
 			sed "${LineNum}s/.*/$(echo $NewLine | sed "s/ /\t/g")/" $VCF_FILE > $VCF_FILE.1.vcf
 			
 			perl $RADHAP_SCRIPT -v $VCF_FILE.1.vcf -x ${NumProc} -e -d ${THRESHOLDa} -mp ${THRESHOLDb} -u ${THRESHOLDc} -ml ${THRESHOLDd} -h ${THRESHOLDe} -z ${THRESHOLDf} -m ${THRESHOLDg} -r ${REF_FILE} -bp ${BAM_PATH} -p ${PopMap}$CutoffCode -o $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf -g $VCF_OUT.Fltr$FILTER_ID.${PopMap##*/}.haps.genepop -a $VCF_OUT.Fltr$FILTER_ID.${PopMap##*/}.haps.ima
+
+
 			mawk '!/#/' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | wc -l
+			echo -n "	Sites remaining:	" && grep '^dDocent' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | awk 'END { print NR }'
+			echo -n "	Contigs remaining:	" && grep '^dDocent' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | awk '{ a[$1]++ }  END { for (i in a) print i }' | wc -l
+
+
 			rm $VCF_FILE.1.vcf
 		fi
 		
@@ -1412,14 +1513,18 @@ plot 'haplo_sites_prophap_paralogs.dat' using 3:6 with points pt "*"
 
 pause -1
 EOF
-		
+
+		#PARALLEL=FALSE
+
 		if [[ $PARALLEL == "FALSE" ]]; then
 			# echo ""; echo -n file $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf has 
 			# mawk '!/#/' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | wc -l
 			# echo SNPs
 			echo ""
-			echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | wc -l
-			echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | cut -f1 | uniq | wc -l
+			# echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | wc -l
+			# echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | cut -f1 | uniq | wc -l
+			echo -n "	Sites remaining:	" && grep '^dDocent' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | awk 'END { print NR }'
+			echo -n "	Contigs remaining:	" && grep '^dDocent' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
 		else
 			echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf.gz | wc -l " | awk -F: '{a+=$1} END{print a}' 
 			echo -n "	Contigs remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf.gz | cut -f1 | uniq | wc -l " | awk -F: '{a+=$1} END{print a}'
@@ -1580,8 +1685,9 @@ function FILTER_VCFTOOLS(){
 			#vcftools --vcf $VCF_FILE $Filter --out $VCF_OUT 2> /dev/null
 			cat $VCF_FILE | sed '/^##contig=/d' | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k vcftools --vcf - $Filter --stdout 2> /dev/null | awk '!a[$0]++' | sed '/^#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO$/d' > $VCF_OUT.recode.vcf 
 		fi
-		echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.recode.vcf | wc -l
-		echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.recode.vcf | cut -f1 | uniq | wc -l
+		# echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.recode.vcf | wc -l
+		echo -n "	Sites remaining:	" && grep '^dDocent' $VCF_OUT.recode.vcf | awk 'END { print NR }'
+		echo -n "	Contigs remaining:	" && grep '^dDocent' $VCF_OUT.recode.vcf | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
 	else
 		echo "     ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc \"tabix -h -R {} $VCF_FILE | vcftools --vcf - $Filter --stdout 2> /dev/null | tail -n +$NumHeaderLines\" 2> /dev/null | cat $VCF_OUT.header.vcf - | bgzip -@ $NumProc -c > $VCF_OUT.recode.vcf.gz"
 		tabix -H $VCF_FILE > $VCF_OUT.header.vcf
@@ -1636,8 +1742,10 @@ function FILTER_VCFFILTER(){
 			#vcffilter -s -f "$Filter" $VCF_FILE > $VCF_OUT
 			cat $VCF_FILE | sed '/^##contig=/d' | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k vcffilter -s -f \"$Filter\" | awk '!a[$0]++' | sed '/^#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO$/d' > $VCF_OUT 
 		fi
-		echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT | wc -l
-		echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT | cut -f1 | uniq | wc -l
+		# echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT | wc -l
+		# echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT | cut -f1 | uniq | wc -l
+		echo -n "	Sites remaining:	" && grep '^dDocent' $VCF_OUT.recode.vcf | awk 'END { print NR }'
+		echo -n "	Contigs remaining:	" && grep '^dDocent' $VCF_OUT.recode.vcf | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
 	else
 		tabix -H $VCF_FILE > ${VCF_OUT%.*}.header.vcf
 		NumHeaderLines=$(tabix -H $VCF_FILE | wc -l)
@@ -2139,7 +2247,7 @@ if [[ ${PARALLEL} == "TRUE" ]]; then
 		fi
 	done
 	
-	echo "	-P set. All filters will be coerced to run in parallel."
+	echo "	-P set. All filters will be coerced to run in parallel. (depricated, might not work)"
 	if [[ "${VCF_FILE##*.}" == "vcf" ]]; then
 		if [[ ! -f "${VCF_FILE}.gz" ]]; then
 			echo ""; echo "	" `date` " Using bgzip and tabix to compress and index VCF for parallelization"
