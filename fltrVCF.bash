@@ -1581,7 +1581,7 @@ EOF
 		
 		#Adjust AF values so that 0.5 is the max, 0.5 has most info
 		AF=($(vcf-query *vcf -f '%INFO/AF\n'))
-		AF_len=$(( ${#AF[@]} - 1))
+		AF_len=$((${#AF[@]} - 1))
 		for i in $(seq 0 $AF_len); do
 			if (( $(echo "${AF[$i]} > 0.5" | bc) )); then
 				AF[$i]=$(echo "1 - ${AF[$i]}" | bc) 
@@ -1591,7 +1591,7 @@ EOF
 		
 		
 		#create temporary file that has a random number assigned to each SNP in first column
-		cat <(mawk '/^#/' $VCF_FILE) <(paste <(mawk '!/#/' $VCF_FILE | cut -f1-6) $VCF_OUT.mi <(mawk '!/#/' $VCF_FILE | cut -f8- ) )> $VCF_OUT.MostInformativeSNP.temp
+		cat <(mawk '/^#/' $VCF_FILE) <(paste <(mawk '!/#/' $VCF_FILE | cut -f1-6) $VCF_OUT.mi <(mawk '!/#/' $VCF_FILE | cut -f8- ) ) > $VCF_OUT.MostInformativeSNP.temp
 		#Use awk (mawk) to parse file and select one snp per contig (one with largest random number)
 		cat $VCF_OUT.MostInformativeSNP.temp | mawk 'BEGIN{last_loc = 0} { 
 			if ($1 ~/#/) print $0;
