@@ -1583,7 +1583,7 @@ EOF
 		AF=($(vcf-query $VCF_FILE -f '%INFO/AF\n'))
 		AF_len=$((${#AF[@]} - 1))
 		for i in $(seq 0 $AF_len); do
-			if (( $(echo "${AF[$i]} > 0.5" | bc) )); then
+			if [[ $(echo "${AF[$i]} > 0.5" | bc) ]]; then
 				AF[$i]=$(echo "1 - ${AF[$i]}" | bc) 
 			fi
 		done
