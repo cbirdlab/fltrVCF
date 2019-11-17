@@ -1583,18 +1583,19 @@ EOF
 		AF=($(vcf-query $VCF_FILE -f '%INFO/AF\n'))
 		AF_len=$((${#AF[@]} - 1))
 		for i in $(seq 0 $AF_len); do
-			if [[ $(echo "${AF[$i]} > 0.5" | bc) ]]; then
+			if [[ ${AF[$i]} > 0.5 ]]; then
 				AF[$i]=$(echo "1 - ${AF[$i]}" | bc) 
 			fi
 		done
+		#parallel --no-notice -kj10 "if [[ {} > 0.5 ]]; then $(echo \"1 - ${AF[$i]}\" | bc); fi" ::: ${AF[@]}
 		echo ${AF[@]} | tr " " "\n" > $VCF_OUT.mi 
 		
 		
-		#create temporary file that has a random number assigned to each SNP in first column
+		#create temporary file that has the AF in the 7th column, and 
 		cat <(mawk '/^#/' $VCF_FILE) <(paste <(mawk '!/#/' $VCF_FILE | cut -f1-6) $VCF_OUT.mi <(mawk '!/#/' $VCF_FILE | cut -f8- ) ) > $VCF_OUT.MostInformativeSNP.temp
-		#Use awk (mawk) to parse file and select one snp per contig (one with largest random number)
+		#Use awk (mawk) to parse file and select one snp per contig (one with AF closest to 0.5)
 		cat $VCF_OUT.MostInformativeSNP.temp | mawk 'BEGIN{last_loc = 0} { 
-			if ($1 ~/#/) print $0;
+		if ($1 ~/#/) print $0;
 			else if ($1 ~!/#/ && last_loc == 0) {last_contig=$0; last_loc=$1; last_qual=$7}
 			else if ($1 == last_loc && $7 > last_qual) {last_contig=$0; last_loc=$1; last_qual=$7}
 			else if ($1 != last_loc) {print last_contig; last_contig=$0; last_loc=$1; last_qual=$7}
