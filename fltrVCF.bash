@@ -1582,12 +1582,14 @@ EOF
 		#Adjust AF values so that 0.5 is the max, 0.5 has most info
 		AF=($(vcf-query $VCF_FILE -f '%INFO/AF\n'))
 		AF_len=$((${#AF[@]} - 1))
+		echo $AF_len
 		for i in $(seq 0 $AF_len); do
 			if [[ ${AF[$i]} > 0.5 ]]; then
 				AF[$i]=$(echo "1 - ${AF[$i]}" | bc) 
 			fi
 		done
 		#parallel --no-notice -kj10 "if [[ {} > 0.5 ]]; then $(echo \"1 - ${AF[$i]}\" | bc); fi" ::: ${AF[@]}
+		echo $AF_len
 		echo ${AF[@]} | tr " " "\n" > $VCF_OUT.mi 
 		
 		
