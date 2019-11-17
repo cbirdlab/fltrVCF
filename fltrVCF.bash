@@ -1580,7 +1580,7 @@ EOF
 		#seq 1 500000 | shuf | head -$Loci > $VCF_OUT.nq
 		
 		#Adjust AF values so that 0.5 is the max, 0.5 has most info
-		AF=($(vcf-query *vcf -f '%INFO/AF\n'))
+		AF=($(vcf-query $VCF_FILE -f '%INFO/AF\n'))
 		AF_len=$((${#AF[@]} - 1))
 		for i in $(seq 0 $AF_len); do
 			if (( $(echo "${AF[$i]} > 0.5" | bc) )); then
