@@ -36,7 +36,7 @@ Filters
 	041 custom bash			0.99	#Remove contigs with higher mean of mean depth across sites, percentile [0.99]
 	041 custom bash			0	#Remove contigs with lower CV of mean depth across sites, percentile [0]
 	041 custom bash			0.99	#Remove contigs with higher CV of mean depth across sites, percentile [0.99]
-	05  vcftools --max-missing	0.5:0.7	#Remove sites with up to this much missing data (1 = no missing data) [0.5]
+	05  vcftools --max-missing	0.5:0.7	#Remove sites with up to 1 - <value> missing data (1 = no missing data) [0.5]   This non-intuitive setting is not altered from definition in vcftools
 	
 	06  vcffilter AB min		0.375	#Remove sites with equal or lower allele balance. Effective for paralog removal. [0.375]
 	06  vcffilter AB max		0.625	#Remove sites with equal or lower allele balance. Effective for paralog removal.[0.625]
