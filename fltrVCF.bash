@@ -141,9 +141,9 @@ function FILTER(){
 		if [[ -z "$THRESHOLDb" ]]; then THRESHOLDb=5000; fi
 		THRESHOLDb=$(PARSE_THRESHOLDS $THRESHOLDb) 
 		if [[ $PARALLEL == "FALSE" ]]; then
-			grep '^dDocent' $VCF_FILE | grep -w "TYPE=snp" | cut -f1-4 > $VCF_OUT.prefltr.snp &
-			grep '^dDocent' $VCF_FILE | grep -w "TYPE=ins" | cut -f1-4 > $VCF_OUT.prefltr.ins &
-			grep '^dDocent' $VCF_FILE | grep -w "TYPE=del" | cut -f1-4 > $VCF_OUT.prefltr.del &
+			grep "^$CHROM_PREFIX" $VCF_FILE | grep -w "TYPE=snp" | cut -f1-4 > $VCF_OUT.prefltr.snp &
+			grep "^$CHROM_PREFIX" $VCF_FILE | grep -w "TYPE=ins" | cut -f1-4 > $VCF_OUT.prefltr.ins &
+			grep "^$CHROM_PREFIX" $VCF_FILE | grep -w "TYPE=del" | cut -f1-4 > $VCF_OUT.prefltr.del &
 			vcftools --vcf ${VCF_FILE} --site-mean-depth --out $VCF_OUT.prefltr 2> /dev/null &
 			wait
 			tail -n+2 $VCF_OUT.prefltr.ldepth.mean | cut -f1-3 | grep -v 'nan' > $VCF_OUT.ldepth.mean.prefltr30
@@ -154,18 +154,18 @@ function FILTER(){
 				<(grep -P '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE} | awk -v bp=$THRESHOLD '$2 > bp {print ;}' | awk -v bp=$THRESHOLDb '$2 < bp {print ;}' ) \
 				> $VCF_OUT.vcf
 			
-			grep '^dDocent' $VCF_OUT.vcf | grep -w "TYPE=snp" | cut -f1-4 > $VCF_OUT.postfltr.snp &
-			grep '^dDocent' $VCF_OUT.vcf | grep -w "TYPE=ins" | cut -f1-4 > $VCF_OUT.postfltr.ins &
-			grep '^dDocent' $VCF_OUT.vcf | grep -w "TYPE=del" | cut -f1-4 > $VCF_OUT.postfltr.del &
+			grep "^$CHROM_PREFIX" $VCF_OUT.vcf | grep -w "TYPE=snp" | cut -f1-4 > $VCF_OUT.postfltr.snp &
+			grep "^$CHROM_PREFIX" $VCF_OUT.vcf | grep -w "TYPE=ins" | cut -f1-4 > $VCF_OUT.postfltr.ins &
+			grep "^$CHROM_PREFIX" $VCF_OUT.vcf | grep -w "TYPE=del" | cut -f1-4 > $VCF_OUT.postfltr.del &
 			vcftools --vcf $VCF_OUT.vcf --site-mean-depth --out $VCF_OUT.postfltr 2> /dev/null &
 			wait
 			tail -n+2 $VCF_OUT.postfltr.ldepth.mean | cut -f1-3 | grep -v 'nan' > $VCF_OUT.ldepth.mean.postfltr30
 			Rscript $SCRIPT_PATH/plotFltr30.R $VCF_OUT.ldepth.mean.postfltr30 $VCF_OUT.postfltr.snp $VCF_OUT.postfltr.ins $VCF_OUT.postfltr.del $THRESHOLD $THRESHOLDb $VCF_OUT.postfltr.plots.pdf
 			
 		else
-			zgrep '^dDocent' $VCF_FILE | grep -w "TYPE=snp" | cut -f1-4 > $VCF_OUT.prefltr.snp &
-			zgrep '^dDocent' $VCF_FILE | grep -w "TYPE=ins" | cut -f1-4 > $VCF_OUT.prefltr.ins &
-			zgrep '^dDocent' $VCF_FILE | grep -w "TYPE=del" | cut -f1-4 > $VCF_OUT.prefltr.del &
+			zgrep "^$CHROM_PREFIX" $VCF_FILE | grep -w "TYPE=snp" | cut -f1-4 > $VCF_OUT.prefltr.snp &
+			zgrep "^$CHROM_PREFIX" $VCF_FILE | grep -w "TYPE=ins" | cut -f1-4 > $VCF_OUT.prefltr.ins &
+			zgrep "^$CHROM_PREFIX" $VCF_FILE | grep -w "TYPE=del" | cut -f1-4 > $VCF_OUT.prefltr.del &
 			vcftools --vcf ${VCF_FILE} --site-mean-depth --out $VCF_OUT.prefltr 2> /dev/null &
 			#ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -h -R {} $VCF_FILE | vcftools --vcf - $Filter --stdout 2> /dev/null | tail -n +$NumHeaderLines" 2> /dev/null | cat $VCF_OUT.header.vcf - | bgzip -@ $NumProc -c > $VCF_OUT.recode.vcf.gz
 			wait
@@ -177,9 +177,9 @@ function FILTER(){
 				| bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
 			tabix -f -p vcf $VCF_OUT.vcf.gz
 
-			zgrep '^dDocent' $VCF_OUT.vcf.gz | grep -w "TYPE=snp" | cut -f1-4 > $VCF_OUT.postfltr.snp &
-			zgrep '^dDocent' $VCF_OUT.vcf.gz | grep -w "TYPE=ins" | cut -f1-4 > $VCF_OUT.postfltr.ins &
-			zgrep '^dDocent' $VCF_OUT.vcf.gz | grep -w "TYPE=del" | cut -f1-4 > $VCF_OUT.postfltr.del &
+			zgrep "^$CHROM_PREFIX" $VCF_OUT.vcf.gz | grep -w "TYPE=snp" | cut -f1-4 > $VCF_OUT.postfltr.snp &
+			zgrep "^$CHROM_PREFIX" $VCF_OUT.vcf.gz | grep -w "TYPE=ins" | cut -f1-4 > $VCF_OUT.postfltr.ins &
+			zgrep "^$CHROM_PREFIX" $VCF_OUT.vcf.gz | grep -w "TYPE=del" | cut -f1-4 > $VCF_OUT.postfltr.del &
 			vcftools --vcf $VCF_OUT.vcf.gz --site-mean-depth --out $VCF_OUT.postfltr 2> /dev/null &
 			wait
 			tail -n+2 $VCF_OUT.postfltr.ldepth.mean | cut -f1-3 | grep -v 'nan' > $VCF_OUT.ldepth.mean.postfltr30
@@ -226,7 +226,7 @@ function FILTER(){
 
 		if [[ $PARALLEL == "FALSE" ]]; then
 			#get heterozygosity counts, then get mean rate of heterozygosity per variable position per contig, accounting for missing data
-			grep '^dDocent' ${VCF_FILE} | awk 'BEGIN{print "Contig\tNumHet\tNumHomoRef\tNumHomoAlt\tNumMissing\tNumInd"}{print $1 "\t" gsub(/0\/1:/,"0/1:") "\t" gsub(/0\/0:/,"0/0:") "\t" gsub(/1\/1:/,"1/1:") "\t" gsub(/\.\/\.:/,"./.:") "\t" gsub(/.\/.:/,"") } ' | \
+			grep "^$CHROM_PREFIX" ${VCF_FILE} | awk 'BEGIN{print "Contig\tNumHet\tNumHomoRef\tNumHomoAlt\tNumMissing\tNumInd"}{print $1 "\t" gsub(/0\/1:/,"0/1:") "\t" gsub(/0\/0:/,"0/0:") "\t" gsub(/1\/1:/,"1/1:") "\t" gsub(/\.\/\.:/,"./.:") "\t" gsub(/.\/.:/,"") } ' | \
 				tail -n+2 | awk '$3 + $5 != $6 && $4 + $5 != $6 {print ;}' | \
 				awk '{x[$1] += $2; y[$1] += $6 -=$5; N[$1]++} END{for (i in x) print i, N[i], x[i]/N[i], y[i]/N[i], x[i]/y[i] }' | tr -s " " "\t" | sort -nrk5 > $VCF_OUT.hetero.contigs
 			awk -v HET=$THRESHOLD '$5 >= HET {print $1;}' $VCF_OUT.hetero.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
@@ -234,7 +234,7 @@ function FILTER(){
 			grep -vf $VCF_OUT.remove.contigs $VCF_FILE > $VCF_OUT.vcf
 		else
 			#get heterozygosity counts, then get mean rate of heterozygosity per variable position per contig, accounting for missing data
-			zgrep '^dDocent' ${VCF_FILE} | awk 'BEGIN{print "Contig\tNumHet\tNumHomoRef\tNumHomoAlt\tNumMissing\tNumInd"}{print $1 "\t" gsub(/0\/1:/,"0/1:") "\t" gsub(/0\/0:/,"0/0:") "\t" gsub(/1\/1:/,"1/1:") "\t" gsub(/\.\/\.:/,"./.:") "\t" gsub(/.\/.:/,"") } ' | \
+			zgrep "^$CHROM_PREFIX" ${VCF_FILE} | awk 'BEGIN{print "Contig\tNumHet\tNumHomoRef\tNumHomoAlt\tNumMissing\tNumInd"}{print $1 "\t" gsub(/0\/1:/,"0/1:") "\t" gsub(/0\/0:/,"0/0:") "\t" gsub(/1\/1:/,"1/1:") "\t" gsub(/\.\/\.:/,"./.:") "\t" gsub(/.\/.:/,"") } ' | \
 				tail -n+2 | awk '$3 + $5 != $6 && $4 + $5 != $6 {print ;}' | \
 				awk '{x[$1] += $2; y[$1] += $6 -=$5; N[$1]++} END{for (i in x) print i, N[i], x[i]/N[i], y[i]/N[i], x[i]/y[i] }' | tr -s " " "\t" | sort -nrk5 > $VCF_OUT.hetero.contigs
 			awk -v HET=$THRESHOLD '$5 >= HET {print $1;}' $VCF_OUT.hetero.contigs | sed -e 's/^/\^/' -e 's/$/\t/' > $VCF_OUT.remove.contigs
@@ -250,8 +250,8 @@ function FILTER(){
 			echo ""
 			# echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.vcf | wc -l
 			# echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.vcf | cut -f1 | uniq | wc -l
-			echo -n "	Sites remaining:	" && grep '^dDocent' $VCF_OUT.vcf | awk 'END { print NR }'
-			echo -n "	Contigs remaining:	" && grep '^dDocent' $VCF_OUT.vcf | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
+			echo -n "	Sites remaining:	" && grep "^$CHROM_PREFIX" $VCF_OUT.vcf | awk 'END { print NR }'
+			echo -n "	Contigs remaining:	" && grep "^$CHROM_PREFIX" $VCF_OUT.vcf | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
 		else
 			echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.vcf.gz | wc -l " | awk -F: '{a+=$1} END{print a}' 
 			echo -n "	Contigs remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.vcf.gz | cut -f1 | uniq | wc -l " | awk -F: '{a+=$1} END{print a}'
@@ -974,8 +974,8 @@ EOF
 			echo ""
 			echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.HWE.recode.vcf | wc -l
 			echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.HWE.recode.vcf | cut -f1 | uniq | wc -l
-			echo -n "	Sites remaining:	" && grep '^dDocent' $VCF_OUT.HWE.recode.vcf | awk 'END { print NR }'
-			echo -n "	Contigs remaining:	" && grep '^dDocent' $VCF_OUT.HWE.recode.vcf | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
+			echo -n "	Sites remaining:	" && grep "^$CHROM_PREFIX" $VCF_OUT.HWE.recode.vcf | awk 'END { print NR }'
+			echo -n "	Contigs remaining:	" && grep "^$CHROM_PREFIX" $VCF_OUT.HWE.recode.vcf | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
 		else
 			echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.HWE.recode.vcf.gz | wc -l " | awk -F: '{a+=$1} END{print a}' 
 			echo -n "	Contigs remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.HWE.recode.vcf.gz | cut -f1 | uniq | wc -l " | awk -F: '{a+=$1} END{print a}'
@@ -1001,13 +1001,13 @@ EOF
 		echo ""; echo "Contigs in HWE:"
 		# echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.CONTIGS.IN.HWE.vcf | wc -l
 		# echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.CONTIGS.IN.HWE.vcf | cut -f1 | uniq | wc -l
-		echo -n "	Sites remaining:	" && grep '^dDocent' $VCF_OUT.CONTIGS.IN.HWE.vcf | awk 'END { print NR }'
-		echo -n "	Contigs remaining:	" && grep '^dDocent' $VCF_OUT.CONTIGS.IN.HWE.vcf | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
+		echo -n "	Sites remaining:	" && grep "^$CHROM_PREFIX" $VCF_OUT.CONTIGS.IN.HWE.vcf | awk 'END { print NR }'
+		echo -n "	Contigs remaining:	" && grep "^$CHROM_PREFIX" $VCF_OUT.CONTIGS.IN.HWE.vcf | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
 		echo ""; echo "Contigs not in HWE:"
 		# echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.CONTIGS.NOT.IN.HWE.vcf | wc -l
 		# echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.CONTIGS.NOT.IN.HWE.vcf | cut -f1 | uniq | wc -l
-		echo -n "	Sites remaining:	" && grep '^dDocent' $VCF_OUT.CONTIGS.NOT.IN.HWE.vcf | awk 'END { print NR }'
-		echo -n "	Contigs remaining:	" && grep '^dDocent' $VCF_OUT.CONTIGS.NOT.IN.HWE.vcf | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
+		echo -n "	Sites remaining:	" && grep "^$CHROM_PREFIX" $VCF_OUT.CONTIGS.NOT.IN.HWE.vcf | awk 'END { print NR }'
+		echo -n "	Contigs remaining:	" && grep "^$CHROM_PREFIX" $VCF_OUT.CONTIGS.NOT.IN.HWE.vcf | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
 		if [[ $PARALLEL == "TRUE" ]]; then 
 			# bgzip -@ $NumProc -c $VCF_OUT.CONTIGS.IN.HWE.vcf > $VCF_OUT.SITES.NOT.IN.HWE.vcf.gz
 			bgzip -@ $NumProc -c $VCF_OUT.CONTIGS.IN.HWE.vcf > $VCF_OUT.CONTIGS.IN.HWE.vcf.gz
@@ -1261,8 +1261,8 @@ EOF
 
 
 			mawk '!/#/' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | wc -l
-			echo -n "	Sites remaining:	" && grep '^dDocent' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | awk 'END { print NR }'
-			echo -n "	Contigs remaining:	" && grep '^dDocent' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | awk '{ a[$1]++ }  END { for (i in a) print i }' | wc -l
+			echo -n "	Sites remaining:	" && grep "^$CHROM_PREFIX" $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | awk 'END { print NR }'
+			echo -n "	Contigs remaining:	" && grep "^$CHROM_PREFIX" $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | awk '{ a[$1]++ }  END { for (i in a) print i }' | wc -l
 
 
 			rm $VCF_FILE.1.vcf
@@ -1523,8 +1523,8 @@ EOF
 			echo ""
 			# echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | wc -l
 			# echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | cut -f1 | uniq | wc -l
-			echo -n "	Sites remaining:	" && grep '^dDocent' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | awk 'END { print NR }'
-			echo -n "	Contigs remaining:	" && grep '^dDocent' $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
+			echo -n "	Sites remaining:	" && grep "^$CHROM_PREFIX" $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | awk 'END { print NR }'
+			echo -n "	Contigs remaining:	" && grep "^$CHROM_PREFIX" $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
 		else
 			echo -n "	Sites remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf.gz | wc -l " | awk -F: '{a+=$1} END{print a}' 
 			echo -n "	Contigs remaining:	" && ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc "tabix -R {} $VCF_OUT.Fltr$FILTER_ID.Haplotyped.vcf.gz | cut -f1 | uniq | wc -l " | awk -F: '{a+=$1} END{print a}'
@@ -1614,11 +1614,11 @@ EOF
 	elif [[ $FILTER_ID == "22" ]]; then
 		echo; echo `date` "---------------------------FILTER22: Test For LD -----------------------------"
 		
-		# grep '^dDocent' Hlobatus.D2.5.5.Fltr21.1.MostInformativeSNP.vcf | cut -f1-2 | tr "_" "\t" | awk 'NR==1 {a1=$1} {printf "%s %.0f\n", $4, ($3*1000)+$4}' | tr " " "\t" | cut -f2 > contig_pos.txt
+		# grep "^$CHROM_PREFIX" Hlobatus.D2.5.5.Fltr21.1.MostInformativeSNP.vcf | cut -f1-2 | tr "_" "\t" | awk 'NR==1 {a1=$1} {printf "%s %.0f\n", $4, ($3*1000)+$4}' | tr " " "\t" | cut -f2 > contig_pos.txt
 		# cat <(mawk '/^#/' Hlobatus.D2.5.5.Fltr21.1.MostInformativeSNP.vcf) <(paste <(mawk '!/#/' Hlobatus.D2.5.5.Fltr21.1.MostInformativeSNP.vcf | cut -f1) contig_pos.txt <(mawk '!/#/' Hlobatus.D2.5.5.Fltr21.1.MostInformativeSNP.vcf | cut -f3- ) )> Hlobatus.D2.5.5.Fltr21.1.MostInformativeSNP.ld.vcf
 		# sed -i 's/dDocent_Contig_[0-9]*/fltrVCF_ld_1/g' Hlobatus.D2.5.5.Fltr21.1.MostInformativeSNP.ld.vcf
 
-		grep '^dDocent' $VCF_FILE | cut -f1-2 | tr "_" "\t" | awk 'NR==1 {a1=$1} {printf "%s %.0f\n", $4, ($3*1000)+$4}' | tr " " "\t" | cut -f2 > contig_pos.txt
+		grep "^$CHROM_PREFIX" $VCF_FILE | cut -f1-2 | tr "_" "\t" | awk 'NR==1 {a1=$1} {printf "%s %.0f\n", $4, ($3*1000)+$4}' | tr " " "\t" | cut -f2 > contig_pos.txt
 		cat <(mawk '/^#/' $VCF_FILE) <(paste <(mawk '!/#/' $VCF_FILE | cut -f1) contig_pos.txt <(mawk '!/#/' $VCF_FILE | cut -f3- ) )> ${VCF_FILE%.*}.ld.vcf
 		sed -i 's/dDocent_Contig_[0-9]*/fltrVCF_ld_1/g' ${VCF_FILE%.*}.ld.vcf
 		Filter="--geno-r2"
@@ -1650,6 +1650,14 @@ EOF
 ###################################################################################################################
 #specific filter functions
 ###################################################################################################################
+
+function GET_CHROM_PREFIX(){
+	local VcfFileName=$1
+	less $VcfFileName \
+		cut -f1 \
+		tail -n1 \
+		sed 's/[_-\.]/\t/g'	
+}
 
 function FILTER_VCFTOOLS(){
 	VCFFIXUP=$1
@@ -1689,8 +1697,8 @@ function FILTER_VCFTOOLS(){
 			cat $VCF_FILE | sed '/^##contig=/d' | parallel --no-notice --header '(#.*\n)*' --pipe --block 10M -j $NumProc -k vcftools --vcf - $Filter --stdout 2> /dev/null | awk '!a[$0]++' | sed '/^#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO$/d' > $VCF_OUT.recode.vcf 
 		fi
 		# echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT.recode.vcf | wc -l
-		echo -n "	Sites remaining:	" && grep '^dDocent' $VCF_OUT.recode.vcf | awk 'END { print NR }'
-		echo -n "	Contigs remaining:	" && grep '^dDocent' $VCF_OUT.recode.vcf | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
+		echo -n "	Sites remaining:	" && grep "^$CHROM_PREFIX" $VCF_OUT.recode.vcf | awk 'END { print NR }'
+		echo -n "	Contigs remaining:	" && grep "^$CHROM_PREFIX" $VCF_OUT.recode.vcf | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
 	else
 		echo "     ls $DataName$CutoffCode.*.bed | parallel --no-notice -k -j $NumProc \"tabix -h -R {} $VCF_FILE | vcftools --vcf - $Filter --stdout 2> /dev/null | tail -n +$NumHeaderLines\" 2> /dev/null | cat $VCF_OUT.header.vcf - | bgzip -@ $NumProc -c > $VCF_OUT.recode.vcf.gz"
 		tabix -H $VCF_FILE > $VCF_OUT.header.vcf
@@ -1747,8 +1755,8 @@ function FILTER_VCFFILTER(){
 		fi
 		# echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT | wc -l
 		# echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT | cut -f1 | uniq | wc -l
-		echo -n "	Sites remaining:	" && grep '^dDocent' $VCF_OUT.recode.vcf | awk 'END { print NR }'
-		echo -n "	Contigs remaining:	" && grep '^dDocent' $VCF_OUT.recode.vcf | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
+		echo -n "	Sites remaining:	" && grep "^$CHROM_PREFIX" $VCF_OUT.recode.vcf | awk 'END { print NR }'
+		echo -n "	Contigs remaining:	" && grep "^$CHROM_PREFIX" $VCF_OUT.recode.vcf | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
 	else
 		tabix -H $VCF_FILE > ${VCF_OUT%.*}.header.vcf
 		NumHeaderLines=$(tabix -H $VCF_FILE | wc -l)
@@ -1779,9 +1787,9 @@ if [[ $PARALLEL == "TRUE" ]]; then
 	ls -tr $DataName$CutoffCode*vcf.gz | parallel -j $NumProc -k "echo -e -n {}'\t' && \  
 		zcat {} | tail -n 1 | cut -f 10- | tr '\t' '\n' | wc -l | tr -d '\n' &&\   #num individuals
 		echo -e -n '\t' && \
-		zgrep '^dDocent' {} | cut -f1 | uniq | wc -l | tr -d '\n' && \   #num contigs
+		zgrep "^$CHROM_PREFIX" {} | cut -f1 | uniq | wc -l | tr -d '\n' && \   #num contigs
 		echo -e -n '\t' && \
-		zgrep -c '^dDocent' {} | tr -d '\n' && \   #num snps
+		zgrep -c "^$CHROM_PREFIX" {} | tr -d '\n' && \   #num snps
 		echo -e -n '\t' && \
 		zgrep -oh '\./\.:' {} | wc -l | tr -d '\n' && \   #num missing genotypes
 		echo -e -n '\t' && \
@@ -1799,9 +1807,9 @@ else
 	ls -tr $DataName$CutoffCode*vcf | parallel -j $NumProc -k "echo -e -n {}'\t' && \  
 		cat {} | tail -n 1 | cut -f 10- | tr '\t' '\n' | wc -l | tr -d '\n' &&\   #num individuals
 		echo -e -n '\t' && \
-		grep '^dDocent' {} | cut -f1 | uniq | wc -l | tr -d '\n' && \   #num contigs
+		grep "^$CHROM_PREFIX" {} | cut -f1 | uniq | wc -l | tr -d '\n' && \   #num contigs
 		echo -e -n '\t' && \
-		grep -c '^dDocent' {} | tr -d '\n' && \   #num snps
+		grep -c "^$CHROM_PREFIX" {} | tr -d '\n' && \   #num snps
 		echo -e -n '\t' && \
 		grep -oh '\./\.:' {} | wc -l | tr -d '\n' && \   #num missing genotypes
 		echo -e -n '\t' && \
@@ -2300,6 +2308,9 @@ if [[ $STATS == "TRUE" ]]; then
 else
 	STATS=FALSE
 fi
+
+
+CHROM_PREFIX=$(GET_CHROM_PREFIX $VCF_FILE)
 
 echo ""
 
