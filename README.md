@@ -171,12 +171,19 @@ The following two commands are the same, the first takes advantage of the defaul
 the second does not.
 
 ```bash
-fltrVCF.bash -f "01 02 03" -c 25.10 -o ProjectX.A -t 40
+# Note that the escape character `\` continues the present line on the next line
+fltrVCF.bash \
+  -f "01 02 03" \
+  -c 25.10 -o ProjectX.A \
+  -t 40
 ```
 
 ```bash
-# Note that the escape character `\` continues the present line on the next line
-$ fltrVCF.bash -f "01 02 03" -c 25.10 -m ../mapping -v ../mapping/TotalRawSNPs.3.6.vcf \
+$ fltrVCF.bash \
+  -f "01 02 03" \
+  -c 25.10 \
+  -m ../mapping \
+  -v ../mapping/TotalRawSNPs.3.6.vcf \
   -p ../mapping/popmap.25.10 -s config.fltr.clean -w filter_hwe_by_pop.pl \
   -r rad_haplotyperHPC116.pl -o ProjectX.A -t 40
 ```
