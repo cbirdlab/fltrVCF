@@ -51,49 +51,84 @@ if [[ $3 == "gz" ]]; then
 	Col01=$(ls -tr ${PREFIX}*vcf.gz )
 	echo ""; echo `date` "Making column 2 of 19 ..."
 	Col02=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "echo -e -n {} | tr '.' '\t' | cut -f5-6 ")	#Filter Order
-	echo ""; echo `date` "Making column 4 of 19 ..."
+	echo ""; echo `date` "Making column 3 of 19 ..."
 	Col04=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zcat {} | tail -n 1 | cut -f 10- | tr '\t' '\n' | wc -l ")   #num individuals
-	echo ""; echo `date` "Making column 5 of 19 ..."
+	echo ""; echo `date` "Making column 4 of 19 ..."
 	Col05=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep \"^$CHROM_PREFIX\" {} | cut -f1 | uniq | wc -l ")   #num contigs
+	echo ""; echo `date` "Making column 5 of 19 ..."
 	Col05b=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep \"^$CHROM_PREFIX.*TYPE=\" {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs
+	echo ""; echo `date` "Making column 6 of 19 ..."
 	Col06=$(paste <(echo $Col05 | tr " " "\n") <(echo $Col05b | tr " " "\n") | awk 'BEGIN { OFS = "\t" } { $3 = $1 - $2} 1 ' | cut -f3 ) # num monomorphic contigs
+	echo ""; echo `date` "Making column 7 of 19 ..."
 	Col07=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep \"^$CHROM_PREFIX.*TYPE=snp\" {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs w SNPs
+	echo ""; echo `date` "Making column 8 of 19 ..."
 	Col08=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep \"^$CHROM_PREFIX.*TYPE=ins\" {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs w Insertions
+	echo ""; echo `date` "Making column 9 of 19 ..."
 	Col09=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep \"^$CHROM_PREFIX.*TYPE=del\" {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs w Deletions
+	echo ""; echo `date` "Making column 10 of 19 ..."
 	Col10=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -c \"^$CHROM_PREFIX.*TYPE=snp\" {} ")   #num snps
+	echo ""; echo `date` "Making column 11 of 19 ..."
 	Col11=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -c \"^$CHROM_PREFIX.*TYPE=ins\" {} ")   #num ins
+	echo ""; echo `date` "Making column 12 of 19 ..."
 	Col12=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -c \"^$CHROM_PREFIX.*TYPE=del\" {} ")   #num del
+	echo ""; echo `date` "Making column 13 of 19 ..."
 	Col13=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -oh '\./\.:' {} | wc -l ")   #num missing genotypes
+	echo ""; echo `date` "Making column 14 of 19 ..."
 	Col14=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -oh '[01]/[01]:[1-9]:' {} | wc -l ")   #num genotypes w less than 10x cvg
+	echo ""; echo `date` "Making column 15 of 19 ..."
 	Col15=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -oh '[01]/[01]:1[0-9]:' {} | wc -l ")   #num genotypes w 10-19x cvg
+	echo ""; echo `date` "Making column 16 of 19 ..."
 	Col16=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -oh '[01]/[01]:[2-4][0-9]:' {} | wc -l ")   #num genotypes w 20-49x cvg
+	echo ""; echo `date` "Making column 17 of 19 ..."
 	Col17=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -oh '[01]/[01]:[5-9][0-9]:' {} | wc -l ")   #num genotypes w 50-99x cvg
+	echo ""; echo `date` "Making column 18 of 19 ..."
 	Col18=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -oh '[01]/[01]:[1-9][0-9][0-9]:' {} | wc -l ")   #num genotypes w >=100x cvg
+	echo ""; echo `date` "Making column 19 of 19 ..."
 	Col19=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -oh '[01]/[01]:[1-9][0-9][0-9][0-9][0-9]*:' {} | wc -l ")   #num genotypes w >=1000x cvg
 else
 	CHROM_PREFIX=$(GET_CHROM_PREFIX $(ls -tr ${PREFIX}*vcf | tail -n1))
+	echo ""; echo `date` "Making column 1 of 19 ..."
 	Col01=$(ls -tr ${PREFIX}*vcf )
+	echo ""; echo `date` "Making column 2 of 19 ..."
 	Col02=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "echo -e -n {} | tr '.' '\t' | cut -f5-6 ")	#Filter Order
+	echo ""; echo `date` "Making column 3 of 19 ..."
 	Col04=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "cat {} | tail -n 1 | cut -f 10- | tr '\t' '\n' | wc -l ")   #num individuals
+	echo ""; echo `date` "Making column 4 of 19 ..."
 	Col05=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep \"^$CHROM_PREFIX\" {} | cut -f1 | uniq | wc -l ")   #num contigs
+	echo ""; echo `date` "Making column 5 of 19 ..."
 	Col05b=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep \"^$CHROM_PREFIX.*TYPE=\" {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs
+	echo ""; echo `date` "Making column 6 of 19 ..."
 	Col06=$(paste <(echo $Col05 | tr " " "\n") <(echo $Col05b | tr " " "\n") | awk 'BEGIN { OFS = "\t" } { $3 = $1 - $2} 1 ' | cut -f3 ) # num monomorphic contigs
+	echo ""; echo `date` "Making column 7 of 19 ..."
 	Col07=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep \"^$CHROM_PREFIX.*TYPE=snp\" {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs w SNPs
+	echo ""; echo `date` "Making column 8 of 19 ..."
 	Col08=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep \"^$CHROM_PREFIX.*TYPE=ins\" {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs w Insertions
+	echo ""; echo `date` "Making column 9 of 19 ..."
 	Col09=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep \"^$CHROM_PREFIX.*TYPE=del\" {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs w Deletions
+	echo ""; echo `date` "Making column 10 of 19 ..."
 	Col10=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -c \"^$CHROM_PREFIX.*TYPE=snp\" {} ")   #num snps
+	echo ""; echo `date` "Making column 11 of 19 ..."
 	Col11=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -c \"^$CHROM_PREFIX.*TYPE=ins\" {} ")   #num ins
+	echo ""; echo `date` "Making column 12 of 19 ..."
 	Col12=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -c \"^$CHROM_PREFIX.*TYPE=del\" {} ")   #num del
+	echo ""; echo `date` "Making column 13 of 19 ..."
 	Col13=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -oh '\./\.:' {} | wc -l ")   #num missing genotypes
+	echo ""; echo `date` "Making column 14 of 19 ..."
 	Col14=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -oh '[01]/[01]:[1-9]:' {} | wc -l ")   #num genotypes w less than 10x cvg
+	echo ""; echo `date` "Making column 15 of 19 ..."
 	Col15=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -oh '[01]/[01]:1[0-9]:' {} | wc -l ")   #num genotypes w 10-19x cvg
+	echo ""; echo `date` "Making column 16 of 19 ..."
 	Col16=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -oh '[01]/[01]:[2-4][0-9]:' {} | wc -l ")   #num genotypes w 20-49x cvg
+	echo ""; echo `date` "Making column 17 of 19 ..."
 	Col17=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -oh '[01]/[01]:[5-9][0-9]:' {} | wc -l ")   #num genotypes w 50-99x cvg
+	echo ""; echo `date` "Making column 18 of 19 ..."
 	Col18=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -oh '[01]/[01]:[1-9][0-9][0-9]:' {} | wc -l ")   #num genotypes w >=100x cvg
+	echo ""; echo `date` "Making column 19 of 19 ..."
 	Col19=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -oh '[01]/[01]:[1-9][0-9][0-9][0-9][0-9]*:' {} | wc -l ")   #num genotypes w >=1000x cvg
 fi
 
 #output dat file
+echo ""; echo `date` "Assembling tidy data table..."
 cat <(echo $HEADER | tr ' ' '\t') \
 	<( \
 		paste <(echo $Col01 | tr ' ' '\n') \
@@ -117,4 +152,7 @@ cat <(echo $HEADER | tr ' ' '\t') \
 	) > $PREFIX.fltrStats2.dat
 
 #plot dat file
+echo ""; echo `date` "Plotting results..."
 Rscript plot_fltrVCFstats2.R $PREFIX.fltrStats2.dat $PREFIX.fltrStats2.plots.pdf
+
+echo ""; echo `date` "fltrVCFstats2 complete!"
