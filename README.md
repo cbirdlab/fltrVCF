@@ -1,4 +1,4 @@
-## fltrVCF v4.3 -- a program to filter vcf files with RAD data
+## fltrVCF v4.4 -- a program to filter vcf files with RAD data
 
 *Dependencies*
 	* vcftools
@@ -197,3 +197,11 @@ Additional scripts for filtering and viewing output are provided in the scripts 
 	returns a tidy table where each row is a vcf file and columns are: vcf file name, 
 	number of individuals, number of contigs, number of snps, and number of genotype calls 
 	based on 0, 1-9, 10-19, etc...  reads.
+	
+---
+
+### WHAT IS NEW
+
+#### 4.4
+
+* handle vcf files not made by dDocent
