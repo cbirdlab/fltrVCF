@@ -40,6 +40,7 @@ function GET_CHROM_PREFIX(){
                 sed 's/[-_\.]//g' | \
                 cut -f1
 }
+export -f GET_CHROM_PREFIX
 
 #make header row for dat file
 HEADER=$(echo -e "File	FilterID	FilterOrder	NumInd	NumContigs	NumMonorphicContigs	NumSNPContigs	NumInsContigs	NumDelContigs	NumSNPs	NumIns	NumDel	NumMissingGeno	NumGenoLess10X	NumGeno10-19X	NumGeno20-49X	NumGeno50-99X	NumGeno100-999X	NumGenoGreater999X" )
