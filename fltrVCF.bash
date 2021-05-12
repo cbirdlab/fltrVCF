@@ -1764,8 +1764,8 @@ function FILTER_VCFFILTER(){
 		fi
 		# echo -n "	Sites remaining:	" && mawk '!/#/' $VCF_OUT | wc -l
 		# echo -n "	Contigs remaining:	" && mawk '!/#/' $VCF_OUT | cut -f1 | uniq | wc -l
-		echo -n "	Sites remaining:	" && grep "^$CHROM_PREFIX" $VCF_OUT.vcf | awk 'END { print NR }'
-		echo -n "	Contigs remaining:	" && grep "^$CHROM_PREFIX" $VCF_OUT.vcf | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
+		echo -n "	Sites remaining:	" && grep "^$CHROM_PREFIX" $VCF_OUT | awk 'END { print NR }'
+		echo -n "	Contigs remaining:	" && grep "^$CHROM_PREFIX" $VCF_OUT | awk '{ a[$1]++ }  END { for (n in a) print n }' | wc -l
 	else
 		tabix -H $VCF_FILE > ${VCF_OUT%.*}.header.vcf
 		NumHeaderLines=$(tabix -H $VCF_FILE | wc -l)
