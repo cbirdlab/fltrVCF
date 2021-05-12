@@ -53,7 +53,7 @@ Filters
 	14  vcftools --minDP		10	#Code genotypes with lesser mean depth as NA [3]
 	15  vcftools --maf		0	#Remove sites with lesser minor allele frequency.  Adjust based upon sample size. [0.005] 
 	15  vcftools --max-maf		1	#Remove sites with greater minor allele frequency.  Adjust based upon sample size. [0.995]
-	16  vcftools --missing-indv	0.8:0.4	#Remove individuals with more missing data. [0.5]
+	16  vcftools --missing-indv	0.8:0.4	#Remove individuals with more missing data (0 = no missing data). [0.5]
 	161 vcftools --remove		rmInd.txt		#Remove individuals listed in file
 	17  vcftools --missing-sites	0.5	#Remove sites with more data missing in a pop sample. [0.5]
 
