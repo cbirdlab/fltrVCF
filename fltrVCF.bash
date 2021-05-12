@@ -85,6 +85,15 @@ function MAIN(){
 ###################################################################################################################
 #Define filters 
 ###################################################################################################################
+
+function GET_CHROM_PREFIX(){
+	local VcfFileName=$1
+	less $VcfFileName | \
+		cut -f1 | \
+		tail -n1 | \
+		sed 's/[_-\.]/\t/g'	
+}
+
 function PARSE_THRESHOLDS(){
 	#the purpose of this function is to parse multiple settings for 1 filter run several times
 	local THRESH=$1
@@ -1651,14 +1660,6 @@ EOF
 #specific filter functions
 ###################################################################################################################
 
-function GET_CHROM_PREFIX(){
-	local VcfFileName=$1
-	less $VcfFileName \
-		cut -f1 \
-		tail -n1 \
-		sed 's/[_-\.]/\t/g'	
-}
-
 function FILTER_VCFTOOLS(){
 	VCFFIXUP=$1
 	# PARALLEL=$1
@@ -2309,8 +2310,7 @@ else
 	STATS=FALSE
 fi
 
-#CHROM_PREFIX=$(GET_CHROM_PREFIX $VCF_FILE)
-CHROM_PREFIX=NODE
+CHROM_PREFIX=$(GET_CHROM_PREFIX $VCF_FILE)
 
 echo ""
 
