@@ -51,11 +51,11 @@ function MAIN(){
 	# echo "          $PARALLEL"
 	
 	if [[ $PARALLEL == "FALSE" ]]; then
-#		VCF_FILE=$(ls -t ${DataName}*vcf | head -n 1)
-		VCF_FILE_2=$(ls -t ${DataName}*vcf | sed -n 2p)
+#		VCF_FILE=$(ls -t ${DataName}*vcf 2> /dev/null | head -n 1)
+		VCF_FILE_2=$(ls -t ${DataName}*vcf 2> /dev/null | sed -n 2p)
 	else
-#		VCF_FILE=$(ls -t ${DataName}*vcf.gz | head -n 1)
-		VCF_FILE_2=$(ls -t ${DataName}*vcf.gz | sed -n 2p)
+#		VCF_FILE=$(ls -t ${DataName}*vcf.gz 2> /dev/null | head -n 1)
+		VCF_FILE_2=$(ls -t ${DataName}*vcf.gz 2> /dev/null | sed -n 2p)
 	fi	
 	#this keeps track of number of filters run
 	COUNTER=1
