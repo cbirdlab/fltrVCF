@@ -142,7 +142,7 @@ For the default config to work with minimal editing, copy the following to your 
 	
 ```bash
 $ cp rad_haplotyper/rad_haplotyper.pl ProjectDir/filterVCF
-$ fltrVCF/filter_hwe_by_pop_HPC.pl ProjectDir/filterVCF
+$ cp fltrVCF/filter_hwe_by_pop_HPC.pl ProjectDir/filterVCF
 ```
 		
 		
