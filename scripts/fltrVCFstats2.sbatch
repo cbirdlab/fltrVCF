@@ -1,6 +1,7 @@
 #!/bin/bash 
 
 #SBATCH --job-name=fltrstats
+#SBATCH -o fltrVCFstats2-%j.out
 #SBATCH -p normal
 #SBATCH --time=96:00:00
 
@@ -22,23 +23,46 @@ if [[ -z $THREADS ]]; then
 	THREADS=20
 fi
 
+# function to get first word in name of every chromosom/contig
+function GET_CHROM_PREFIX(){
+        local VcfFileName=$1
+
+	echo ""; echo `date` "Getting universal chromosome/contig prefix ..."
+	echo "          Querying $VCF_FILE ..."
+	CHROM_PREFIX=$(GET_CHROM_PREFIX $VCF_FILE)
+	echo "          Prefix: $CHROM_PREFIX"
+	echo "          It is assumed that all values in the CHROM column of vcf begin with $CHROM_PREFIX"
+	echo "          If this is not the case, then fltrVCF will not work properly."
+
+        less $VcfFileName | \
+                cut -f1 | \
+                tail -n1 | \
+                sed 's/[-_\.]//g' | \
+                cut -f1
+}
+
 #make header row for dat file
 HEADER=$(echo -e "File	FilterID	FilterOrder	NumInd	NumContigs	NumMonorphicContigs	NumSNPContigs	NumInsContigs	NumDelContigs	NumSNPs	NumIns	NumDel	NumMissingGeno	NumGenoLess10X	NumGeno10-19X	NumGeno20-49X	NumGeno50-99X	NumGeno100-999X	NumGenoGreater999X" )
 
 #aggregate information for dat file
 if [[ $3 == "gz" ]]; then
+	CHROM_PREFIX=$(GET_CHROM_PREFIX $(ls -tr ${PREFIX}*vcf.gz | tail -n1))
+	echo ""; echo `date` "Making column 1 of 19 ..."
 	Col01=$(ls -tr ${PREFIX}*vcf.gz )
+	echo ""; echo `date` "Making column 2 of 19 ..."
 	Col02=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "echo -e -n {} | tr '.' '\t' | cut -f5-6 ")	#Filter Order
+	echo ""; echo `date` "Making column 4 of 19 ..."
 	Col04=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zcat {} | tail -n 1 | cut -f 10- | tr '\t' '\n' | wc -l ")   #num individuals
-	Col05=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep '^dDocent' {} | cut -f1 | uniq | wc -l ")   #num contigs
-	Col05b=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep '^dDocent.*TYPE=' {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs
+	echo ""; echo `date` "Making column 5 of 19 ..."
+	Col05=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep \"^$CHROM_PREFIX\" {} | cut -f1 | uniq | wc -l ")   #num contigs
+	Col05b=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep \"^$CHROM_PREFIX.*TYPE=\" {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs
 	Col06=$(paste <(echo $Col05 | tr " " "\n") <(echo $Col05b | tr " " "\n") | awk 'BEGIN { OFS = "\t" } { $3 = $1 - $2} 1 ' | cut -f3 ) # num monomorphic contigs
-	Col07=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep '^dDocent.*TYPE=snp' {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs w SNPs
-	Col08=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep '^dDocent.*TYPE=ins' {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs w Insertions
-	Col09=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep '^dDocent.*TYPE=del' {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs w Deletions
-	Col10=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -c '^dDocent.*TYPE=snp' {} ")   #num snps
-	Col11=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -c '^dDocent.*TYPE=ins' {} ")   #num ins
-	Col12=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -c '^dDocent.*TYPE=del' {} ")   #num del
+	Col07=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep \"^$CHROM_PREFIX.*TYPE=snp\" {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs w SNPs
+	Col08=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep \"^$CHROM_PREFIX.*TYPE=ins\" {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs w Insertions
+	Col09=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep \"^$CHROM_PREFIX.*TYPE=del\" {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs w Deletions
+	Col10=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -c \"^$CHROM_PREFIX.*TYPE=snp\" {} ")   #num snps
+	Col11=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -c \"^$CHROM_PREFIX.*TYPE=ins\" {} ")   #num ins
+	Col12=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -c \"^$CHROM_PREFIX.*TYPE=del\" {} ")   #num del
 	Col13=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -oh '\./\.:' {} | wc -l ")   #num missing genotypes
 	Col14=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -oh '[01]/[01]:[1-9]:' {} | wc -l ")   #num genotypes w less than 10x cvg
 	Col15=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -oh '[01]/[01]:1[0-9]:' {} | wc -l ")   #num genotypes w 10-19x cvg
@@ -47,18 +71,19 @@ if [[ $3 == "gz" ]]; then
 	Col18=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -oh '[01]/[01]:[1-9][0-9][0-9]:' {} | wc -l ")   #num genotypes w >=100x cvg
 	Col19=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -oh '[01]/[01]:[1-9][0-9][0-9][0-9][0-9]*:' {} | wc -l ")   #num genotypes w >=1000x cvg
 else
+	CHROM_PREFIX=$(GET_CHROM_PREFIX $(ls -tr ${PREFIX}*vcf | tail -n1))
 	Col01=$(ls -tr ${PREFIX}*vcf )
 	Col02=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "echo -e -n {} | tr '.' '\t' | cut -f5-6 ")	#Filter Order
 	Col04=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "cat {} | tail -n 1 | cut -f 10- | tr '\t' '\n' | wc -l ")   #num individuals
-	Col05=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep '^dDocent' {} | cut -f1 | uniq | wc -l ")   #num contigs
-	Col05b=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep '^dDocent.*TYPE=' {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs
+	Col05=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep \"^$CHROM_PREFIX\" {} | cut -f1 | uniq | wc -l ")   #num contigs
+	Col05b=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep \"^$CHROM_PREFIX.*TYPE=\" {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs
 	Col06=$(paste <(echo $Col05 | tr " " "\n") <(echo $Col05b | tr " " "\n") | awk 'BEGIN { OFS = "\t" } { $3 = $1 - $2} 1 ' | cut -f3 ) # num monomorphic contigs
-	Col07=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep '^dDocent.*TYPE=snp' {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs w SNPs
-	Col08=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep '^dDocent.*TYPE=ins' {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs w Insertions
-	Col09=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep '^dDocent.*TYPE=del' {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs w Deletions
-	Col10=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -c '^dDocent.*TYPE=snp' {} ")   #num snps
-	Col11=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -c '^dDocent.*TYPE=ins' {} ")   #num ins
-	Col12=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -c '^dDocent.*TYPE=del' {} ")   #num del
+	Col07=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep \"^$CHROM_PREFIX.*TYPE=snp\" {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs w SNPs
+	Col08=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep \"^$CHROM_PREFIX.*TYPE=ins\" {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs w Insertions
+	Col09=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep \"^$CHROM_PREFIX.*TYPE=del\" {} | cut -f1 | uniq | wc -l ")   #num polymorphic contigs w Deletions
+	Col10=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -c \"^$CHROM_PREFIX.*TYPE=snp\" {} ")   #num snps
+	Col11=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -c \"^$CHROM_PREFIX.*TYPE=ins\" {} ")   #num ins
+	Col12=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -c \"^$CHROM_PREFIX.*TYPE=del\" {} ")   #num del
 	Col13=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -oh '\./\.:' {} | wc -l ")   #num missing genotypes
 	Col14=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -oh '[01]/[01]:[1-9]:' {} | wc -l ")   #num genotypes w less than 10x cvg
 	Col15=$(ls -tr ${PREFIX}*vcf | parallel --no-notice -j $THREADS -k "grep -oh '[01]/[01]:1[0-9]:' {} | wc -l ")   #num genotypes w 10-19x cvg
