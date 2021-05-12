@@ -47,7 +47,7 @@ HEADER=$(echo -e "File	FilterID	FilterOrder	NumInd	NumContigs	NumMonorphicContig
 
 #aggregate information for dat file
 if [[ $3 == "gz" ]]; then
-	CHROM_PREFIX=$(GET_CHROM_PREFIX $(ls -tr ${PREFIX}*vcf.gz | tail -n1))
+	CHROM_PREFIX=$(GET_CHROM_PREFIX $(ls -tr ${PREFIX}*vcf.gz | head -n1))
 	echo ""; echo `date` "Making column 1 of 19 ..."
 	Col01=$(ls -tr ${PREFIX}*vcf.gz )
 	echo ""; echo `date` "Making column 2 of 19 ..."
@@ -87,7 +87,7 @@ if [[ $3 == "gz" ]]; then
 	echo ""; echo `date` "Making column 19 of 19 ..."
 	Col19=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -oh '[01]/[01]:[1-9][0-9][0-9][0-9][0-9]*:' {} | wc -l ")   #num genotypes w >=1000x cvg
 else
-	CHROM_PREFIX=$(GET_CHROM_PREFIX $(ls -tr ${PREFIX}*vcf | tail -n1))
+	CHROM_PREFIX=$(GET_CHROM_PREFIX $(ls -tr ${PREFIX}*vcf | head -n1))
 	echo ""; echo `date` "Making column 1 of 19 ..."
 	Col01=$(ls -tr ${PREFIX}*vcf )
 	echo ""; echo `date` "Making column 2 of 19 ..."
