@@ -20,25 +20,30 @@ module load R/gcc7/3.5.3
 THREADS=$1
 PREFIX=$2
 if [[ -z $THREADS ]]; then
-	THREADS=20
+THREADS=20
 fi
+
+echo ""; echo `date` "Running fltrVCFstats2 with the following settings..."
+echo "          DIRECTORY: $(pwd)"
+echo "          THREADS: $THREADS"
+echo "          FILE PREFIX: $PREFIX"
 
 # function to get first word in name of every chromosom/contig
 function GET_CHROM_PREFIX(){
-        local VcfFileName=$1
-
-	echo ""; echo `date` "Getting universal chromosome/contig prefix ..."
-	echo "          Querying $VCF_FILE ..."
-	CHROM_PREFIX=$(GET_CHROM_PREFIX $VCF_FILE)
-	echo "          Prefix: $CHROM_PREFIX"
-	echo "          It is assumed that all values in the CHROM column of vcf begin with $CHROM_PREFIX"
-	echo "          If this is not the case, then fltrVCF will not work properly."
-
-        less $VcfFileName | \
-                cut -f1 | \
-                tail -n1 | \
-                sed 's/[-_\.]//g' | \
-                cut -f1
+	local VcfFileName=$1
+	if [[ $3 == "gz" ]]; then
+		zcat $VcfFileName | \
+		cut -f1 | \
+		tail -n1 | \
+		sed 's/[-_\.]/\t/g' | \
+		cut -f1
+	else
+		head -n100 $VcfFileName | \
+		cut -f1 | \
+		tail -n1 | \
+		sed 's/[-_\.]/\t/g' | \
+		cut -f1
+	fi
 }
 export -f GET_CHROM_PREFIX
 
@@ -47,7 +52,13 @@ HEADER=$(echo -e "File	FilterID	FilterOrder	NumInd	NumContigs	NumMonorphicContig
 
 #aggregate information for dat file
 if [[ $3 == "gz" ]]; then
+	echo ""; echo `date` "Getting universal chromosome/contig prefix ..."
+	echo "          Querying $VCF_FILE ..."
 	CHROM_PREFIX=$(GET_CHROM_PREFIX $(ls -tr ${PREFIX}*vcf.gz | head -n1))
+	echo "          Prefix: $CHROM_PREFIX"
+	echo "          It is assumed that all values in the CHROM column of vcf begin with $CHROM_PREFIX"
+	echo "          If this is not the case, then fltrVCF will not work properly."
+
 	echo ""; echo `date` "Making column 1 of 19 ..."
 	Col01=$(ls -tr ${PREFIX}*vcf.gz )
 	echo ""; echo `date` "Making column 2 of 19 ..."
@@ -87,7 +98,13 @@ if [[ $3 == "gz" ]]; then
 	echo ""; echo `date` "Making column 19 of 19 ..."
 	Col19=$(ls -tr ${PREFIX}*vcf.gz | parallel --no-notice -j $THREADS -k "zgrep -oh '[01]/[01]:[1-9][0-9][0-9][0-9][0-9]*:' {} | wc -l ")   #num genotypes w >=1000x cvg
 else
+	echo ""; echo `date` "Getting universal chromosome/contig prefix ..."
+	echo "          Querying $VCF_FILE ..."
 	CHROM_PREFIX=$(GET_CHROM_PREFIX $(ls -tr ${PREFIX}*vcf | head -n1))
+	echo "          Prefix: $CHROM_PREFIX"
+	echo "          It is assumed that all values in the CHROM column of vcf begin with $CHROM_PREFIX"
+	echo "          If this is not the case, then fltrVCF will not work properly."
+
 	echo ""; echo `date` "Making column 1 of 19 ..."
 	Col01=$(ls -tr ${PREFIX}*vcf )
 	echo ""; echo `date` "Making column 2 of 19 ..."
@@ -150,7 +167,7 @@ cat <(echo $HEADER | tr ' ' '\t') \
 			<(echo $Col17 | tr ' ' '\n') \
 			<(echo $Col18 | tr ' ' '\n') \
 			<(echo $Col19 | tr ' ' '\n') \
-	) > $PREFIX.fltrStats2.dat
+) > $PREFIX.fltrStats2.dat
 
 #plot dat file
 echo ""; echo `date` "Plotting results..."
