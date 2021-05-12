@@ -7,9 +7,9 @@
 #This is a script to quantify the number of individuals, contigs, and variants in a filtering directory
 #Need to grab and sort the vcf files, then quantify each file, and output results to new file
 
-#to run:                 sbatch fltrVCFstats.sbatch <threads> <prefix of input/output> <gz>
-#to run on vcf files:    sbatch fltrVCFstats.sbatch 40 SpeciesX.A
-#to run on vcf.gz files: sbatch fltrVCFstats.sbatch 40 SpeciesX.A gz
+#to run:                 sbatch fltrVCFstats2.sbatch <threads> <prefix of input/output> <gz>
+#to run on vcf files:    sbatch fltrVCFstats2.sbatch 40 SpeciesX.A
+#to run on vcf.gz files: sbatch fltrVCFstats2.sbatch 40 SpeciesX.A gz
 #both arguments are optional
 
 #enable_lmod
