@@ -1832,7 +1832,7 @@ fi
 #help info / manual
 ###################################################################################################################
 
-NAME="$(basename "$0") v$VERSION  -- a program to filter vcf files with RAD data"
+NAME="$(basename "$0") v$VERSION  -- a script to filter vcf files repeatably "
 
 SYNOPSIS="$(basename "$0") [filter settings] [input files] [output file prefix] [parallelization]"
 
@@ -1915,7 +1915,7 @@ BLOCK
 #Read in command line arguments
 ###################################################################################################################
 echo ""; echo $NAME; echo ""
-echo "Dependencies:"
+echo "Dependencies required for fltrVCF to be fully functional:"
 echo "	R"
 echo "		tidyverse"
 echo "		gridExtra"
@@ -1929,7 +1929,7 @@ echo "	rad_haplotyper.pl https://github.com/cbirdlab/rad_haplotyper.git"
 echo "	filter_hwe_by_pop_HPC"
 echo ""
 
-echo "Reading options from command line:"
+echo `date` "Reading options from command line:"
 while getopts ":f:c:b:d:v:g:p:s:w:r:o:t:R:PSh" opt; do
   case $opt in
     h)
@@ -2097,7 +2097,7 @@ echo "" >&2
 #Use the user input, config file, and defaults to control settings
 ###################################################################################################################
 
-echo "Reading options from config file and setting defaults"
+echo `date` "Reading options from config file and setting defaults"
 if [[ -z ${CONFIG_FILE+x} ]]; then 
 	CONFIG_FILE=$(ls config.fltr.clean.ind)
 	echo "	Settings are being loaded from: '${CONFIG_FILE}' by default"
