@@ -160,10 +160,14 @@ function FILTER(){
 			Rscript $SCRIPT_PATH/plotFltr30.R $VCF_OUT.ldepth.mean.prefltr30 $VCF_OUT.prefltr.snp $VCF_OUT.prefltr.ins $VCF_OUT.prefltr.del $THRESHOLD $THRESHOLDb $VCF_OUT.prefltr.plots.pdf
 			echo " Plots output to $VCF_OUT.prefltr.plots.pdf"
 
-			cat <(grep -Pv '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE}) \
-				<(grep -P '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE} | awk -v bp=$THRESHOLD '$2 > bp {print ;}' | awk -v bp=$THRESHOLDb '$2 < bp {print ;}' ) \
+			# cat <(grep -Pv '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE}) \
+			# 	<(grep -P '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE} | awk -v bp=$THRESHOLD '$2 > bp {print ;}' | awk -v bp=$THRESHOLDb '$2 < bp {print ;}' ) \
+			#	> $VCF_OUT.vcf
+
+			cat <(grep -Pv "^$CHROM_PREFIX" ${VCF_FILE}) \
+				<(grep -P "^$CHROM_PREFIX" ${VCF_FILE} | awk -v bp=$THRESHOLD '$2 > bp {print ;}' | awk -v bp=$THRESHOLDb '$2 < bp {print ;}' ) \
 				> $VCF_OUT.vcf
-			
+				
 			grep "^$CHROM_PREFIX" $VCF_OUT.vcf | grep -w "TYPE=snp" | cut -f1-4 > $VCF_OUT.postfltr.snp &
 			grep "^$CHROM_PREFIX" $VCF_OUT.vcf | grep -w "TYPE=ins" | cut -f1-4 > $VCF_OUT.postfltr.ins &
 			grep "^$CHROM_PREFIX" $VCF_OUT.vcf | grep -w "TYPE=del" | cut -f1-4 > $VCF_OUT.postfltr.del &
@@ -182,8 +186,11 @@ function FILTER(){
 			tail -n+2 $VCF_OUT.prefltr.ldepth.mean | cut -f1-3 | grep -v 'nan' > $VCF_OUT.ldepth.mean.prefltr.fltr30
 			Rscript $SCRIPT_PATH/plotFltr30.R $VCF_OUT.ldepth.mean.prefltr.fltr30 $VCF_OUT.prefltr.snp $VCF_OUT.prefltr.ins $VCF_OUT.prefltr.del $THRESHOLD $THRESHOLDb $VCF_OUT.prefltr.plots.pdf
 			echo " Plots output to $VCF_OUT.prefltr.plots.pdf"
-			cat <(zgrep -Pv '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE}) \
-				<(zgrep -P '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE} | awk -v bp=$THRESHOLD '$2 > bp {print ;}' | awk -v bp=$THRESHOLDb '$2 < bp {print ;}' ) \
+			# cat <(zgrep -Pv '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE}) \
+			# 	<(zgrep -P '^dDocent_Contig_[1-9][0-9]*' ${VCF_FILE} | awk -v bp=$THRESHOLD '$2 > bp {print ;}' | awk -v bp=$THRESHOLDb '$2 < bp {print ;}' ) \
+			# 	| bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
+			cat <(zgrep -Pv "^$CHROM_PREFIX" ${VCF_FILE}) \
+				<(zgrep -P "^$CHROM_PREFIX" ${VCF_FILE} | awk -v bp=$THRESHOLD '$2 > bp {print ;}' | awk -v bp=$THRESHOLDb '$2 < bp {print ;}' ) \
 				| bgzip -@ $NumProc -c > $VCF_OUT.vcf.gz
 			tabix -f -p vcf $VCF_OUT.vcf.gz
 
@@ -384,9 +391,9 @@ THRESHOLD=$(grep -P '^\t* *041\t* *custom\t* *bash\t* *..*\t* *#Remove contigs w
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		Filter="--minQ ${THRESHOLD} --recode --recode-INFO-all"
 		if [[ $PARALLEL == "FALSE" ]]; then 
-			grep '^dDocent_Contig' ${VCF_FILE} | cut -f6 | sort -rg > ${VCF_OUT}.QUAL.before.dat
+			grep "^$CHROM_PREFIX" ${VCF_FILE} | cut -f6 | sort -rg > ${VCF_OUT}.QUAL.before.dat
 		else
-			zgrep '^dDocent_Contig' ${VCF_FILE} | cut -f6 | sort -rg > ${VCF_OUT}.QUAL.before.dat
+			zgrep "^$CHROM_PREFIX" ${VCF_FILE} | cut -f6 | sort -rg > ${VCF_OUT}.QUAL.before.dat
 		fi
 		cp ${VCF_OUT}.QUAL.before.dat QUALbefore
 		
@@ -1003,7 +1010,7 @@ EOF
 			VCF_FILE=${VCF_FILE%.*}
 		fi
 		perl $HWE_SCRIPT -v $VCF_FILE -p $PopMap -h ${THRESHOLD} -d $DataName -co $CutoffCode -o $VCF_OUT.HWE
-		cat <(grep -v '^dDocent_Contig' ${VCF_FILE}) <(comm -23 <(grep '^dDocent_Contig' ${VCF_FILE} | sort -g) <(grep '^dDocent_Contig' $VCF_OUT.HWE.recode.vcf | sort -g) | sort -V ) > $VCF_OUT.SITES.NOT.IN.HWE.vcf
+		cat <(grep -v "^$CHROM_PREFIX" ${VCF_FILE}) <(comm -23 <(grep '^dDocent_Contig' ${VCF_FILE} | sort -g) <(grep '^dDocent_Contig' $VCF_OUT.HWE.recode.vcf | sort -g) | sort -V ) > $VCF_OUT.SITES.NOT.IN.HWE.vcf
 		cat $VCF_OUT.SITES.NOT.IN.HWE.vcf | grep '^dDocent_Contig' | cut -f1 | uniq > $VCF_OUT.contigs_failing_HWE.txt
 		grep -f "$VCF_OUT.contigs_failing_HWE.txt" ${VCF_FILE} > $VCF_OUT.CONTIGS.NOT.IN.HWE.vcf
 		grep -v -f "$VCF_OUT.contigs_failing_HWE.txt" ${VCF_FILE} > $VCF_OUT.CONTIGS.IN.HWE.vcf
