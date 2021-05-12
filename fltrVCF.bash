@@ -2310,8 +2310,10 @@ else
 	STATS=FALSE
 fi
 
+echo ""; echo `date` "Getting universal chromosome/contig prefix from $VCF_FILE ..."
 CHROM_PREFIX=$(GET_CHROM_PREFIX $VCF_FILE)
-
+echo "          Chromosome/contig prefix used for filters and stats is: $CHROM_PREFIX"
+echo "          It is assumed that all values in the CHROM column of vcf begin with $CHROM_PREFIX"
 echo ""
 
 ###################################################################################################################
