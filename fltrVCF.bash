@@ -818,7 +818,7 @@ EOF
 		FILTER_VCFTOOLS "FALSE" 
 
 	elif [[ $FILTER_ID == "16" ]]; then
-		echo; echo `date` "---------------------------FILTER16: Remove Individuals with Too Much Missing Data-----------------------------"
+		echo; echo `date` "---------------------------FILTER16: Remove Individuals|Libraries with Too Much Missing Data-----------------------------"
 		THRESHOLD=($(grep -P '^\t* *16\t* *vcftools\t* *--missing-indv' ${CONFIG_FILE} | sed 's/\t* *16\t* *vcftools\t* *--missing-indv\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then THRESHOLD=0.5; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
@@ -841,8 +841,8 @@ gnuplot << \EOF
 		set terminal dumb size 120, 30
 		set autoscale 
 		unset label
-		set title "Histogram of % missing data per individual before filter. Bars to the left are desireable."
-		set ylabel "Number of Individuals"
+		set title "Histogram of % missing data per individual|library before filter. Bars to the left are desireable."
+		set ylabel "Number of Individuals|Libraries"
 		set xlabel "% missing genotypes"
 		set yrange [0:*]
 		set xrange [0:1]
@@ -856,7 +856,7 @@ gnuplot << \EOF
 set terminal dumb size 120, 30
 set autoscale 
 unset label
-set title "Scatter plot of % missing data per individual."
+set title "Scatter plot of % missing data per individual|library."
 set ylabel "% of missing data"
 set xlabel "Individual"
 xmax="`cut -f1 imiss.dat | tail -1`"
@@ -873,7 +873,7 @@ EOF
 		##!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		Filter="--remove $VCF_OUT.lowDP-2.indv --recode --recode-INFO-all"
 		#list of individuals to remove
-		echo " $(grep -c '^' $VCF_OUT.lowDP-2.indv) individuals with too much missing data:"
+		echo " $(tail -n +2 $VCF_OUT.lowDP-2.indv | grep -c '^' ) individuals|libraries with too much missing data:"
 		cat $VCF_OUT.lowDP-2.indv
 		#remove individuals with low reads
 		FILTER_VCFTOOLS "TRUE"
@@ -895,7 +895,7 @@ EOF
 		mv $VCF_OUT.header.line2 $VCF_OUT.header.line
 		
 		#report individuals per sample
-		echo ""; echo " Individuals Remaining Per Sample"
+		echo ""; echo " Individuals|Libraries Remaining Per Sample"
 		cut -f10- $VCF_OUT.header.line | tr "\t" "\n" | cut -d_ -f1 | uniq -c
 		
 		#replace header line in vcf
@@ -912,7 +912,7 @@ EOF
 		
 		
 	elif [[ $FILTER_ID == "161" ]]; then
-		echo; echo `date` "---------------------------FILTER161: Remove Individuals Listed in File-----------------------------"
+		echo; echo `date` "---------------------------FILTER161: Remove Individuals|Libraries Listed in File-----------------------------"
 		THRESHOLD=($(grep -P '^\t* *161\t* *vcftools\t* *--remove' ${CONFIG_FILE} | sed 's/\t* *161\t* *vcftools\t* *--remove\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then THRESHOLD=rmInd.txt; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
@@ -920,7 +920,7 @@ EOF
 		FILTER_VCFTOOLS "TRUE"
 
 	elif [[ $FILTER_ID == "17" ]]; then
-		echo; echo `date` "---------------------------FILTER17: Remove sites with data missing for too many individuals in a population -----------------------------"
+		echo; echo `date` "---------------------------FILTER17: Remove sites with data missing for too many individuals|libraries in a population -----------------------------"
 		THRESHOLD=($(grep -P '^\t* *17\t* *vcftools\t* *--missing-sites' ${CONFIG_FILE} | sed 's/\t* *17\t* *vcftools\t* *--missing-sites\t* *//g' | sed 's/\t* *#.*//g' )) 
 		if [[ -z "${THRESHOLD}" ]]; then THRESHOLD=0.5; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
