@@ -585,7 +585,7 @@ EOF
 #		Filter="\"AB > $THRESHOLD & AB < $THRESHOLDb | AB = 0\""
 #		VCF_OUT=$DataName$CutoffCode.Fltr$FILTER_ID.vcf
 #		#get the AB data
-#		grep '^dDocent_Contig' $VCF_FILE | cut -f1,8 | sed 's/;/\t/g' | cut -f1,2 | sed 's/AB=//' > ${VCF_OUT%.*}.AB.txt
+#		grep "^$CHROM_PREFIX" $VCF_FILE | cut -f1,8 | sed 's/;/\t/g' | cut -f1,2 | sed 's/AB=//' > ${VCF_OUT%.*}.AB.txt
 #		#calculate mean AB
 #		awk '{print $1}' AB.txt | uniq | uniq.contigs.txt
 #		awk '$1 == "dDocent_Contig_1"' AB.txt | awk '$2 != 0' | awk '{total += $2; n++ } END {if (n > 0) print "dDocent_Contig_1 " total / n} '
@@ -1010,8 +1010,8 @@ EOF
 			VCF_FILE=${VCF_FILE%.*}
 		fi
 		perl $HWE_SCRIPT -v $VCF_FILE -p $PopMap -h ${THRESHOLD} -d $DataName -co $CutoffCode -o $VCF_OUT.HWE
-		cat <(grep -v "^$CHROM_PREFIX" ${VCF_FILE}) <(comm -23 <(grep '^dDocent_Contig' ${VCF_FILE} | sort -g) <(grep '^dDocent_Contig' $VCF_OUT.HWE.recode.vcf | sort -g) | sort -V ) > $VCF_OUT.SITES.NOT.IN.HWE.vcf
-		cat $VCF_OUT.SITES.NOT.IN.HWE.vcf | grep '^dDocent_Contig' | cut -f1 | uniq > $VCF_OUT.contigs_failing_HWE.txt
+		cat <(grep -v "^$CHROM_PREFIX" ${VCF_FILE}) <(comm -23 <(grep "^$CHROM_PREFIX" ${VCF_FILE} | sort -g) <(grep "^$CHROM_PREFIX" $VCF_OUT.HWE.recode.vcf | sort -g) | sort -V ) > $VCF_OUT.SITES.NOT.IN.HWE.vcf
+		cat $VCF_OUT.SITES.NOT.IN.HWE.vcf | grep "^$CHROM_PREFIX" | cut -f1 | uniq > $VCF_OUT.contigs_failing_HWE.txt
 		grep -f "$VCF_OUT.contigs_failing_HWE.txt" ${VCF_FILE} > $VCF_OUT.CONTIGS.NOT.IN.HWE.vcf
 		grep -v -f "$VCF_OUT.contigs_failing_HWE.txt" ${VCF_FILE} > $VCF_OUT.CONTIGS.IN.HWE.vcf
 		# mawk '!/#/' $VCF_OUT.CONTIGS.IN.HWE.vcf | wc -l
@@ -1633,11 +1633,11 @@ EOF
 		
 		# grep "^$CHROM_PREFIX" Hlobatus.D2.5.5.Fltr21.1.MostInformativeSNP.vcf | cut -f1-2 | tr "_" "\t" | awk 'NR==1 {a1=$1} {printf "%s %.0f\n", $4, ($3*1000)+$4}' | tr " " "\t" | cut -f2 > contig_pos.txt
 		# cat <(mawk '/^#/' Hlobatus.D2.5.5.Fltr21.1.MostInformativeSNP.vcf) <(paste <(mawk '!/#/' Hlobatus.D2.5.5.Fltr21.1.MostInformativeSNP.vcf | cut -f1) contig_pos.txt <(mawk '!/#/' Hlobatus.D2.5.5.Fltr21.1.MostInformativeSNP.vcf | cut -f3- ) )> Hlobatus.D2.5.5.Fltr21.1.MostInformativeSNP.ld.vcf
-		# sed -i 's/dDocent_Contig_[0-9]*/fltrVCF_ld_1/g' Hlobatus.D2.5.5.Fltr21.1.MostInformativeSNP.ld.vcf
+		# sed -i "s/${CHROM_PREFIX}*/fltrVCF_ld_1/g" Hlobatus.D2.5.5.Fltr21.1.MostInformativeSNP.ld.vcf
 
 		grep "^$CHROM_PREFIX" $VCF_FILE | cut -f1-2 | tr "_" "\t" | awk 'NR==1 {a1=$1} {printf "%s %.0f\n", $4, ($3*1000)+$4}' | tr " " "\t" | cut -f2 > contig_pos.txt
 		cat <(mawk '/^#/' $VCF_FILE) <(paste <(mawk '!/#/' $VCF_FILE | cut -f1) contig_pos.txt <(mawk '!/#/' $VCF_FILE | cut -f3- ) )> ${VCF_FILE%.*}.ld.vcf
-		sed -i 's/dDocent_Contig_[0-9]*/fltrVCF_ld_1/g' ${VCF_FILE%.*}.ld.vcf
+		sed -i "s/${CHROM_PREFIX}*/fltrVCF_ld_1/g" ${VCF_FILE%.*}.ld.vcf
 		Filter="--geno-r2"
 		vcftools --vcf ${VCF_FILE%.*}.ld.vcf $Filter
 		
@@ -1653,7 +1653,7 @@ EOF
 		fi
 		VCF_OUT=${VCF_FILE%.*}.Fltr${FILTER_ID}.rmCONTIGS.${COUNTER}.vcf
 		echo "	After contig filter: $VCF_OUT"
-		comm -23 <(grep '^dDocent_Contig' ${VCF_FILE_2} | sort -g) <(grep '^dDocent_Contig' ${VCF_FILE} | sort -g) | sort -V | cut -f1 | uniq > rmCONTIGS.txt
+		comm -23 <(grep "^$CHROM_PREFIX" ${VCF_FILE_2} | sort -g) <(grep "^$CHROM_PREFIX" ${VCF_FILE} | sort -g) | sort -V | cut -f1 | uniq > rmCONTIGS.txt
 		grep -v -f "rmCONTIGS.txt" ${VCF_FILE_2} > ${VCF_OUT}
 		if [[ $PARALLEL == "TRUE" ]]; then 
 			bgzip -@ $NumProc -c ${VCF_OUT} > ${VCF_OUT}.gz
