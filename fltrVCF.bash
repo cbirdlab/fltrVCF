@@ -1990,7 +1990,7 @@ while getopts ":f:c:b:d:v:g:p:s:w:r:o:t:R:PSh" opt; do
     :)
         echo "	ERROR :-/                 Option -$OPTARG requires an argument." >&2
         ;;
-	R)
+    R)
         echo "	Path to R scripts and other scripts:        $OPTARG"
         SCRIPT_PATH=$OPTARG
         ;;
