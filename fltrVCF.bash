@@ -91,7 +91,8 @@ function GET_CHROM_PREFIX(){
 	less $VcfFileName | \
 		cut -f1 | \
 		tail -n1 | \
-		sed 's/[_-\.]/\t/g'	
+		sed 's/[_-\.]/\t/g' | \
+		cut -f1
 }
 
 function PARSE_THRESHOLDS(){
