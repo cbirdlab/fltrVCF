@@ -4,7 +4,7 @@
 #	Shuffle the bed file to improve performance
 #	Enable option to make haplotype files with radhaplotyper
 
-VERSION=4.3
+VERSION=4.4
 # Files needed:
 	# popmap.x.x.xxx, 
 	# reference.x.x.fasta
@@ -88,11 +88,19 @@ function MAIN(){
 
 function GET_CHROM_PREFIX(){
 	local VcfFileName=$1
-	less $VcfFileName | \
-		cut -f1 | \
-		tail -n1 | \
-		sed 's/[_-\.]/\t/g' | \
-		cut -f1
+	if [[ $PARALLEL == "FALSE" ]]; then
+		head -n100 $VcfFileName | \
+			cut -f1 | \
+			tail -n1 | \
+			sed 's/[_-\.]/\t/g' | \
+			cut -f1
+	else
+		zcat $VcfFileName | \
+			cut -f1 | \
+			tail -n1 | \
+			sed 's/[_-\.]/\t/g' | \
+			cut -f1	
+	fi
 }
 
 function PARSE_THRESHOLDS(){
