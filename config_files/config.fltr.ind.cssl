@@ -6,8 +6,7 @@ Notes: These settings are designed to clean a raw VCF file made from individuals
 
 fltrVCF Settings, run fltrVCF -h for description of settings
         # Paths assume you are in `filterVCF dir` when running fltrVCF, change as necessary
-        #fltrVCF -f 01 02 03 04 14 07 05 16 15 06 11 09 10 04 13 05 16 07 18 20
-        fltrVCF -f 04 14 07 05 16 15 06 11 09 10 04 13 05 16 07 18 20                        # order to run filters in
+        fltrVCF -f 01 02 03 04 14 07 05 16 15 06 11 09 10 04 13 05 16 07 18 20               # order to run filters in
         fltrVCF -c ssl.Lle-C-3NR-R1R2ORPH-contam-noisolate-off                               # cutoffs, ie ref description
         fltrVCF -b ../mkBAM                                                                  # path to *.bam files
         fltrVCF -R ../../scripts/fltrVCF/scripts                                             # path to fltrVCF R scripts
