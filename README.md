@@ -9,6 +9,7 @@
 	* [mawk](https://invisible-island.net/mawk/)
 	* [GNU parallel](https://www.gnu.org/software/parallel/)
 	* R (tidyverse, gridExtra)
+	* [rad_haplotyper 1.1.5]()
 
 ### NAME
 ```
