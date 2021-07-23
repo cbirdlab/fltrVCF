@@ -1,8 +1,9 @@
 ## fltrVCF v4.4 -- a program to filter vcf files with RAD data
 
 *Dependencies*
+
 	* vcftools
-	* vcflib
+	* [vcflib](https://github.com/vcflib/vcflib)
 	* samtools
 	* perl
 	* mawk
