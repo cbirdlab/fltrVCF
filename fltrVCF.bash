@@ -92,13 +92,13 @@ function GET_CHROM_PREFIX(){
 		head -n100 $VcfFileName | \
 			cut -f1 | \
 			tail -n1 | \
-			sed 's/[_-\.]/\t/g' | \
+			sed 's/[_\-\.]/\t/g' | \
 			cut -f1
 	else
 		zcat $VcfFileName | \
 			cut -f1 | \
 			tail -n1 | \
-			sed 's/[_-\.]/\t/g' | \
+			sed 's/[_\-\.]/\t/g' | \
 			cut -f1	
 	fi
 }
