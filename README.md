@@ -2,7 +2,7 @@
 
 *Dependencies*
 
-	* [vcftools](https://vcftools.github.io/index.html)
+[vcftools](https://vcftools.github.io/index.html)
 	* [vcflib](https://github.com/vcflib/vcflib)
 	* [samtools](http://www.htslib.org/)
 	* perl
