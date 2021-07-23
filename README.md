@@ -2,12 +2,12 @@
 
 *Dependencies*
 
-	* vcftools
+	* [vcftools](https://vcftools.github.io/index.html)
 	* [vcflib](https://github.com/vcflib/vcflib)
-	* samtools
+	* [samtools](http://www.htslib.org/)
 	* perl
-	* mawk
-	* GNU parallel
+	* [mawk](https://invisible-island.net/mawk/)
+	* [GNU parallel](https://www.gnu.org/software/parallel/)
 	* R (tidyverse, gridExtra)
 
 ### NAME
