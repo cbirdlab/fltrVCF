@@ -152,7 +152,7 @@ function FILTER(){
 		echo; echo `date` "---------------------------FILTER30: Remove Positions From Consideration -----------------------------"
 		COUNTER30=$((1+COUNTER30))
 		#get settings from config file
-		THRESHOLD=$(grep -P '^\t* *30\t* *custom\t* *bash\t* *..*\t* *#Keep sites after this position' ${CONFIG_FILE} | sed 's/\t* *30\t* *custom\t* *bash\t* *//g' | sed 's/\t* *#.*//g' ) 
+		THRESHOLD=$(grep -P '^\s* *30\t* *custom\t* *bash\t* *..*\t* *#Keep sites after this position' ${CONFIG_FILE} | sed 's/\t* *30\t* *custom\t* *bash\t* *//g' | sed 's/\t* *#.*//g' ) 
 		if [[ -z "$THRESHOLD" ]]; then THRESHOLD=0; fi
 		THRESHOLD=$(PARSE_THRESHOLDS $THRESHOLD) 
 		THRESHOLDb=$(grep -P '^\t* *30\t* *custom\t* *bash\t* *..*\t* *#Keep sites before this position' ${CONFIG_FILE} | sed 's/\t* *30\t* *custom\t* *bash\t* *//g' | sed 's/\t* *#.*//g' ) 
@@ -2228,7 +2228,7 @@ fi
 
 
 if [[ -z ${NumProc+x} ]]; then 
-	NumProc=($(grep -P '^\tfltrVCF -t ' ${CONFIG_FILE} | sed 's/\t* *fltrVCF\t* *-.\t* *//g' | sed 's/\t* *#.*//g')) 
+	NumProc=($(grep -P '^\s+fltrVCF -t ' ${CONFIG_FILE} | sed 's/\t* *fltrVCF\t* *-.\t* *//g' | sed 's/\t* *#.*//g')) 
 	if [[ $NumProc == "" ]]; then
 		NumProc=1 
 	fi
