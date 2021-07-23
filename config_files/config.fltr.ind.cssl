@@ -5,20 +5,21 @@ For all fltrVCF options use the -h argument at the command line.
 Notes: These settings are designed to clean a raw VCF file made from individuals and retain as much biological variation as possible.
 
 fltrVCF Settings, run fltrVCF -h for description of settings
+        #Paths assume you are in `filterVCF dir` when running fltrVCF
         #fltrVCF -f 01 02 03 04 14 07 05 16 15 06 11 09 10 04 13 05 16 07 18 20
         fltrVCF -f 04 14 07 05 16 15 06 11 09 10 04 13 05 16 07 18 20
-        fltrVCF -c denovoSSL.Aur-C_500_R1R2ORPHMRGD_decontam_noisolate
-        fltrVCF -b ../mkBAM_aur                         #path to *.bam files
-        fltrVCF -R ../fltrVCF/scripts
-        fltrVCF -d ../mkBAM_aur/mapped.denovoSSL.Aur-C_500_R1R2ORPHMRGD_decontam_noisolate.bed
-        fltrVCF -v AmbassisUrotaenia.denovoSSL.Aur-C_500_R1R2ORPHMRGD_decontam_noisolate.Fltr03.3.recode.vcf
-        fltrVCF -g ../mkBAM_aur/reference.denovoSSL.Aur-C_500_R1R2ORPHMRGD_decontam_noisolate.fasta
-        fltrVCF -p ../mkBAM_aur/popmap.denovoSSL.Aur-C_500_R1R2ORPHMRGD_decontam_noisolate
-        fltrVCF -w ../fltrVCF/filter_hwe_by_pop_HPC.pl
-        fltrVCF -r ../rad_haplotyper/rad_haplotyper.pl
-        fltrVCF -o AmbassisUrotaenia.D
-        fltrVCF -t 40                                           #number of threads [1]
-
+        fltrVCF -c ssl.Lle-C-3NR-R1R2ORPH-contam-noisolate-off                               # cutoffs, ie ref description
+        fltrVCF -b ../mkBAM                                                                  # path to *.bam files
+        fltrVCF -R ../../scripts/fltrVCF/scripts                                             # path to fltrVCF R scripts
+        fltrVCF -d ../mkBAM/mapped.ssl.Lle-C-3NR-R1R2ORPH-contam-noisolate-off.bed           # bed file used in genotyping
+        fltrVCF -v ../mkBAM/TotalRawSNPs.ssl.Lle-C-3NR-R1R2ORPH-contam-noisolate-off.vcf.gz  # vcf file to filter
+        fltrVCF -g ../mkBAM/reference.ssl.Lle-C-3NR-R1R2ORPH-contam-noisolate-off.fasta      # reference genome
+        fltrVCF -p ../mkBAM/popmap.denovoSSL.Aur-C_500_R1R2ORPHMRGD_decontam_noisolate       # popmap file
+        fltrVCF -w ../../scripts/fltrVCF/filter_hwe_by_pop_HPC.pl                            # path to HWE filter script
+        fltrVCF -r ../../scripts/rad_haplotyper/rad_haplotyper.pl                            # path to rad_haplotyper script
+        fltrVCF -o lle.A                                                                     # prefix on output files, use to track settings
+        fltrVCF -t 40                                                                        # number of threads [1]
+        
 Filters
         30  custom bash                 5       #Keep sites after this position (bp)
         30  custom bash                 150     #Keep sites before this position (bp)
