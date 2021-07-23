@@ -13,7 +13,7 @@ fltrVCF Settings, run fltrVCF -h for description of settings
         fltrVCF -d ../mkBAM/mapped.ssl.Lle-C-3NR-R1R2ORPH-contam-noisolate-off.bed           # bed file used in genotyping
         fltrVCF -v ../mkBAM/TotalRawSNPs.ssl.Lle-C-3NR-R1R2ORPH-contam-noisolate-off.vcf.gz  # vcf file to filter
         fltrVCF -g ../mkBAM/reference.ssl.Lle-C-3NR-R1R2ORPH-contam-noisolate-off.fasta      # reference genome
-        fltrVCF -p ../mkBAM/popmap.denovoSSL.Aur-C_500_R1R2ORPHMRGD_decontam_noisolate       # popmap file
+        fltrVCF -p ../mkBAM/popmap.ssl.Lle-C-3NR-R1R2ORPH-contam-noisolate-off                # popmap file
         fltrVCF -w ../../scripts/fltrVCF/filter_hwe_by_pop_HPC.pl                            # path to HWE filter script
         fltrVCF -r ../../scripts/rad_haplotyper/rad_haplotyper.pl                            # path to rad_haplotyper script
         fltrVCF -o lle.A                                                                     # prefix on output files, use to track settings
