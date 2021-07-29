@@ -38,8 +38,8 @@ Filters
         041 custom bash                 0.99            #Remove contigs with higher CV of mean depth across sites, percentile [0.99]
         05 vcftools --max-missing       0.55:0.6        #Remove sites with at least 1 - value missing data (1 = no missing data) [0.5]
 
-        06 vcffilter AB min             0.25            #Remove sites with equal or lower allele balance [0.2]
-        06 vcffilter AB max             0.75            #Remove sites with equal or lower allele balance [0.8]
+        06 vcffilter AB min             0.375           #Remove sites with equal or lower allele balance [0.2]
+        06 vcffilter AB max             0.625           #Remove sites with equal or lower allele balance [0.8]
         06 vcffilter AB nohet           0               #Keep sites with AB=0. Not adjustable
         07 vcffilter AC min             0               #Remove sites with equal or lower MINOR allele count [3]
         08 vcffilter SAF/SAR min        10              #Remove sites where both read1 and 2 overlap. Remove sites with equal or lower (SAF/SAR & SRF/SRR | SAR/SAF & SRR/SRF). These are the number of F and R reads supporting the REF or ALT alleles.  [10]
