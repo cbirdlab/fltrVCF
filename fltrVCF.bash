@@ -2058,7 +2058,7 @@ while getopts ":f:c:b:d:v:g:p:s:w:r:o:t:R:PSh" opt; do
         ;;
     w)
         echo "	HWE Script:               $OPTARG"
-        HWE_SCRIPT=$(${OPTARG})
+        HWE_SCRIPT=${OPTARG}
         ;;
     \?)
         echo "	ERROR :-/                 Invalid option: -$OPTARG" >&2
@@ -2068,7 +2068,7 @@ while getopts ":f:c:b:d:v:g:p:s:w:r:o:t:R:PSh" opt; do
         ;;
     r)
         echo "	Rad_Haplotyper script:    $OPTARG"
-        RADHAP_SCRIPT=$(${OPTARG})
+        RADHAP_SCRIPT=${OPTARG}
         ;;
     \?)
         echo "	ERROR :-/                 Invalid option: -$OPTARG" >&2
