@@ -208,8 +208,9 @@ Additional scripts for filtering and viewing output are provided in the scripts 
 
 * handle vcf files not made by dDocent
 
+---
 
-### CITATION
+## CITATION
 
 If you use fltrVCF in a publication, please cite the following: 
 
