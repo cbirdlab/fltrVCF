@@ -207,3 +207,13 @@ Additional scripts for filtering and viewing output are provided in the scripts 
 #### 4.4
 
 * handle vcf files not made by dDocent
+
+
+### CITATION
+
+If you use fltrVCF in a publication, please cite the following: 
+
+Biesack, E. E., Dang, B. T., Ackiss, A. S., Bird, C. E., Chheng, P., Phounvisouk, L., Truong, O.T. & Carpenter, K. E. (2020). Evidence for population genetic structure in two exploited Mekong River fishes across a natural riverine barrier. Journal of Fish Biology, 1-12.
+
+Bird, C.E. (InsertYearCloned) fltrVCF. https://github.com/cbirdlab/fltrVCF
+
