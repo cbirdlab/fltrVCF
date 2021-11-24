@@ -13,7 +13,7 @@
 
 ### NAME
 ```
-fltrVCF.bash v4.3  -- a program to filter vcf files with RAD data
+fltrVCF.bash v4.4  -- a program to filter vcf files with RAD data
 ```
 
 ### SYNOPSIS
