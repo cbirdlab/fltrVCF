@@ -216,5 +216,5 @@ If you use fltrVCF in a publication, please cite the following:
 
 Biesack, E. E., Dang, B. T., Ackiss, A. S., Bird, C. E., Chheng, P., Phounvisouk, L., Truong, O.T. & Carpenter, K. E. (2020). Evidence for population genetic structure in two exploited Mekong River fishes across a natural riverine barrier. Journal of Fish Biology, 1-12.
 
-Bird, C.E. (InsertYearOfMostRecentUpdateWhenCloned). fltrVCF v4.4. A program to filter VCF files. https://github.com/cbirdlab/fltrVCF
+Bird, C.E. & Selwyn, J.S. (InsertYearOfMostRecentUpdateWhenCloned). fltrVCF v4.4. A program to filter VCF files. https://github.com/cbirdlab/fltrVCF
 
