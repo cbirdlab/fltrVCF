@@ -1,4 +1,4 @@
-## fltrVCF v4.4 -- a program to filter vcf files with RAD data
+## fltrVCF v4.4 -- a program to filter VCF files
 
 *Dependencies*
 
